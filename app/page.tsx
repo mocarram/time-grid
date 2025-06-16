@@ -13,7 +13,7 @@ import {
 } from '@/lib/timezone-utils';
 import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock, MapPin } from 'lucide-react';
-import { toZonedTime } from 'date-fns-tz';
+import { fromZonedTime } from 'date-fns-tz';
 
 const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
@@ -223,20 +223,20 @@ export default function WorldClock() {
   //   }));
   // };
   
-  const resetToCurrentTime = () => {
-    const timeZone = referenceTimezone.timezone;
-    const now = new Date();
-  
-    // Get current time converted into reference timezone
-    const zonedDate = toZonedTime(now, timeZone);
-  
-    setTimeState(prev => ({
-      ...prev,
-      referenceTime: zonedDate,
-      selectedTime: zonedDate,
-      isTimeModified: false,
-    }));
-  };
+const resetToCurrentTime = () => {
+  const timeZone = referenceTimezone.timezone;
+  const now = new Date();
+
+  // This gives you the current date/time in the reference timezone — converted to UTC
+  const utcDate = fromZonedTime(now, timeZone);
+
+  setTimeState(prev => ({
+    ...prev,
+    referenceTime: utcDate,
+    selectedTime: utcDate,
+    isTimeModified: false,
+  }));
+};
 
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
