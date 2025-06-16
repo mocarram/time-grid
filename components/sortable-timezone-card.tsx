@@ -25,12 +25,11 @@ export function SortableTimezoneCard({
     transform,
     transition,
     isDragging,
-    isOver,
   } = useSortable({ id: timezone.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
   };
 
   return (
@@ -38,12 +37,14 @@ export function SortableTimezoneCard({
       ref={setNodeRef} 
       style={style} 
       {...attributes}
-      className="relative"
+      className={`relative transition-all duration-200 ease-out ${
+        isDragging ? 'z-50' : 'z-0'
+      }`}
     >
-      <div className={`transition-all duration-200 ${
+      <div className={`transition-all duration-200 ease-out ${
         isDragging 
-          ? 'border-2 border-dashed border-blue-400/80 rounded-3xl bg-blue-400/10 backdrop-blur-sm' 
-            : ''
+          ? 'border-2 border-dashed border-blue-400/80 rounded-3xl bg-blue-400/10 backdrop-blur-sm opacity-50' 
+          : 'opacity-100'
       }`}>
         <TimezoneCard
           timezone={timezone}
@@ -51,7 +52,7 @@ export function SortableTimezoneCard({
           onRemove={onRemove}
           onSetAsReference={onSetAsReference}
           dragHandleProps={listeners}
-          isDragging={false}
+          isDragging={isDragging}
         />
       </div>
     </div>

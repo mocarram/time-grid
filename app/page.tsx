@@ -281,7 +281,10 @@ export default function WorldClock() {
       });
     }
 
-    setActiveId(null);
+    // Add a small delay to ensure smooth animation completion
+    setTimeout(() => {
+      setActiveId(null);
+    }, 150);
   }, []);
 
   const resetToCurrentTime = () => {
@@ -508,7 +511,7 @@ export default function WorldClock() {
 
             <DragOverlay>
               {activeTimezone ? (
-                <div className="rotate-2 scale-75 shadow-2xl shadow-blue-500/25 opacity-90">
+                <div className="rotate-2 scale-75 shadow-2xl shadow-blue-500/25 opacity-90 transition-all duration-200 ease-out">
                   <TimezoneCard
                     timezone={activeTimezone}
                     displayTime={convertTime(
