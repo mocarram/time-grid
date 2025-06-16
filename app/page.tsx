@@ -13,7 +13,6 @@ import {
 } from '@/lib/timezone-utils';
 import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock, MapPin } from 'lucide-react';
-import { fromZonedTime } from 'date-fns-tz';
 
 const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
@@ -206,61 +205,22 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
-  // const resetToCurrentTime = () => {
-  //   // Get the current UTC time
-  //   const now = new Date();
+  const resetToCurrentTime = () => {
+    // Get the current UTC time
+    const now = new Date();
     
-  //   // Convert current UTC time to reference timezone
-  //   const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
-  //   const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
-  //   const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
+    // Convert current UTC time to reference timezone
+    const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
+    const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
+    const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
     
-  //   setTimeState(prev => ({
-  //     ...prev,
-  //     referenceTime: referenceTime,
-  //     selectedTime: referenceTime,
-  //     isTimeModified: false,
-  //   }));
-  // };
-    console.log(referenceTimezone);
-const resetToCurrentTime = () => {
-  const timeZone = referenceTimezone.timezone;
-
-  // Format now to the reference timezone wall clock
-  const now = new Date();
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  }).formatToParts(now);
-
-  const get = (type: string) => parts.find(p => p.type === type)?.value ?? '00';
-
-  const year = get('year');
-  const month = get('month');
-  const day = get('day');
-  const hour = get('hour');
-  const minute = get('minute');
-  const second = get('second');
-
-  // Construct wall-clock string
-  const wallClockStr = `${year}-${month}-${day} ${hour}:${minute}:${second}`;
-
-  // Parse to Date (in UTC) as if this wall clock time happened in reference timezone
-  const utcDate = fromZonedTime(wallClockStr, timeZone);
-
-  setTimeState(prev => ({
-    ...prev,
-    referenceTime: utcDate,
-    selectedTime: utcDate,
-    isTimeModified: false,
-  }));
-};
+    setTimeState(prev => ({
+      ...prev,
+      referenceTime: referenceTime,
+      selectedTime: referenceTime,
+      isTimeModified: false,
+    }));
+  };
 
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
