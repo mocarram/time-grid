@@ -182,22 +182,28 @@ export default function WorldClock() {
       timezones: prev.timezones.filter(tz => tz.id !== timezone.id),
     }));
     
+    // Convert the current selected time to the new reference timezone
+    const convertedTime = convertTime(
+      timeState.selectedTime,
+      currentReference.offset,
+      timezone.offset
+    );
+    
     // Set the new reference timezone
     setReferenceTimezone(timezone);
     setHasUserSetReference(true);
     
-    // Always add the old reference to the timezone list if it's not already there
-    // and it's not the same as the new reference
-    if (currentReference.id !== timezone.id) {
-      setTimeState(prev => ({
-        ...prev,
-        timezones: [
-          ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
-          currentReference
-        ],
-      }));
-    }
-  }, [referenceTimezone]);
+    // Update the time state with the converted time
+    setTimeState(prev => ({
+      ...prev,
+      selectedTime: convertedTime,
+      referenceTime: convertedTime,
+      timezones: [
+        ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
+        currentReference
+      ],
+    }));
+  }, [referenceTimezone, timeState.selectedTime]);
 
   const resetToCurrentTime = () => {
     const now = new Date();
