@@ -25,7 +25,6 @@ interface TimezoneCardProps {
   onRemove?: () => void;
   onSetAsReference?: () => void;
   children?: React.ReactNode;
-  isDragging?: boolean;
 }
 
 export function TimezoneCard({ 
@@ -34,8 +33,7 @@ export function TimezoneCard({
   isReference = false, 
   onRemove, 
   onSetAsReference,
-  children,
-  isDragging = false
+  children 
 }: TimezoneCardProps) {
   const [clientTime, setClientTime] = useState<{
     time: string;
@@ -59,8 +57,6 @@ export function TimezoneCard({
   return (
     <div className={`glass-card rounded-3xl p-8 transition-all duration-500 hover:bg-white/[0.04] group ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
-    } ${
-      isDragging ? 'ring-2 ring-blue-400/50 glow shadow-2xl shadow-blue-500/25' : ''
     }`}>
       <div className="space-y-4">
         {/* Header */}
