@@ -123,8 +123,8 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-16 w-16 rounded-full glass-button hover:glow transition-all duration-500 group">
-          <Plus className="h-6 w-6 text-blue-300 group-hover:text-white transition-colors duration-300" />
+        <Button className="h-14 w-14 rounded-full glass-button hover:glow transition-all duration-500 group shadow-2xl hover:shadow-blue-500/25 hover:scale-110">
+          <Plus className="h-6 w-6 text-blue-300 group-hover:text-white transition-colors duration-300 group-hover:rotate-90" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg glass-card border-white/10 text-white">

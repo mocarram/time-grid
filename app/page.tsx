@@ -417,14 +417,6 @@ export default function WorldClock() {
           })}
         </div>
 
-        {/* Add Timezone Button */}
-        <div className="flex justify-center">
-          <AddTimezoneDialog
-            onAddTimezone={handleAddTimezone}
-            existingTimezones={[referenceTimezone, ...timeState.timezones]}
-          />
-        </div>
-
         {/* Status Messages */}
         {geoLoading && (
           <div className="text-center text-slate-400 mt-8 font-light">
@@ -440,6 +432,14 @@ export default function WorldClock() {
             Using system timezone as reference
           </div>
         )}
+      </div>
+
+      {/* Floating Add Timezone Button */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <AddTimezoneDialog
+          onAddTimezone={handleAddTimezone}
+          existingTimezones={[referenceTimezone, ...timeState.timezones]}
+        />
       </div>
     </div>
   );
