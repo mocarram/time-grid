@@ -19,6 +19,7 @@ const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 export default function WorldClock() {
   const { location, error: geoError, loading: geoLoading } = useGeolocation();
   const [isClient, setIsClient] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null); // null = not loaded yet
   const [timeState, setTimeState] = useState<TimeState>({
     referenceTime: new Date(),
@@ -69,8 +70,12 @@ export default function WorldClock() {
           timezones: updatedTimezones,
         }));
       }
+      
+      // Mark as loaded after all localStorage operations are complete
+      setIsLoaded(true);
     } catch (error) {
       console.error('Failed to load timezones from localStorage:', error);
+      setIsLoaded(true); // Still mark as loaded even if there's an error
     }
   }, [isClient]);
 
@@ -202,6 +207,42 @@ export default function WorldClock() {
       isTimeModified: false,
     }));
   };
+
+  // Don't render until we've loaded from localStorage to prevent flash
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+        
+        <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="p-4 glass rounded-2xl">
+                <Clock className="h-8 w-8 text-blue-400" />
+              </div>
+            </div>
+            <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
+              World Clock
+            </h1>
+            <p className="text-slate-400 text-lg font-light">
+              Synchronize time across the globe
+            </p>
+          </div>
+          
+          {/* Loading state */}
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 text-slate-400">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              Loading your timezones...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">
