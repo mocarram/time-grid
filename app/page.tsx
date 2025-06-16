@@ -13,6 +13,7 @@ import {
 } from '@/lib/timezone-utils';
 import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock, MapPin } from 'lucide-react';
+import { utcToZonedTime } from 'date-fns-tz';
 
 const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
@@ -205,23 +206,38 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
+  // const resetToCurrentTime = () => {
+  //   // Get the current UTC time
+  //   const now = new Date();
+    
+  //   // Convert current UTC time to reference timezone
+  //   const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
+  //   const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
+  //   const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
+    
+  //   setTimeState(prev => ({
+  //     ...prev,
+  //     referenceTime: referenceTime,
+  //     selectedTime: referenceTime,
+  //     isTimeModified: false,
+  //   }));
+  // };
+
   const resetToCurrentTime = () => {
-    // Get the current UTC time
+    // get the current instant
     const now = new Date();
-    
-    // Convert current UTC time to reference timezone
-    const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
-    const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
-    const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
-    
+  
+    // convert that instant into your reference timezone
+    const referenceTime = utcToZonedTime(now, referenceTimezone.timezone);
+  
     setTimeState(prev => ({
       ...prev,
-      referenceTime: referenceTime,
+      referenceTime,
       selectedTime: referenceTime,
       isTimeModified: false,
     }));
   };
-
+  
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
     return (
