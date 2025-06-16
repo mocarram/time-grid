@@ -19,8 +19,7 @@ const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 export default function WorldClock() {
   const { location, error: geoError, loading: geoLoading } = useGeolocation();
   const [isClient, setIsClient] = useState(false);
-  const [ipDetectedTimezone, setIpDetectedTimezone] = useState<TimezoneData | null>(null);
-  const [hasUserSetReference, setHasUserSetReference] = useState(false);
+  const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null); // null = not loaded yet
   const [timeState, setTimeState] = useState<TimeState>({
     referenceTime: new Date(),
     selectedTime: new Date(),
@@ -50,6 +49,9 @@ export default function WorldClock() {
         };
         setReferenceTimezone(updatedReference);
         setHasUserSetReference(true);
+      } else {
+        // No saved reference, allow geolocation to set it
+        setHasUserSetReference(false);
       }
       
       // Load other timezones
@@ -85,7 +87,7 @@ export default function WorldClock() {
 
   // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (!isClient || !hasUserSetReference) return;
+    if (!isClient || hasUserSetReference !== true) return;
     
     try {
       localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
@@ -96,8 +98,10 @@ export default function WorldClock() {
 
   // Update reference timezone with geolocation data
   useEffect(() => {
-    // Only update from geolocation if user hasn't set a custom reference
-    if (hasUserSetReference) return;
+    // Only update from geolocation if:
+    // 1. We've finished loading from localStorage (hasUserSetReference is not null)
+    // 2. User hasn't set a custom reference (hasUserSetReference is false)
+    if (hasUserSetReference === null || hasUserSetReference === true) return;
     
     if (location && !geoError) {
       fetch(`/api/location?lat=${location.latitude}&lng=${location.longitude}`)
@@ -111,17 +115,14 @@ export default function WorldClock() {
             offset: getTimezoneOffset(data.timezone)
           };
           setReferenceTimezone(detectedTimezone);
-          setIpDetectedTimezone(detectedTimezone);
         })
         .catch(() => {
           const localTz = getLocalTimezone();
           setReferenceTimezone(localTz);
-          setIpDetectedTimezone(localTz);
         });
     } else {
       const localTz = getLocalTimezone();
       setReferenceTimezone(localTz);
-      setIpDetectedTimezone(localTz);
     }
   }, [location, geoError, hasUserSetReference]);
 
