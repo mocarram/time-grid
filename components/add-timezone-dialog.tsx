@@ -100,7 +100,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
       
       if (data.timezone) {
         const newTimezone: TimezoneData = {
-          id: `custom-${city.id}`,
+          id: `custom-${city.id}-${Date.now()}`,
           city: city.city,
           country: city.country,
           timezone: data.timezone,

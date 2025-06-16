@@ -166,9 +166,15 @@ export default function WorldClock() {
   }, []);
 
   const handleAddTimezone = useCallback((timezone: TimezoneData) => {
+    // Ensure unique ID by adding timestamp if needed
+    const uniqueTimezone = {
+      ...timezone,
+      id: timezone.id.includes('custom-') ? timezone.id : `${timezone.id}-${Date.now()}`
+    };
+    
     setTimeState(prev => ({
       ...prev,
-      timezones: [...prev.timezones, timezone],
+      timezones: [...prev.timezones, uniqueTimezone],
     }));
   }, []);
 
@@ -215,6 +221,9 @@ export default function WorldClock() {
   const handleDragEnd = useCallback((result: DropResult) => {
     if (!result.destination) return;
 
+    // Extract the actual timezone ID from the draggable ID
+    const actualId = result.draggableId.replace('draggable-', '');
+    
     const items = Array.from(timeState.timezones);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
@@ -431,7 +440,11 @@ export default function WorldClock() {
                     );
 
                     return (
-                      <Draggable key={timezone.id} draggableId={timezone.id} index={index}>
+                      <Draggable 
+                        key={`draggable-${timezone.id}`} 
+                        draggableId={`draggable-${timezone.id}`} 
+                        index={index}
+                      >
                         {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
