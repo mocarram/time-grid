@@ -1,0 +1,221 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { TimezoneCard } from '@/components/timezone-card';
+import { TimeSelector } from '@/components/time-selector';
+import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
+import { useGeolocation } from '@/hooks/use-geolocation';
+import { 
+  getLocalTimezone, 
+  convertTime, 
+  getTimezoneOffset 
+} from '@/lib/timezone-utils';
+import type { TimezoneData, TimeState } from '@/types/timezone';
+import { Clock } from 'lucide-react';
+
+const STORAGE_KEY = 'world-clock-timezones';
+
+export default function WorldClock() {
+  const { location, error: geoError, loading: geoLoading } = useGeolocation();
+  const [timeState, setTimeState] = useState<TimeState>({
+    referenceTime: new Date(),
+    selectedTime: new Date(),
+    timezones: [],
+    isTimeModified: false,
+  });
+  const [referenceTimezone, setReferenceTimezone] = useState<TimezoneData>(getLocalTimezone());
+
+  // Load timezones from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedTimezones = localStorage.getItem(STORAGE_KEY);
+      if (savedTimezones) {
+        const parsedTimezones: TimezoneData[] = JSON.parse(savedTimezones);
+        // Update offsets to current time (in case of DST changes)
+        const updatedTimezones = parsedTimezones.map(tz => ({
+          ...tz,
+          offset: getTimezoneOffset(tz.timezone)
+        }));
+        
+        setTimeState(prev => ({
+          ...prev,
+          timezones: updatedTimezones,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load timezones from localStorage:', error);
+    }
+  }, []);
+
+  // Save timezones to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
+    } catch (error) {
+      console.error('Failed to save timezones to localStorage:', error);
+    }
+  }, [timeState.timezones]);
+
+  // Update reference timezone with geolocation data
+  useEffect(() => {
+    if (location && !geoError) {
+      fetch(`/api/location?lat=${location.latitude}&lng=${location.longitude}`)
+        .then(res => res.json())
+        .then(data => {
+          setReferenceTimezone({
+            id: 'local',
+            city: data.city,
+            timezone: data.timezone,
+            country: data.country,
+            offset: getTimezoneOffset(data.timezone)
+          });
+        })
+        .catch(() => {
+          setReferenceTimezone(getLocalTimezone());
+        });
+    }
+  }, [location, geoError]);
+
+  // Update current time every minute
+  useEffect(() => {
+    const updateTime = () => {
+      if (!timeState.isTimeModified) {
+        const now = new Date();
+        setTimeState(prev => ({
+          ...prev,
+          referenceTime: now,
+          selectedTime: now,
+        }));
+      }
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
+    return () => clearInterval(interval);
+  }, [timeState.isTimeModified]);
+
+  const handleTimeChange = useCallback((newTime: Date) => {
+    setTimeState(prev => ({
+      ...prev,
+      selectedTime: newTime,
+      isTimeModified: true,
+    }));
+  }, []);
+
+  const handleAddTimezone = useCallback((timezone: TimezoneData) => {
+    setTimeState(prev => ({
+      ...prev,
+      timezones: [...prev.timezones, timezone],
+    }));
+  }, []);
+
+  const handleRemoveTimezone = useCallback((timezoneId: string) => {
+    setTimeState(prev => ({
+      ...prev,
+      timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
+    }));
+  }, []);
+
+  const resetToCurrentTime = () => {
+    const now = new Date();
+    setTimeState(prev => ({
+      ...prev,
+      referenceTime: now,
+      selectedTime: now,
+      isTimeModified: false,
+    }));
+  };
+
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+      
+      <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="p-4 glass rounded-2xl">
+              <Clock className="h-8 w-8 text-blue-400" />
+            </div>
+          </div>
+          <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
+            World Clock
+          </h1>
+          <p className="text-slate-400 text-lg font-light">
+            Synchronize time across the globe
+          </p>
+        </div>
+
+        {/* Reference Timezone Card */}
+        <div className="mb-8">
+          <TimezoneCard
+            timezone={referenceTimezone}
+            displayTime={timeState.selectedTime}
+            isReference={true}
+          >
+            <div className="space-y-6 mt-6">
+              <TimeSelector
+                selectedTime={timeState.selectedTime}
+                onTimeChange={handleTimeChange}
+              />
+              {timeState.isTimeModified && (
+                <button
+                  onClick={resetToCurrentTime}
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
+                >
+                  Reset to current time
+                </button>
+              )}
+            </div>
+          </TimezoneCard>
+        </div>
+
+        {/* Additional Timezone Cards */}
+        <div className="space-y-6 mb-12">
+          {timeState.timezones.map((timezone) => {
+            const convertedTime = convertTime(
+              timeState.selectedTime,
+              referenceTimezone.offset,
+              timezone.offset
+            );
+
+            return (
+              <TimezoneCard
+                key={timezone.id}
+                timezone={timezone}
+                displayTime={convertedTime}
+                onRemove={() => handleRemoveTimezone(timezone.id)}
+              />
+            );
+          })}
+        </div>
+
+        {/* Add Timezone Button */}
+        <div className="flex justify-center">
+          <AddTimezoneDialog
+            onAddTimezone={handleAddTimezone}
+            existingTimezones={[referenceTimezone, ...timeState.timezones]}
+          />
+        </div>
+
+        {/* Status Messages */}
+        {geoLoading && (
+          <div className="text-center text-slate-400 mt-8 font-light">
+            <div className="inline-flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              Detecting your location...
+            </div>
+          </div>
+        )}
+        
+        {geoError && (
+          <div className="text-center text-slate-500 mt-8 font-light">
+            Using system timezone as reference
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
