@@ -58,7 +58,7 @@ export function TimezoneCard({
     <div className={`glass-card rounded-3xl p-8 transition-all duration-500 hover:bg-white/[0.04] group ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
     }`}>
-      <div className="space-y-5">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
