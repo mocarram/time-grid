@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import dynamic from 'next/dynamic';
 import { TimezoneCard } from '@/components/timezone-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeSelector } from '@/components/time-selector';
@@ -15,6 +15,24 @@ import {
 import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock, MapPin } from 'lucide-react';
 import { toZonedTime } from 'date-fns-tz';
+
+// Dynamically import DragDropContext to avoid SSR issues
+const DragDropContext = dynamic(
+  () => import('react-beautiful-dnd').then(mod => mod.DragDropContext),
+  { ssr: false }
+);
+
+const Droppable = dynamic(
+  () => import('react-beautiful-dnd').then(mod => mod.Droppable),
+  { ssr: false }
+);
+
+const Draggable = dynamic(
+  () => import('react-beautiful-dnd').then(mod => mod.Draggable),
+  { ssr: false }
+);
+
+import type { DropResult } from 'react-beautiful-dnd';
 
 const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
@@ -412,53 +430,55 @@ export default function WorldClock() {
         </div>
 
         {/* Additional Timezone Cards */}
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="timezone-cards">
-            {(provided, snapshot) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className={`space-y-6 mb-12 transition-all duration-300 ${
-                  snapshot.isDraggingOver ? 'bg-blue-500/5 rounded-2xl p-4' : ''
-                }`}
-              >
-                {timeState.timezones.map((timezone, index) => {
-                  const convertedTime = convertTime(
-                    timeState.selectedTime,
-                    referenceTimezone.offset,
-                    timezone.offset
-                  );
+        {isClient && (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="timezone-cards">
+              {(provided, snapshot) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className={`space-y-6 mb-12 transition-all duration-300 ${
+                    snapshot.isDraggingOver ? 'bg-blue-500/5 rounded-2xl p-4' : ''
+                  }`}
+                >
+                  {timeState.timezones.map((timezone, index) => {
+                    const convertedTime = convertTime(
+                      timeState.selectedTime,
+                      referenceTimezone.offset,
+                      timezone.offset
+                    );
 
-                  return (
-                    <Draggable key={timezone.id} draggableId={timezone.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={`transition-all duration-300 ${
-                            snapshot.isDragging 
-                              ? 'rotate-2 scale-105 shadow-2xl shadow-blue-500/25 z-50' 
-                              : ''
-                          }`}
-                        >
-                          <TimezoneCard
-                            timezone={timezone}
-                            displayTime={convertedTime}
-                            onRemove={() => handleRemoveTimezone(timezone.id)}
-                            onSetAsReference={() => handleSetAsReference(timezone)}
-                            dragHandleProps={provided.dragHandleProps}
-                            isDragging={snapshot.isDragging}
-                          />
-                        </div>
-                      )}
-                    </Draggable>
-                  );
-                })}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
+                    return (
+                      <Draggable key={timezone.id} draggableId={timezone.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`transition-all duration-300 ${
+                              snapshot.isDragging 
+                                ? 'rotate-2 scale-105 shadow-2xl shadow-blue-500/25 z-50' 
+                                : ''
+                            }`}
+                          >
+                            <TimezoneCard
+                              timezone={timezone}
+                              displayTime={convertedTime}
+                              onRemove={() => handleRemoveTimezone(timezone.id)}
+                              onSetAsReference={() => handleSetAsReference(timezone)}
+                              dragHandleProps={provided.dragHandleProps}
+                              isDragging={snapshot.isDragging}
+                            />
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  })}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
 
         {/* Status Messages */}
         {geoLoading && (
