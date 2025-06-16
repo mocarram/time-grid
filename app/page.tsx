@@ -400,7 +400,7 @@ export default function WorldClock() {
             </div>
           </div>
           <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
-            World Clock
+            TimeGrid
           </h1>
           <p className="text-slate-400 text-lg font-light">
             Synchronize time across the globe
