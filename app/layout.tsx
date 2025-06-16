@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'World Clock - Track Time Across Timezones',
+  title: 'TimeGrid - Track Time Across Timezones',
   description: 'A beautiful world clock app to track time across different timezones with an intuitive interface.',
 };
 
