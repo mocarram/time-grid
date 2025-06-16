@@ -225,11 +225,34 @@ export default function WorldClock() {
     console.log(referenceTimezone);
 const resetToCurrentTime = () => {
   const timeZone = referenceTimezone.timezone;
-  const now = new Date();
 
-  // This gives you the current date/time in the reference timezone — converted to UTC
-  const utcDate = fromZonedTime(now, timeZone);
-  console.log("utcData", utcDate);
+  // Format now to the reference timezone wall clock
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  }).formatToParts(now);
+
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? '00';
+
+  const year = get('year');
+  const month = get('month');
+  const day = get('day');
+  const hour = get('hour');
+  const minute = get('minute');
+  const second = get('second');
+
+  // Construct wall-clock string
+  const wallClockStr = `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+
+  // Parse to Date (in UTC) as if this wall clock time happened in reference timezone
+  const utcDate = fromZonedTime(wallClockStr, timeZone);
 
   setTimeState(prev => ({
     ...prev,
