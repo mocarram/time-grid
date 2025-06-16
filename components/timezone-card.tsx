@@ -78,6 +78,24 @@ export function TimezoneCard({
               <span className="px-2 py-1 bg-white/5 rounded-lg font-mono text-xs">
                 {offsetString}
               </span>
+              {clientTime && (
+                <>
+                  <span>•</span>
+                  <span className="font-light">
+                    {clientTime.date}
+                  </span>
+                  <span className="text-xs">
+                    {clientTime.day}
+                  </span>
+                </>
+              )}
+              {!clientTime && (
+                <>
+                  <span>•</span>
+                  <Skeleton className="h-4 w-16 bg-white/10" />
+                  <Skeleton className="h-3 w-12 bg-white/10" />
+                </>
+              )}
             </div>
           </div>
           
@@ -135,14 +153,6 @@ export function TimezoneCard({
         <div className="space-y-2">
           <div className="text-5xl font-thin text-white tracking-tight">
             {clientTime?.time || <Skeleton className="h-16 w-32 bg-white/10" />}
-          </div>
-          <div className="flex items-center gap-4 text-slate-400">
-            <span className="text-lg font-light">
-              {clientTime?.date || <Skeleton className="h-6 w-24 bg-white/10" />}
-            </span>
-            <span className="text-sm">
-              {clientTime?.day || <Skeleton className="h-5 w-20 bg-white/10" />}
-            </span>
           </div>
         </div>
 
