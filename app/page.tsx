@@ -222,7 +222,7 @@ export default function WorldClock() {
   //     isTimeModified: false,
   //   }));
   // };
-  
+    console.log(referenceTimezone);
 const resetToCurrentTime = () => {
   const timeZone = referenceTimezone.timezone;
   const now = new Date();
