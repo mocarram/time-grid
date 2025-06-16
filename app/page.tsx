@@ -229,6 +229,7 @@ const resetToCurrentTime = () => {
 
   // This gives you the current date/time in the reference timezone — converted to UTC
   const utcDate = fromZonedTime(now, timeZone);
+  console.log("utcData", utcDate);
 
   setTimeState(prev => ({
     ...prev,
