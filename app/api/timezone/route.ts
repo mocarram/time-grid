@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
               'User-Agent': 'WorldClock/1.0',
               'Accept-Language': 'en'
             }
+          }
           `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
           {
             headers: {
