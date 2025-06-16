@@ -72,28 +72,30 @@
   /* Dark mode background */
   body.dark {
     background: linear-gradient(135deg, 
-      hsl(222.2 84% 4.9%) 0%, 
-      hsl(217.2 32.6% 8%) 50%, 
-      hsl(222.2 84% 4.9%) 100%);
+      hsl(222.2 84% 2%) 0%, 
+      hsl(217.2 32.6% 4%) 25%,
+      hsl(222.2 84% 1.5%) 50%, 
+      hsl(217.2 32.6% 4%) 75%,
+      hsl(222.2 84% 2%) 100%);
   }
 }
 
 @layer utilities {
   /* Glass effects for dark mode */
   .dark .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-white/[0.02] backdrop-blur-xl border border-white/[0.05];
   }
   
   .dark .glass-card {
-    @apply bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] shadow-2xl;
+    @apply bg-white/[0.01] backdrop-blur-2xl border border-white/[0.04] shadow-2xl;
   }
   
   .dark .glass-button {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300;
+    @apply bg-white/[0.03] backdrop-blur-md border border-white/[0.08] hover:bg-white/[0.08] transition-all duration-300;
   }
   
   .dark .glass-input {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 focus:border-white/30 transition-all duration-300;
+    @apply bg-white/[0.02] backdrop-blur-md border border-white/[0.06] focus:border-white/20 transition-all duration-300;
   }
 
   /* Glass effects for light mode */

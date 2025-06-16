@@ -82,10 +82,10 @@ export function TimezoneCard({
               </span>
               {clientTime ? (
                 <>
-                  <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-slate-700 dark:bg-white/5 dark:text-slate-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/10">
+                  <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-slate-700 dark:bg-white/[0.03] dark:text-slate-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/[0.06]">
                     {clientTime.date}
                   </span>
-                  <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-slate-700 dark:bg-white/5 dark:text-slate-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/10">
+                  <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-slate-700 dark:bg-white/[0.03] dark:text-slate-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/[0.06]">
                     {clientTime.day}
                   </span>
                 </>
