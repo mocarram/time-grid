@@ -113,11 +113,13 @@ export function TimezoneCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 glass-button hover:bg-white/20 hover:border-white/30 transition-all duration-300 cursor-grab active:cursor-grabbing touch-none"
+                  className="h-9 w-9 p-0 glass-button hover:bg-white/20 hover:border-white/30 transition-all duration-300 cursor-grab active:cursor-grabbing touch-none select-none"
                   title="Drag to reorder"
                   {...dragHandleProps}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
                 >
-                  <GripVertical className="h-4 w-4 text-slate-400 group-hover:text-white pointer-events-none" />
+                  <GripVertical className="h-4 w-4 text-slate-400 group-hover:text-white pointer-events-none select-none" />
                 </Button>
               )}
               {onSetAsReference && (

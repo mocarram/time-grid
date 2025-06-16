@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import dynamic from 'next/dynamic';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { TimezoneCard } from '@/components/timezone-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeSelector } from '@/components/time-selector';
@@ -16,30 +16,12 @@ import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock, MapPin } from 'lucide-react';
 import { toZonedTime } from 'date-fns-tz';
 
-// Dynamically import DragDropContext to avoid SSR issues
-const DragDropContext = dynamic(
-  () => import('react-beautiful-dnd').then(mod => mod.DragDropContext),
-  { ssr: false }
-);
-
-const Droppable = dynamic(
-  () => import('react-beautiful-dnd').then(mod => mod.Droppable),
-  { ssr: false }
-);
-
-const Draggable = dynamic(
-  () => import('react-beautiful-dnd').then(mod => mod.Draggable),
-  { ssr: false }
-);
-
-import type { DropResult } from 'react-beautiful-dnd';
-
 const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
 export default function WorldClock() {
   const { location, error: geoError, loading: geoLoading } = useGeolocation();
-  const [isClient, setIsClient] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null); // null = not loaded yet
   const [timeState, setTimeState] = useState<TimeState>({
@@ -52,12 +34,12 @@ export default function WorldClock() {
 
   // Set client flag after component mounts
   useEffect(() => {
-    setIsClient(true);
+    setIsMounted(true);
   }, []);
 
   // Load timezones from localStorage on mount
   useEffect(() => {
-    if (!isClient) return;
+    if (!isMounted) return;
     
     try {
       // Load saved reference timezone first
@@ -98,29 +80,29 @@ export default function WorldClock() {
       console.error('Failed to load timezones from localStorage:', error);
       setIsLoaded(true); // Still mark as loaded even if there's an error
     }
-  }, [isClient]);
+  }, [isMounted]);
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
-    if (!isClient) return;
+    if (!isMounted) return;
     
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
     } catch (error) {
       console.error('Failed to save timezones to localStorage:', error);
     }
-  }, [timeState.timezones, isClient]);
+  }, [timeState.timezones, isMounted]);
 
   // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (!isClient || hasUserSetReference !== true) return;
+    if (!isMounted || hasUserSetReference !== true) return;
     
     try {
       localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
     } catch (error) {
       console.error('Failed to save reference timezone to localStorage:', error);
     }
-  }, [referenceTimezone, isClient, hasUserSetReference]);
+  }, [referenceTimezone, isMounted, hasUserSetReference]);
 
   // Update reference timezone with geolocation data
   useEffect(() => {
@@ -430,7 +412,7 @@ export default function WorldClock() {
         </div>
 
         {/* Additional Timezone Cards */}
-        {isClient && (
+        {isMounted && timeState.timezones.length > 0 && (
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="timezone-cards">
               {(provided, snapshot) => (
@@ -478,6 +460,29 @@ export default function WorldClock() {
               )}
             </Droppable>
           </DragDropContext>
+        )}
+
+        {/* Fallback for when drag and drop is not available */}
+        {(!isMounted || timeState.timezones.length === 0) && timeState.timezones.length > 0 && (
+          <div className="space-y-6 mb-12">
+            {timeState.timezones.map((timezone) => {
+              const convertedTime = convertTime(
+                timeState.selectedTime,
+                referenceTimezone.offset,
+                timezone.offset
+              );
+
+              return (
+                <TimezoneCard
+                  key={timezone.id}
+                  timezone={timezone}
+                  displayTime={convertedTime}
+                  onRemove={() => handleRemoveTimezone(timezone.id)}
+                  onSetAsReference={() => handleSetAsReference(timezone)}
+                />
+              );
+            })}
+          </div>
         )}
 
         {/* Status Messages */}
