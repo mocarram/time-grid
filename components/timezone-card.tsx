@@ -73,7 +73,123 @@ export function TimezoneCard({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            {isReference && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                  {timezone.country}
+                </span>
+                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-blue-300 text-xs font-medium rounded-full border border-white/10 font-mono">
+                  {offsetString}
+                </span>
+                {clientTime ? (
+                  <>
+                    <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                      {clientTime.date}
+                    </span>
+                    <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                      {clientTime.day}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
+                    <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          
+          {!isReference && (onRemove || onSetAsReference) && (
+            <div className="flex items-center gap-2">
+              {onSetAsReference && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSetAsReference}
+                  className="h-9 w-9 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-blue-300 transition-all duration-300 group"
+                  title="Set as reference timezone"
+                >
+                  <Star className="h-4 w-4 group-hover:fill-current" />
+                </Button>
+              )}
+              {onRemove && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
+                  title="Remove timezone"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="glass-card border-white/10 text-white">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-white">Remove Timezone</AlertDialogTitle>
+                      <AlertDialogDescription className="text-slate-300">
+                        Are you sure you want to remove <span className="font-medium text-white">{timezone.city}, {timezone.country}</span> from your world clock? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="glass-button border-white/20 text-slate-300 hover:bg-white/10 hover:text-white">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={onRemove}
+                        className="bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30 hover:border-red-400/50 hover:text-red-200"
+                      >
+                        Remove
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Time Display */}
+        <div className="space-y-2">
+          <div className="text-5xl font-thin text-white tracking-tight">
+            {clientTime?.time || <Skeleton className="h-16 w-32 bg-white/10" />}
+          </div>
+        </div>
+
+        {/* Timezone Info Badges for Non-Reference Cards */}
+        {!isReference && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+              {timezone.country}
+            </span>
+            <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-blue-300 text-xs font-medium rounded-full border border-white/10 font-mono">
+              {offsetString}
+            </span>
+            {clientTime ? (
+              <>
+                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                  {clientTime.date}
+                </span>
+                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                  {clientTime.day}
+                </span>
+              </>
+            ) : (
+              <>
+                <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
+                <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Time Selector for Reference Card */}
+        {isReference && children}
+      </div>
+    </div>
+  );
+}
               <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
                 {timezone.country}
               </span>
