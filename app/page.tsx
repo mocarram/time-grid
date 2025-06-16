@@ -223,19 +223,19 @@ export default function WorldClock() {
   //   }));
   // };
 
-const resetToCurrentTime = () => {
-  const timeZone = referenceTimezone.timezone;
-
-  const now = new Date(); // current time in system timezone (UTC under the hood)
-  const zonedDate = utcToZonedTime(now, timeZone); // creates Date in reference timezone
-
-  setTimeState(prev => ({
-    ...prev,
-    referenceTime: zonedDate,
-    selectedTime: zonedDate,
-    isTimeModified: false,
-  }));
-};
+  const resetToCurrentTime = () => {
+    const timeZone = referenceTimezone.timezone;
+  
+    const now = new Date(); // current time in system timezone (UTC under the hood)
+    const zonedDate = utcToZonedTime(now, timeZone); // creates Date in reference timezone
+  
+    setTimeState(prev => ({
+      ...prev,
+      referenceTime: zonedDate,
+      selectedTime: zonedDate,
+      isTimeModified: false,
+    }));
+  };
 
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
