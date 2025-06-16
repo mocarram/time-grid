@@ -205,20 +205,53 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
-  const resetToCurrentTime = () => {
-    // Get the current time in the reference timezone
-    const now = new Date();
-    const currentTimeInReferenceTimezone = new Date(now.toLocaleString('en-US', { 
-      timeZone: referenceTimezone.timezone 
-    }));
+  // const resetToCurrentTime = () => {
+  //   // Get the current time in the reference timezone
+  //   const now = new Date();
+  //   const currentTimeInReferenceTimezone = new Date(now.toLocaleString('en-US', { 
+  //     timeZone: referenceTimezone.timezone 
+  //   }));
     
-    setTimeState(prev => ({
-      ...prev,
-      referenceTime: currentTimeInReferenceTimezone,
-      selectedTime: currentTimeInReferenceTimezone,
-      isTimeModified: false,
-    }));
-  };
+  //   setTimeState(prev => ({
+  //     ...prev,
+  //     referenceTime: currentTimeInReferenceTimezone,
+  //     selectedTime: currentTimeInReferenceTimezone,
+  //     isTimeModified: false,
+  //   }));
+  // };
+  const resetToCurrentTime = () => {
+  const now = new Date();
+
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: referenceTimezone.timezone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(now);
+
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? '00';
+
+  const year = parseInt(get('year'));
+  const month = parseInt(get('month')) - 1; // JS months are 0-indexed
+  const day = parseInt(get('day'));
+  const hour = parseInt(get('hour'));
+  const minute = parseInt(get('minute'));
+  const second = parseInt(get('second'));
+
+  const dateInRefTz = new Date(Date.UTC(year, month, day, hour, minute, second));
+
+  setTimeState(prev => ({
+    ...prev,
+    referenceTime: dateInRefTz,
+    selectedTime: dateInRefTz,
+    isTimeModified: false,
+  }));
+};
+
 
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
