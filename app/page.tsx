@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { TimezoneCard } from '@/components/timezone-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TimeSelector } from '@/components/time-selector';
 import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
 import { useGeolocation } from '@/hooks/use-geolocation';
