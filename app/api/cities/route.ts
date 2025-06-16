@@ -11,86 +11,59 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Try multiple search strategies for better results
-    const searchStrategies = [
-      // Strategy 1: Exact city search with high priority
-      {
-        url: `https://nominatim.openstreetmap.org/search?` +
-          `q=${encodeURIComponent(query)}&` +
-          `format=json&` +
-          `addressdetails=1&` +
-          `limit=15&` +
-          `featuretype=city&` +
-          `extratags=1&` +
-          `countrycodes=&` +
-          `dedupe=1`,
-        priority: 1
+    // Single comprehensive search with better parameters
+    const searchUrl = `https://nominatim.openstreetmap.org/search?` +
+      `q=${encodeURIComponent(query)}&` +
+      `format=json&` +
+      `addressdetails=1&` +
+      `limit=20&` +
+      `extratags=1&` +
+      `dedupe=1`;
+
+    const response = await fetch(searchUrl, {
+      headers: {
+        "User-Agent": "WorldClock/1.0",
       },
-      // Strategy 2: Broader search including towns and villages
-      {
-        url: `https://nominatim.openstreetmap.org/search?` +
-          `q=${encodeURIComponent(query)}&` +
-          `format=json&` +
-          `addressdetails=1&` +
-          `limit=10&` +
-          `class=place&` +
-          `type=city,town,village,municipality&` +
-          `extratags=1&` +
-          `dedupe=1`,
-        priority: 2
-      }
-    ];
+    });
 
-    let allResults: any[] = [];
-
-    // Execute search strategies
-    for (const strategy of searchStrategies) {
-      try {
-        const response = await fetch(strategy.url, {
-          headers: {
-            "User-Agent": "WorldClock/1.0",
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          // Add priority to results
-          const resultsWithPriority = data.map((item: any) => ({
-            ...item,
-            searchPriority: strategy.priority
-          }));
-          allResults = [...allResults, ...resultsWithPriority];
-        }
-      } catch (error) {
-        console.error(`Search strategy ${strategy.priority} failed:`, error);
-      }
-    }
-
-    if (allResults.length === 0) {
+    if (!response.ok) {
       return NextResponse.json({ cities: [] });
     }
 
-    // Process and filter results
-    const cities = allResults
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ cities: [] });
+    }
+
+    // Process and filter results with improved logic
+    const cities = data
       .filter((item: any) => {
         const placeType = item.type;
         const placeClass = item.class;
+        const addressType = item.addresstype;
         
-        // Accept various place types
-        const validTypes = ["city", "town", "village", "municipality", "hamlet", "suburb"];
-        const isValidPlace = validTypes.includes(placeType) || placeClass === "place";
+        // Prioritize actual cities, towns, villages over administrative boundaries
+        const validCityTypes = ["city", "town", "village", "municipality", "hamlet", "suburb"];
+        const isActualPlace = validCityTypes.includes(placeType) || 
+                             validCityTypes.includes(addressType) ||
+                             (placeClass === "place" && placeType !== "administrative");
+        
+        // Exclude administrative boundaries unless they're the only option
+        const isAdministrative = placeType === "administrative" || addressType === "state" || addressType === "province";
         
         // Ensure we have basic location data
         const hasCoordinates = item.lat && item.lon;
         const hasAddress = item.address || item.display_name;
         
-        return isValidPlace && hasCoordinates && hasAddress;
+        return isActualPlace && !isAdministrative && hasCoordinates && hasAddress;
       })
       .map((item: any) => {
         const address = item.address || {};
         
         // Extract city name with better fallback logic
         const cityName = 
+          item.name ||
           address.city ||
           address.town ||
           address.village ||
@@ -106,7 +79,7 @@ export async function GET(request: NextRequest) {
         const lat = parseFloat(item.lat);
         const lon = parseFloat(item.lon);
 
-        // Calculate relevance score
+        // Calculate relevance score with improved logic
         const queryLower = query.toLowerCase();
         const cityLower = cityName.toLowerCase();
         
@@ -114,27 +87,40 @@ export async function GET(request: NextRequest) {
         
         // Exact match gets highest score
         if (cityLower === queryLower) {
-          relevanceScore = 100;
+          relevanceScore = 1000;
         }
         // Starts with query gets high score
         else if (cityLower.startsWith(queryLower)) {
-          relevanceScore = 80;
+          relevanceScore = 800;
         }
         // Contains query gets medium score
         else if (cityLower.includes(queryLower)) {
-          relevanceScore = 60;
+          relevanceScore = 600;
         }
         // Partial match gets lower score
         else {
-          relevanceScore = 30;
+          relevanceScore = 300;
         }
 
-        // Boost score for higher priority searches
-        relevanceScore += (3 - item.searchPriority) * 10;
+        // Boost score based on place type priority
+        const placeType = item.type;
+        const addressType = item.addresstype;
+        
+        if (placeType === "city" || addressType === "city") {
+          relevanceScore += 200;
+        } else if (placeType === "town" || addressType === "town") {
+          relevanceScore += 150;
+        } else if (placeType === "village" || addressType === "village") {
+          relevanceScore += 100;
+        }
 
-        // Boost score for major cities (higher importance in OSM)
+        // Boost score for higher importance in OSM (but don't let it override exact matches)
         const importance = parseFloat(item.importance || 0);
-        relevanceScore += importance * 20;
+        relevanceScore += importance * 50;
+
+        // Boost score for higher place rank (lower numbers are more important)
+        const placeRank = parseInt(item.place_rank || 30);
+        relevanceScore += Math.max(0, (30 - placeRank) * 5);
 
         return {
           id: `${item.place_id}`,
@@ -147,7 +133,9 @@ export async function GET(request: NextRequest) {
           displayName: item.display_name,
           relevanceScore,
           importance,
-          searchPriority: item.searchPriority
+          placeType,
+          addressType,
+          placeRank
         };
       })
       .filter((city: any) => {
@@ -160,22 +148,17 @@ export async function GET(request: NextRequest) {
                Math.abs(city.latitude) <= 90 &&
                Math.abs(city.longitude) <= 180;
       })
-      // Remove duplicates based on city name and country
+      // Remove duplicates based on city name and country, keeping the highest scored one
       .reduce((unique: any[], current: any) => {
-        const isDuplicate = unique.some(item => 
+        const existingIndex = unique.findIndex(item => 
           item.city.toLowerCase() === current.city.toLowerCase() &&
           item.country.toLowerCase() === current.country.toLowerCase()
         );
         
-        if (!isDuplicate) {
+        if (existingIndex === -1) {
           unique.push(current);
         } else {
-          // If duplicate, keep the one with higher relevance score
-          const existingIndex = unique.findIndex(item => 
-            item.city.toLowerCase() === current.city.toLowerCase() &&
-            item.country.toLowerCase() === current.country.toLowerCase()
-          );
-          
+          // Keep the one with higher relevance score
           if (current.relevanceScore > unique[existingIndex].relevanceScore) {
             unique[existingIndex] = current;
           }
@@ -188,7 +171,7 @@ export async function GET(request: NextRequest) {
       // Take top 8 results
       .slice(0, 8)
       // Clean up the response
-      .map(({ relevanceScore, importance, searchPriority, ...city }) => city);
+      .map(({ relevanceScore, importance, placeType, addressType, placeRank, ...city }) => city);
 
     return NextResponse.json({ cities });
   } catch (error) {
