@@ -206,16 +206,18 @@ export default function WorldClock() {
   }, [referenceTimezone, timeState.selectedTime]);
 
   const resetToCurrentTime = () => {
-    // Get the current time in the reference timezone
+    // Get the current UTC time
     const now = new Date();
-    const currentTimeInReferenceTimezone = new Date(now.toLocaleString('en-US', { 
-      timeZone: referenceTimezone.timezone 
-    }));
+    
+    // Convert current UTC time to reference timezone
+    const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
+    const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
+    const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
     
     setTimeState(prev => ({
       ...prev,
-      referenceTime: currentTimeInReferenceTimezone,
-      selectedTime: currentTimeInReferenceTimezone,
+      referenceTime: referenceTime,
+      selectedTime: referenceTime,
       isTimeModified: false,
     }));
   };
