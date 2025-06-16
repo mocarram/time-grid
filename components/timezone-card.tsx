@@ -73,27 +73,26 @@ export function TimezoneCard({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-4 text-sm text-slate-400">
-              <span>{timezone.country}</span>
-              <span className="px-2 py-1 bg-white/5 rounded-lg font-mono text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                {timezone.country}
+              </span>
+              <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-blue-300 text-xs font-medium rounded-full border border-white/10 font-mono">
                 {offsetString}
               </span>
-              {clientTime && (
+              {clientTime ? (
                 <>
-                  <span>•</span>
-                  <span className="font-light">
+                  <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
                     {clientTime.date}
                   </span>
-                  <span className="text-xs">
+                  <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
                     {clientTime.day}
                   </span>
                 </>
-              )}
-              {!clientTime && (
+              ) : (
                 <>
-                  <span>•</span>
-                  <Skeleton className="h-4 w-16 bg-white/10" />
-                  <Skeleton className="h-3 w-12 bg-white/10" />
+                  <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
+                  <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
                 </>
               )}
             </div>
