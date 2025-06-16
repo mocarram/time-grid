@@ -24,6 +24,7 @@ interface CitySearchResult {
   latitude: number;
   longitude: number;
   displayName: string;
+  placeType: string;
 }
 
 interface AddTimezoneDialogProps {
@@ -174,10 +175,13 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                         <div className="font-medium text-white group-hover:text-blue-300 transition-colors">
                           {city.city}
                         </div>
-                        <div className="text-sm text-slate-400">{city.country}</div>
+                        <div className="text-sm text-slate-400">
+                          {city.country}
+                          {city.state && ` • ${city.state}`}
+                        </div>
                       </div>
-                      <div className="text-xs text-slate-500 px-2 py-1 bg-white/5 rounded-lg">
-                        Custom
+                      <div className="text-xs text-slate-500 px-2 py-1 bg-white/5 rounded-lg capitalize">
+                        {city.placeType}
                       </div>
                     </div>
                   </div>
