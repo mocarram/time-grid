@@ -17,6 +17,7 @@ const STORAGE_KEY = 'world-clock-timezones';
 
 export default function WorldClock() {
   const { location, error: geoError, loading: geoLoading } = useGeolocation();
+  const [isClient, setIsClient] = useState(false);
   const [timeState, setTimeState] = useState<TimeState>({
     referenceTime: new Date(),
     selectedTime: new Date(),
@@ -25,8 +26,15 @@ export default function WorldClock() {
   });
   const [referenceTimezone, setReferenceTimezone] = useState<TimezoneData>(getLocalTimezone());
 
+  // Set client flag after component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Load timezones from localStorage on mount
   useEffect(() => {
+    if (!isClient) return;
+    
     try {
       const savedTimezones = localStorage.getItem(STORAGE_KEY);
       if (savedTimezones) {
@@ -45,16 +53,18 @@ export default function WorldClock() {
     } catch (error) {
       console.error('Failed to load timezones from localStorage:', error);
     }
-  }, []);
+  }, [isClient]);
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
+    if (!isClient) return;
+    
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
     } catch (error) {
       console.error('Failed to save timezones to localStorage:', error);
     }
-  }, [timeState.timezones]);
+  }, [timeState.timezones, isClient]);
 
   // Update reference timezone with geolocation data
   useEffect(() => {
