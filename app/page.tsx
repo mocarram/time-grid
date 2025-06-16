@@ -207,10 +207,19 @@ export default function WorldClock() {
 
   const resetToCurrentTime = () => {
     const now = new Date();
+    
+    // If we have a user-set reference timezone that's different from the system timezone,
+    // we need to ensure the "current time" is properly represented in that timezone
+    const systemOffset = -now.getTimezoneOffset(); // System timezone offset in minutes
+    const referenceOffset = referenceTimezone.offset;
+    
+    // Convert current system time to the reference timezone
+    const adjustedTime = convertTime(now, systemOffset, referenceOffset);
+    
     setTimeState(prev => ({
       ...prev,
-      referenceTime: now,
-      selectedTime: now,
+      referenceTime: adjustedTime,
+      selectedTime: adjustedTime,
       isTimeModified: false,
     }));
   };
