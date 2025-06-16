@@ -37,13 +37,13 @@ export function SortableTimezoneCard({
       ref={setNodeRef} 
       style={style} 
       {...attributes}
-      className={`relative transition-all duration-200 ease-out ${
+      className={`relative transition-all duration-200 ease-out h-full ${
         isDragging ? 'z-50' : 'z-0'
       }`}
     >
-      <div className={`transition-all duration-200 ease-out ${
+      <div className={`transition-all duration-200 ease-out h-full ${
         isDragging 
-          ? 'border-2 border-dashed border-blue-400/80 rounded-3xl bg-blue-400/10 backdrop-blur-sm opacity-50' 
+          ? 'border-2 border-dashed border-blue-400/80 rounded-2xl bg-blue-400/10 backdrop-blur-sm opacity-50' 
           : 'opacity-100'
       }`}>
         <TimezoneCard

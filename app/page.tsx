@@ -488,7 +488,7 @@ export default function WorldClock() {
               items={timeState.timezones.map(tz => tz.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-6 mb-12">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
                 {timeState.timezones.map((timezone) => {
                   const convertedTime = convertTime(
                     timeState.selectedTime,

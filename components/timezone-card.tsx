@@ -59,19 +59,19 @@ export function TimezoneCard({
   const offsetString = `GMT${offsetSign}${offsetHours}${offsetMinutes > 0 ? ':' + offsetMinutes.toString().padStart(2, '0') : ''}`;
 
   return (
-    <div className={`glass-card rounded-3xl p-8 transition-all duration-500 hover:bg-white/[0.04] group ${
+    <div className={`glass-card rounded-2xl p-6 transition-all duration-500 hover:bg-white/[0.04] group h-full ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
     } ${
       isDragging ? 'ring-2 ring-blue-400/50 glow bg-white/[0.08] backdrop-blur-3xl shadow-2xl shadow-blue-500/30' : ''
     }`}>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-slate-400" />
-                <span className={`font-medium text-lg transition-colors duration-300 ${
+                <span className={`font-medium text-base transition-colors duration-300 ${
                   isDragging ? 'text-blue-200' : 'text-white'
                 }`}>{timezone.city}</span>
               </div>
@@ -82,7 +82,7 @@ export function TimezoneCard({
               )}
             </div>
             {isReference && (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
                   {timezone.country}
                 </span>
@@ -114,13 +114,13 @@ export function TimezoneCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 glass-button hover:bg-white/20 hover:border-white/30 transition-all duration-300 cursor-grab active:cursor-grabbing touch-none select-none"
+                  className="h-8 w-8 p-0 glass-button hover:bg-white/20 hover:border-white/30 transition-all duration-300 cursor-grab active:cursor-grabbing touch-none select-none"
                   title="Drag to reorder"
                   {...dragHandleProps}
                   onMouseDown={(e) => e.preventDefault()}
                   onTouchStart={(e) => e.preventDefault()}
                 >
-                  <GripVertical className="h-4 w-4 text-slate-400 group-hover:text-white pointer-events-none select-none" />
+                  <GripVertical className="h-3.5 w-3.5 text-slate-400 group-hover:text-white pointer-events-none select-none" />
                 </Button>
               )}
               {onSetAsReference && (
@@ -128,10 +128,10 @@ export function TimezoneCard({
                   variant="ghost"
                   size="sm"
                   onClick={onSetAsReference}
-                  className="h-9 w-9 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-blue-300 transition-all duration-300 group"
+                  className="h-8 w-8 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-blue-300 transition-all duration-300 group"
                   title="Set as reference timezone"
                 >
-                  <Star className="h-4 w-4 group-hover:fill-current" />
+                  <Star className="h-3.5 w-3.5 group-hover:fill-current" />
                 </Button>
               )}
               {onRemove && (
@@ -140,10 +140,10 @@ export function TimezoneCard({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-9 w-9 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
+                      className="h-8 w-8 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
                       title="Remove timezone"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3.5 w-3.5" />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="glass-card border-white/10 text-white">
@@ -173,16 +173,16 @@ export function TimezoneCard({
 
         {/* Time Display */}
         <div>
-          <div className={`text-5xl font-thin text-white tracking-tight transition-all duration-300 ${
+          <div className={`text-4xl font-thin text-white tracking-tight transition-all duration-300 ${
             isDragging ? 'text-blue-200' : ''
           }`}>
-            {clientTime?.time || <Skeleton className="h-16 w-32 bg-white/10" />}
+            {clientTime?.time || <Skeleton className="h-12 w-28 bg-white/10" />}
           </div>
         </div>
 
         {/* Timezone Info Badges for Non-Reference Cards */}
         {!isReference && (
-          <div className={`flex items-center gap-2 flex-wrap transition-all duration-300 ${
+          <div className={`flex items-center gap-1.5 flex-wrap transition-all duration-300 ${
             isDragging ? 'opacity-80' : ''
           }`}>
             <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
