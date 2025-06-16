@@ -42,7 +42,7 @@ export function SortableTimezoneCard({
     >
       <div className={`transition-all duration-200 ${
         isDragging 
-          ? 'border-2 border-dashed border-blue-400/60 rounded-3xl bg-blue-400/5 opacity-30' 
+          ? 'border-2 border-dashed border-blue-400/80 rounded-3xl bg-blue-400/10 backdrop-blur-sm' 
             : ''
       }`}>
         <TimezoneCard
@@ -51,7 +51,7 @@ export function SortableTimezoneCard({
           onRemove={onRemove}
           onSetAsReference={onSetAsReference}
           dragHandleProps={listeners}
-          isDragging={isDragging}
+          isDragging={false}
         />
       </div>
     </div>
