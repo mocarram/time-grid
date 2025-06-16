@@ -4,29 +4,6 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 217.2 91.2% 59.8%;
-    --radius: 0.75rem;
-  }
-
-  .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -46,6 +23,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 94.1%;
+    --radius: 0.75rem;
   }
 }
 
@@ -56,112 +34,43 @@
   
   body {
     @apply bg-background text-foreground;
-    min-height: 100vh;
-  }
-
-  /* Light mode background */
-  body:not(.dark) {
-    background: linear-gradient(135deg, 
-      hsl(210 40% 98%) 0%, 
-      hsl(217.2 91.2% 95%) 25%,
-      hsl(210 40% 96%) 50%, 
-      hsl(217.2 91.2% 95%) 75%,
-      hsl(210 40% 98%) 100%);
-  }
-
-  /* Dark mode background */
-  body.dark {
     background: linear-gradient(135deg, 
       hsl(222.2 84% 4.9%) 0%, 
       hsl(217.2 32.6% 8%) 50%, 
       hsl(222.2 84% 4.9%) 100%);
+    min-height: 100vh;
   }
 }
 
 @layer utilities {
-  /* Glass effects for dark mode */
-  .dark .glass {
+  .glass {
     @apply bg-white/5 backdrop-blur-xl border border-white/10;
   }
   
-  .dark .glass-card {
+  .glass-card {
     @apply bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] shadow-2xl;
   }
   
-  .dark .glass-button {
+  .glass-button {
     @apply bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300;
   }
   
-  .dark .glass-input {
+  .glass-input {
     @apply bg-white/5 backdrop-blur-md border border-white/10 focus:border-white/30 transition-all duration-300;
   }
-
-  /* Glass effects for light mode */
-  .glass {
-    @apply bg-white/60 backdrop-blur-xl border border-slate-200/50 shadow-lg;
-  }
   
-  .glass-card {
-    @apply bg-white/70 backdrop-blur-2xl border border-slate-200/60 shadow-xl;
-  }
-  
-  .glass-button {
-    @apply bg-white/50 backdrop-blur-md border border-slate-200/60 hover:bg-white/70 transition-all duration-300;
-  }
-  
-  .glass-input {
-    @apply bg-white/50 backdrop-blur-md border border-slate-200/50 focus:border-blue-300 transition-all duration-300;
-  }
-  
-  /* Glow effects */
-  .dark .glow {
+  .glow {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
-
-  .glow {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
-  }
   
-  .dark .text-glow {
+  .text-glow {
     text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
   }
-
-  .text-glow {
-    text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-  }
   
-  /* Custom Scrollbar for dark mode */
-  .dark .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-  }
-  
-  .dark .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  
-  .dark .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-    border-radius: 10px;
-  }
-  
-  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-  }
-  
-  .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-  }
-
-  /* Custom Scrollbar for light mode */
+  /* Custom Scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
   
   .scrollbar-thin::-webkit-scrollbar {
@@ -175,14 +84,14 @@
   }
   
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
   }
   
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
   }
   
@@ -190,45 +99,24 @@
     background: transparent;
   }
   
-  /* Global scrollbar for dark mode */
-  .dark ::-webkit-scrollbar {
+  /* Global scrollbar for the entire page */
+  ::-webkit-scrollbar {
     width: 8px;
   }
   
-  .dark ::-webkit-scrollbar-track {
+  ::-webkit-scrollbar-track {
     background: rgba(15, 23, 42, 0.5);
   }
   
-  .dark ::-webkit-scrollbar-thumb {
+  ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
   }
   
-  .dark ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-  }
-
-  /* Global scrollbar for light mode */
-  ::-webkit-scrollbar {
-    width: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: rgba(241, 245, 249, 0.5);
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-  }
-  
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
   }
 }

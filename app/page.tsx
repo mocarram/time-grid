@@ -5,7 +5,6 @@ import { TimezoneCard } from '@/components/timezone-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeSelector } from '@/components/time-selector';
 import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { 
   getLocalTimezone, 
@@ -228,21 +227,21 @@ export default function WorldClock() {
     return (
       <div className="min-h-screen relative overflow-hidden">
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-slate-900" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
         
         <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
           {/* Header */}
           <div className="text-center mb-16">
             <div className="flex items-center justify-center gap-4 mb-6">
               <div className="p-4 glass rounded-2xl">
-                <Clock className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+                <Clock className="h-8 w-8 text-blue-400" />
               </div>
             </div>
-            <h1 className="text-6xl font-thin tracking-tight text-slate-800 dark:text-white mb-4 text-glow">
+            <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
               TimeGrid
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 text-lg font-light">
+            <p className="text-slate-400 text-lg font-light">
               Synchronize time across the globe
             </p>
           </div>
@@ -257,43 +256,43 @@ export default function WorldClock() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                        <Skeleton className="h-6 w-24 bg-slate-200 dark:bg-white/10" />
+                        <MapPin className="h-4 w-4 text-slate-400" />
+                        <Skeleton className="h-6 w-24 bg-white/10" />
                       </div>
                       <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">
                         Reference
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                      <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" />
-                      <Skeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10" />
+                    <div className="flex items-center gap-4 text-sm text-slate-400">
+                      <Skeleton className="h-4 w-16 bg-white/10" />
+                      <Skeleton className="h-4 w-12 bg-white/10" />
                       <span>•</span>
-                      <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" />
-                      <Skeleton className="h-3 w-12 bg-slate-200 dark:bg-white/10" />
+                      <Skeleton className="h-4 w-16 bg-white/10" />
+                      <Skeleton className="h-3 w-12 bg-white/10" />
                     </div>
                   </div>
                 </div>
 
                 {/* Time Display Skeleton */}
                 <div className="space-y-2">
-                  <Skeleton className="h-16 w-32 bg-slate-200 dark:bg-white/10" />
+                  <Skeleton className="h-16 w-32 bg-white/10" />
                 </div>
 
                 {/* Time Selector Skeleton */}
                 <div className="space-y-4 mt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Reference Time</span>
+                      <Clock className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-slate-300">Reference Time</span>
                     </div>
-                    <Skeleton className="h-6 w-16 bg-slate-200 dark:bg-white/10 rounded-lg" />
+                    <Skeleton className="h-6 w-16 bg-white/10 rounded-lg" />
                   </div>
                   
                   <div className="space-y-3">
                     <div className="px-1">
-                      <Skeleton className="h-6 w-full bg-slate-200 dark:bg-white/10 rounded-full" />
+                      <Skeleton className="h-6 w-full bg-white/10 rounded-full" />
                     </div>
-                    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-500 px-1">
+                    <div className="flex justify-between text-xs text-slate-500 px-1">
                       <span>12:00 AM</span>
                       <span>12:00 PM</span>
                       <span>11:59 PM</span>
@@ -313,28 +312,28 @@ export default function WorldClock() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                            <Skeleton className="h-6 w-20 bg-slate-200 dark:bg-white/10" />
+                            <MapPin className="h-4 w-4 text-slate-400" />
+                            <Skeleton className="h-6 w-20 bg-white/10" />
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                          <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" />
-                          <Skeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10" />
+                        <div className="flex items-center gap-4 text-sm text-slate-400">
+                          <Skeleton className="h-4 w-16 bg-white/10" />
+                          <Skeleton className="h-4 w-12 bg-white/10" />
                           <span>•</span>
-                          <Skeleton className="h-4 w-16 bg-slate-200 dark:bg-white/10" />
-                          <Skeleton className="h-3 w-12 bg-slate-200 dark:bg-white/10" />
+                          <Skeleton className="h-4 w-16 bg-white/10" />
+                          <Skeleton className="h-3 w-12 bg-white/10" />
                         </div>
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Skeleton className="h-9 w-9 bg-slate-200 dark:bg-white/10 rounded-lg" />
-                        <Skeleton className="h-9 w-9 bg-slate-200 dark:bg-white/10 rounded-lg" />
+                        <Skeleton className="h-9 w-9 bg-white/10 rounded-lg" />
+                        <Skeleton className="h-9 w-9 bg-white/10 rounded-lg" />
                       </div>
                     </div>
 
                     {/* Time Display Skeleton */}
                     <div className="space-y-2">
-                      <Skeleton className="h-16 w-32 bg-slate-200 dark:bg-white/10" />
+                      <Skeleton className="h-16 w-32 bg-white/10" />
                     </div>
                   </div>
                 </div>
@@ -343,7 +342,7 @@ export default function WorldClock() {
 
             {/* Add Button Skeleton */}
             <div className="flex justify-center">
-              <Skeleton className="h-16 w-16 bg-slate-200 dark:bg-white/10 rounded-full" />
+              <Skeleton className="h-16 w-16 bg-white/10 rounded-full" />
             </div>
           </div>
         </div>
@@ -354,26 +353,21 @@ export default function WorldClock() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/50 to-slate-50 dark:from-slate-900 dark:via-blue-900/20 dark:to-slate-900" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
       
       <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
-        {/* Theme Toggle */}
-        <div className="absolute top-6 right-6 z-20">
-          <ThemeToggle />
-        </div>
-
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-6">
             <div className="p-4 glass rounded-2xl">
-              <Clock className="h-8 w-8 text-blue-500 dark:text-blue-400" />
+              <Clock className="h-8 w-8 text-blue-400" />
             </div>
           </div>
-          <h1 className="text-6xl font-thin tracking-tight text-slate-800 dark:text-white mb-4 text-glow">
+          <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
             World Clock
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-lg font-light">
+          <p className="text-slate-400 text-lg font-light">
             Synchronize time across the globe
           </p>
         </div>
@@ -433,16 +427,16 @@ export default function WorldClock() {
 
         {/* Status Messages */}
         {geoLoading && (
-          <div className="text-center text-slate-600 dark:text-slate-400 mt-8 font-light">
+          <div className="text-center text-slate-400 mt-8 font-light">
             <div className="inline-flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               Detecting your location...
             </div>
           </div>
         )}
         
         {geoError && (
-          <div className="text-center text-slate-500 dark:text-slate-500 mt-8 font-light">
+          <div className="text-center text-slate-500 mt-8 font-light">
             Using system timezone as reference
           </div>
         )}
