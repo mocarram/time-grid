@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Slider } from '@/components/ui/slider';
-import { Skeleton } from '@/components/ui/skeleton';
 import { timeToMinutes, minutesToTime, formatTime } from '@/lib/timezone-utils';
 import { Clock } from 'lucide-react';
+
+const DynamicSkeleton = dynamic(() => import('@/components/ui/skeleton').then(mod => ({ default: mod.Skeleton })), {
+  ssr: false
+});
 
 interface TimeSelectorProps {
   selectedTime: Date;
@@ -35,7 +39,7 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
           <span className="text-sm font-medium text-slate-300">Reference Time</span>
         </div>
         <span className="text-sm font-mono glass px-3 py-1 rounded-lg text-blue-300">
-          {clientTimeString || <Skeleton className="h-4 w-12 bg-white/10" />}
+          {clientTimeString || <DynamicSkeleton className="h-4 w-12 bg-white/10" />}
         </span>
       </div>
       
