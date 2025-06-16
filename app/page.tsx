@@ -232,11 +232,103 @@ export default function WorldClock() {
             </p>
           </div>
           
-          {/* Loading state */}
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 text-slate-400">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-              Loading your timezones...
+          {/* Skeleton Loading State */}
+          <div className="space-y-8">
+            {/* Reference Timezone Card Skeleton */}
+            <div className="glass-card rounded-3xl p-8 ring-1 ring-blue-400/30 glow">
+              <div className="space-y-6">
+                {/* Header Skeleton */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-slate-400" />
+                        <Skeleton className="h-6 w-24 bg-white/10" />
+                      </div>
+                      <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">
+                        Reference
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-slate-400">
+                      <Skeleton className="h-4 w-16 bg-white/10" />
+                      <Skeleton className="h-4 w-12 bg-white/10" />
+                      <span>•</span>
+                      <Skeleton className="h-4 w-16 bg-white/10" />
+                      <Skeleton className="h-3 w-12 bg-white/10" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Display Skeleton */}
+                <div className="space-y-2">
+                  <Skeleton className="h-16 w-32 bg-white/10" />
+                </div>
+
+                {/* Time Selector Skeleton */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-slate-300">Reference Time</span>
+                    </div>
+                    <Skeleton className="h-6 w-16 bg-white/10 rounded-lg" />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="px-1">
+                      <Skeleton className="h-6 w-full bg-white/10 rounded-full" />
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500 px-1">
+                      <span>12:00 AM</span>
+                      <span>12:00 PM</span>
+                      <span>11:59 PM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Timezone Cards Skeleton */}
+            <div className="space-y-6">
+              {[...Array(2)].map((_, i) => (
+                <div key={i} className="glass-card rounded-3xl p-8">
+                  <div className="space-y-6">
+                    {/* Header Skeleton */}
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-slate-400" />
+                            <Skeleton className="h-6 w-20 bg-white/10" />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-slate-400">
+                          <Skeleton className="h-4 w-16 bg-white/10" />
+                          <Skeleton className="h-4 w-12 bg-white/10" />
+                          <span>•</span>
+                          <Skeleton className="h-4 w-16 bg-white/10" />
+                          <Skeleton className="h-3 w-12 bg-white/10" />
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-9 w-9 bg-white/10 rounded-lg" />
+                        <Skeleton className="h-9 w-9 bg-white/10 rounded-lg" />
+                      </div>
+                    </div>
+
+                    {/* Time Display Skeleton */}
+                    <div className="space-y-2">
+                      <Skeleton className="h-16 w-32 bg-white/10" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Button Skeleton */}
+            <div className="flex justify-center">
+              <Skeleton className="h-16 w-16 bg-white/10 rounded-full" />
             </div>
           </div>
         </div>
