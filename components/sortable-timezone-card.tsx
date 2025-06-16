@@ -25,15 +25,28 @@ export function SortableTimezoneCard({
     transform,
     transition,
     isDragging,
+    isOver,
   } = useSortable({ id: timezone.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes}
+      className={`relative transition-all duration-200 ${
+        isOver && !isDragging ? 'border-2 border-dashed border-blue-400/50 rounded-3xl p-1' : ''
+      }`}
+    >
+      {/* Drop indicator */}
+      {isOver && !isDragging && (
+        <div className="absolute inset-0 bg-blue-400/10 rounded-3xl animate-pulse" />
+      )}
       <TimezoneCard
         timezone={timezone}
         displayTime={displayTime}

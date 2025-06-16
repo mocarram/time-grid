@@ -62,7 +62,7 @@ export function TimezoneCard({
     <div className={`glass-card rounded-3xl p-8 transition-all duration-500 hover:bg-white/[0.04] group ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
     } ${
-      isDragging ? 'ring-2 ring-blue-400/50 glow bg-white/[0.08] backdrop-blur-3xl' : ''
+      isDragging ? 'ring-2 ring-blue-400/50 glow bg-white/[0.08] backdrop-blur-3xl shadow-2xl shadow-blue-500/30' : ''
     }`}>
       <div className="space-y-4">
         {/* Header */}
@@ -71,7 +71,9 @@ export function TimezoneCard({
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-slate-400" />
-                <span className="text-white font-medium text-lg">{timezone.city}</span>
+                <span className={`font-medium text-lg transition-colors duration-300 ${
+                  isDragging ? 'text-blue-200' : 'text-white'
+                }`}>{timezone.city}</span>
               </div>
               {isReference && (
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">

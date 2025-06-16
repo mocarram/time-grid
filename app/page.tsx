@@ -508,7 +508,7 @@ export default function WorldClock() {
 
             <DragOverlay>
               {activeTimezone ? (
-                <div className="rotate-2 scale-105 shadow-2xl shadow-blue-500/25">
+                <div className="rotate-2 scale-105 shadow-2xl shadow-blue-500/25 opacity-80">
                   <TimezoneCard
                     timezone={activeTimezone}
                     displayTime={convertTime(
