@@ -205,20 +205,20 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
-  // const resetToCurrentTime = () => {
-  //   // Get the current time in the reference timezone
-  //   const now = new Date();
-  //   const currentTimeInReferenceTimezone = new Date(now.toLocaleString('en-US', { 
-  //     timeZone: referenceTimezone.timezone 
-  //   }));
+  const resetToCurrentTime = () => {
+    // Get the current time in the reference timezone
+    const now = new Date();
+    const currentTimeInReferenceTimezone = new Date(now.toLocaleString('en-US', { 
+      timeZone: referenceTimezone.timezone 
+    }));
     
-  //   setTimeState(prev => ({
-  //     ...prev,
-  //     referenceTime: currentTimeInReferenceTimezone,
-  //     selectedTime: currentTimeInReferenceTimezone,
-  //     isTimeModified: false,
-  //   }));
-  // };
+    setTimeState(prev => ({
+      ...prev,
+      referenceTime: currentTimeInReferenceTimezone,
+      selectedTime: currentTimeInReferenceTimezone,
+      isTimeModified: false,
+    }));
+  };
 
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
