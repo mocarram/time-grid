@@ -1,3 +1,5 @@
+import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
+
 export interface TimezoneData {
   id: string;
   city: string;

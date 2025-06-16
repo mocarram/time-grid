@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -14,7 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { X, MapPin, Star } from 'lucide-react';
+import { X, MapPin, Star, GripVertical } from 'lucide-react';
 import { formatTime, formatDate, formatDay } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
@@ -24,6 +25,8 @@ interface TimezoneCardProps {
   isReference?: boolean;
   onRemove?: () => void;
   onSetAsReference?: () => void;
+  dragHandleProps?: DraggableProvidedDragHandleProps | null;
+  isDragging?: boolean;
   children?: React.ReactNode;
 }
 
@@ -33,6 +36,8 @@ export function TimezoneCard({
   isReference = false, 
   onRemove, 
   onSetAsReference,
+  dragHandleProps,
+  isDragging = false,
   children 
 }: TimezoneCardProps) {
   const [clientTime, setClientTime] = useState<{
@@ -57,6 +62,8 @@ export function TimezoneCard({
   return (
     <div className={`glass-card rounded-3xl p-8 transition-all duration-500 hover:bg-white/[0.04] group ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
+    } ${
+      isDragging ? 'ring-2 ring-blue-400/50 glow bg-white/[0.08] backdrop-blur-3xl' : ''
     }`}>
       <div className="space-y-4">
         {/* Header */}
@@ -102,6 +109,17 @@ export function TimezoneCard({
           
           {!isReference && (onRemove || onSetAsReference) && (
             <div className="flex items-center gap-2">
+              {dragHandleProps && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 w-9 p-0 glass-button hover:bg-white/20 hover:border-white/30 transition-all duration-300 cursor-grab active:cursor-grabbing"
+                  title="Drag to reorder"
+                  {...dragHandleProps}
+                >
+                  <GripVertical className="h-4 w-4 text-slate-400 hover:text-white" />
+                </Button>
+              )}
               {onSetAsReference && (
                 <Button
                   variant="ghost"
@@ -152,14 +170,18 @@ export function TimezoneCard({
 
         {/* Time Display */}
         <div>
-          <div className="text-5xl font-thin text-white tracking-tight">
+          <div className={`text-5xl font-thin text-white tracking-tight transition-all duration-300 ${
+            isDragging ? 'text-blue-200' : ''
+          }`}>
             {clientTime?.time || <Skeleton className="h-16 w-32 bg-white/10" />}
           </div>
         </div>
 
         {/* Timezone Info Badges for Non-Reference Cards */}
         {!isReference && (
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className={`flex items-center gap-2 flex-wrap transition-all duration-300 ${
+            isDragging ? 'opacity-80' : ''
+          }`}>
             <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
               {timezone.country}
             </span>

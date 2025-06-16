@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { TimezoneCard } from '@/components/timezone-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeSelector } from '@/components/time-selector';
@@ -133,23 +134,6 @@ export default function WorldClock() {
     }
   }, [location, geoError, hasUserSetReference]);
 
-  // Update current time every minute
-  // useEffect(() => {
-  //   const updateTime = () => {
-  //     if (!timeState.isTimeModified) {
-  //       const now = new Date();
-  //       setTimeState(prev => ({
-  //         ...prev,
-  //         referenceTime: now,
-  //         selectedTime: now,
-  //       }));
-  //     }
-  //   };
-
-  //   updateTime();
-  //   const interval = setInterval(updateTime, 60000);
-  //   return () => clearInterval(interval);
-  // }, [timeState.isTimeModified]);
   useEffect(() => {
       const updateTime = () => {
       if (!timeState.isTimeModified) {
@@ -228,22 +212,18 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
-  // const resetToCurrentTime = () => {
-  //   // Get the current UTC time
-  //   const now = new Date();
-    
-  //   // Convert current UTC time to reference timezone
-  //   const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
-  //   const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
-  //   const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
-    
-  //   setTimeState(prev => ({
-  //     ...prev,
-  //     referenceTime: referenceTime,
-  //     selectedTime: referenceTime,
-  //     isTimeModified: false,
-  //   }));
-  // };
+  const handleDragEnd = useCallback((result: DropResult) => {
+    if (!result.destination) return;
+
+    const items = Array.from(timeState.timezones);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setTimeState(prev => ({
+      ...prev,
+      timezones: items,
+    }));
+  }, [timeState.timezones]);
 
   const resetToCurrentTime = () => {
     const now = new Date();
@@ -432,25 +412,53 @@ export default function WorldClock() {
         </div>
 
         {/* Additional Timezone Cards */}
-        <div className="space-y-6 mb-12">
-          {timeState.timezones.map((timezone) => {
-            const convertedTime = convertTime(
-              timeState.selectedTime,
-              referenceTimezone.offset,
-              timezone.offset
-            );
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="timezone-cards">
+            {(provided, snapshot) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className={`space-y-6 mb-12 transition-all duration-300 ${
+                  snapshot.isDraggingOver ? 'bg-blue-500/5 rounded-2xl p-4' : ''
+                }`}
+              >
+                {timeState.timezones.map((timezone, index) => {
+                  const convertedTime = convertTime(
+                    timeState.selectedTime,
+                    referenceTimezone.offset,
+                    timezone.offset
+                  );
 
-            return (
-              <TimezoneCard
-                key={timezone.id}
-                timezone={timezone}
-                displayTime={convertedTime}
-                onRemove={() => handleRemoveTimezone(timezone.id)}
-                onSetAsReference={() => handleSetAsReference(timezone)}
-              />
-            );
-          })}
-        </div>
+                  return (
+                    <Draggable key={timezone.id} draggableId={timezone.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`transition-all duration-300 ${
+                            snapshot.isDragging 
+                              ? 'rotate-2 scale-105 shadow-2xl shadow-blue-500/25 z-50' 
+                              : ''
+                          }`}
+                        >
+                          <TimezoneCard
+                            timezone={timezone}
+                            displayTime={convertedTime}
+                            onRemove={() => handleRemoveTimezone(timezone.id)}
+                            onSetAsReference={() => handleSetAsReference(timezone)}
+                            dragHandleProps={provided.dragHandleProps}
+                            isDragging={snapshot.isDragging}
+                          />
+                        </div>
+                      )}
+                    </Draggable>
+                  );
+                })}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         {/* Status Messages */}
         {geoLoading && (
