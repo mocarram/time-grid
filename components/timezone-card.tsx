@@ -58,7 +58,7 @@ export function TimezoneCard({
     <div className={`glass-card rounded-3xl p-8 transition-all duration-500 hover:bg-white/[0.04] group ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
     }`}>
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -151,7 +151,7 @@ export function TimezoneCard({
         </div>
 
         {/* Time Display */}
-        <div className="space-y-2">
+        <div>
           <div className="text-5xl font-thin text-white tracking-tight">
             {clientTime?.time || <Skeleton className="h-16 w-32 bg-white/10" />}
           </div>
