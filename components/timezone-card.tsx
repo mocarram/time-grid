@@ -59,12 +59,12 @@ export function TimezoneCard({
   const offsetString = `GMT${offsetSign}${offsetHours}${offsetMinutes > 0 ? ':' + offsetMinutes.toString().padStart(2, '0') : ''}`;
 
   return (
-    <div className={`glass-card rounded-2xl p-6 transition-all duration-500 hover:bg-white/[0.04] group h-full ${
+    <div className={`glass-card rounded-2xl p-6 transition-all duration-500 hover:bg-white/[0.04] group min-h-[200px] flex flex-col ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
     } ${
       isDragging ? 'ring-2 ring-blue-400/50 glow bg-white/[0.08] backdrop-blur-3xl shadow-2xl shadow-blue-500/30' : ''
     }`}>
-      <div className="space-y-3">
+      <div className="space-y-3 flex-1 flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -73,7 +73,7 @@ export function TimezoneCard({
                 <MapPin className="h-4 w-4 text-slate-400" />
                 <span className={`font-medium text-base transition-colors duration-300 ${
                   isDragging ? 'text-blue-200' : 'text-white'
-                }`}>{timezone.city}</span>
+                } truncate`}>{timezone.city}</span>
               </div>
               {isReference && (
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">

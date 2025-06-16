@@ -30,7 +30,7 @@ export function SortableTimezoneCard({
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : (transition || 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'),
+    transition: isDragging ? 'none' : (transition || 'transform 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'),
   };
 
   return (
@@ -38,13 +38,13 @@ export function SortableTimezoneCard({
       ref={setNodeRef} 
       style={style} 
       {...attributes}
-      className={`relative h-full ${
+      className={`relative ${
         isDragging ? 'z-50' : 'z-0'
       }`}
     >
       {/* Show dashed placeholder when this item is being dragged */}
       {isDragging ? (
-        <div className="h-full border-2 border-dashed border-blue-400/60 rounded-2xl bg-blue-400/5 backdrop-blur-sm flex items-center justify-center transition-all duration-200 ease-out">
+        <div className="min-h-[200px] border-2 border-dashed border-blue-400/60 rounded-2xl bg-blue-400/5 backdrop-blur-sm flex items-center justify-center transition-all duration-200 ease-out">
           <div className="text-blue-400/60 text-sm font-medium flex items-center gap-2">
             <div className="w-2 h-2 bg-blue-400/60 rounded-full animate-pulse" />
             Moving {timezone.city}...
