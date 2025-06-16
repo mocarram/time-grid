@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { TimezoneCard } from '@/components/timezone-card';
+import { DraggableTimezoneList } from '@/components/draggable-timezone-list';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeSelector } from '@/components/time-selector';
 import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
@@ -228,6 +229,18 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
+  const handleReorderTimezones = useCallback((startIndex: number, endIndex: number) => {
+    setTimeState(prev => {
+      const newTimezones = Array.from(prev.timezones);
+      const [reorderedItem] = newTimezones.splice(startIndex, 1);
+      newTimezones.splice(endIndex, 0, reorderedItem);
+      
+      return {
+        ...prev,
+        timezones: newTimezones,
+      };
+    });
+  }, []);
   // const resetToCurrentTime = () => {
   //   // Get the current UTC time
   //   const now = new Date();
@@ -432,24 +445,15 @@ export default function WorldClock() {
         </div>
 
         {/* Additional Timezone Cards */}
-        <div className="space-y-6 mb-12">
-          {timeState.timezones.map((timezone) => {
-            const convertedTime = convertTime(
-              timeState.selectedTime,
-              referenceTimezone.offset,
-              timezone.offset
-            );
-
-            return (
-              <TimezoneCard
-                key={timezone.id}
-                timezone={timezone}
-                displayTime={convertedTime}
-                onRemove={() => handleRemoveTimezone(timezone.id)}
-                onSetAsReference={() => handleSetAsReference(timezone)}
-              />
-            );
-          })}
+        <div className="mb-12">
+          <DraggableTimezoneList
+            timezones={timeState.timezones}
+            referenceTimezone={referenceTimezone}
+            selectedTime={timeState.selectedTime}
+            onRemove={handleRemoveTimezone}
+            onSetAsReference={handleSetAsReference}
+            onReorder={handleReorderTimezones}
+          />
         </div>
 
         {/* Status Messages */}
