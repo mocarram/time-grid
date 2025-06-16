@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DraggableProvidedDragHandleProps } from 'react-beautiful-dnd';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -25,7 +24,7 @@ interface TimezoneCardProps {
   isReference?: boolean;
   onRemove?: () => void;
   onSetAsReference?: () => void;
-  dragHandleProps?: DraggableProvidedDragHandleProps | null;
+  dragHandleProps?: any;
   isDragging?: boolean;
   children?: React.ReactNode;
 }

@@ -1,8 +1,25 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { TimezoneCard } from '@/components/timezone-card';
+import { SortableTimezoneCard } from '@/components/sortable-timezone-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeSelector } from '@/components/time-selector';
 import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
@@ -23,7 +40,8 @@ export default function WorldClock() {
   const { location, error: geoError, loading: geoLoading } = useGeolocation();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null); // null = not loaded yet
+  const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [timeState, setTimeState] = useState<TimeState>({
     referenceTime: new Date(),
     selectedTime: new Date(),
@@ -31,6 +49,17 @@ export default function WorldClock() {
     isTimeModified: false,
   });
   const [referenceTimezone, setReferenceTimezone] = useState<TimezoneData>(getLocalTimezone());
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Set client flag after component mounts
   useEffect(() => {
@@ -135,7 +164,7 @@ export default function WorldClock() {
   }, [location, geoError, hasUserSetReference]);
 
   useEffect(() => {
-      const updateTime = () => {
+    const updateTime = () => {
       if (!timeState.isTimeModified) {
         // grab the current instant…
         const now = new Date();
@@ -154,7 +183,7 @@ export default function WorldClock() {
     updateTime();
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
-  // add `referenceTimezone` so it re-runs when you switch zones
+    // add `referenceTimezone` so it re-runs when you switch zones
   }, [timeState.isTimeModified, referenceTimezone]);
 
   const handleTimeChange = useCallback((newTime: Date) => {
@@ -218,21 +247,27 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
-  const handleDragEnd = useCallback((result: DropResult) => {
-    if (!result.destination) return;
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  }, []);
 
-    // Extract the actual timezone ID from the draggable ID
-    const actualId = result.draggableId.replace('draggable-', '');
-    
-    const items = Array.from(timeState.timezones);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
 
-    setTimeState(prev => ({
-      ...prev,
-      timezones: items,
-    }));
-  }, [timeState.timezones]);
+    if (active.id !== over?.id) {
+      setTimeState(prev => {
+        const oldIndex = prev.timezones.findIndex(tz => tz.id === active.id);
+        const newIndex = prev.timezones.findIndex(tz => tz.id === over?.id);
+
+        return {
+          ...prev,
+          timezones: arrayMove(prev.timezones, oldIndex, newIndex),
+        };
+      });
+    }
+
+    setActiveId(null);
+  }, []);
 
   const resetToCurrentTime = () => {
     const now = new Date();
@@ -245,6 +280,9 @@ export default function WorldClock() {
       isTimeModified: false,
     }));
   };
+
+  // Get the active timezone for drag overlay
+  const activeTimezone = timeState.timezones.find(tz => tz.id === activeId);
   
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
@@ -420,82 +458,55 @@ export default function WorldClock() {
           </TimezoneCard>
         </div>
 
-        {/* Additional Timezone Cards */}
+        {/* Additional Timezone Cards with Drag and Drop */}
         {isMounted && timeState.timezones.length > 0 && (
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="timezone-cards">
-              {(provided, snapshot) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className={`space-y-6 mb-12 transition-all duration-300 ${
-                    snapshot.isDraggingOver ? 'bg-blue-500/5 rounded-2xl p-4' : ''
-                  }`}
-                >
-                  {timeState.timezones.map((timezone, index) => {
-                    const convertedTime = convertTime(
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={timeState.timezones.map(tz => tz.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-6 mb-12">
+                {timeState.timezones.map((timezone) => {
+                  const convertedTime = convertTime(
+                    timeState.selectedTime,
+                    referenceTimezone.offset,
+                    timezone.offset
+                  );
+
+                  return (
+                    <SortableTimezoneCard
+                      key={timezone.id}
+                      timezone={timezone}
+                      displayTime={convertedTime}
+                      onRemove={() => handleRemoveTimezone(timezone.id)}
+                      onSetAsReference={() => handleSetAsReference(timezone)}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+
+            <DragOverlay>
+              {activeTimezone ? (
+                <div className="rotate-2 scale-105 shadow-2xl shadow-blue-500/25">
+                  <TimezoneCard
+                    timezone={activeTimezone}
+                    displayTime={convertTime(
                       timeState.selectedTime,
                       referenceTimezone.offset,
-                      timezone.offset
-                    );
-
-                    return (
-                      <Draggable 
-                        key={`draggable-${timezone.id}`} 
-                        draggableId={`draggable-${timezone.id}`} 
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`transition-all duration-300 ${
-                              snapshot.isDragging 
-                                ? 'rotate-2 scale-105 shadow-2xl shadow-blue-500/25 z-50' 
-                                : ''
-                            }`}
-                          >
-                            <TimezoneCard
-                              timezone={timezone}
-                              displayTime={convertedTime}
-                              onRemove={() => handleRemoveTimezone(timezone.id)}
-                              onSetAsReference={() => handleSetAsReference(timezone)}
-                              dragHandleProps={provided.dragHandleProps}
-                              isDragging={snapshot.isDragging}
-                            />
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  })}
-                  {provided.placeholder}
+                      activeTimezone.offset
+                    )}
+                    isDragging={true}
+                  />
                 </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-        )}
-
-        {/* Fallback for when drag and drop is not available */}
-        {(!isMounted || timeState.timezones.length === 0) && timeState.timezones.length > 0 && (
-          <div className="space-y-6 mb-12">
-            {timeState.timezones.map((timezone) => {
-              const convertedTime = convertTime(
-                timeState.selectedTime,
-                referenceTimezone.offset,
-                timezone.offset
-              );
-
-              return (
-                <TimezoneCard
-                  key={timezone.id}
-                  timezone={timezone}
-                  displayTime={convertedTime}
-                  onRemove={() => handleRemoveTimezone(timezone.id)}
-                  onSetAsReference={() => handleSetAsReference(timezone)}
-                />
-              );
-            })}
-          </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
 
         {/* Status Messages */}
