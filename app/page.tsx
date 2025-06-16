@@ -14,11 +14,13 @@ import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock } from 'lucide-react';
 
 const STORAGE_KEY = 'world-clock-timezones';
+const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
 export default function WorldClock() {
   const { location, error: geoError, loading: geoLoading } = useGeolocation();
   const [isClient, setIsClient] = useState(false);
   const [ipDetectedTimezone, setIpDetectedTimezone] = useState<TimezoneData | null>(null);
+  const [hasUserSetReference, setHasUserSetReference] = useState(false);
   const [timeState, setTimeState] = useState<TimeState>({
     referenceTime: new Date(),
     selectedTime: new Date(),
@@ -37,6 +39,20 @@ export default function WorldClock() {
     if (!isClient) return;
     
     try {
+      // Load saved reference timezone first
+      const savedReference = localStorage.getItem(REFERENCE_STORAGE_KEY);
+      if (savedReference) {
+        const parsedReference: TimezoneData = JSON.parse(savedReference);
+        // Update offset to current time (in case of DST changes)
+        const updatedReference = {
+          ...parsedReference,
+          offset: getTimezoneOffset(parsedReference.timezone)
+        };
+        setReferenceTimezone(updatedReference);
+        setHasUserSetReference(true);
+      }
+      
+      // Load other timezones
       const savedTimezones = localStorage.getItem(STORAGE_KEY);
       if (savedTimezones) {
         const parsedTimezones: TimezoneData[] = JSON.parse(savedTimezones);
@@ -67,8 +83,22 @@ export default function WorldClock() {
     }
   }, [timeState.timezones, isClient]);
 
+  // Save reference timezone to localStorage whenever it changes (only if user-set)
+  useEffect(() => {
+    if (!isClient || !hasUserSetReference) return;
+    
+    try {
+      localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
+    } catch (error) {
+      console.error('Failed to save reference timezone to localStorage:', error);
+    }
+  }, [referenceTimezone, isClient, hasUserSetReference]);
+
   // Update reference timezone with geolocation data
   useEffect(() => {
+    // Only update from geolocation if user hasn't set a custom reference
+    if (hasUserSetReference) return;
+    
     if (location && !geoError) {
       fetch(`/api/location?lat=${location.latitude}&lng=${location.longitude}`)
         .then(res => res.json())
@@ -93,7 +123,7 @@ export default function WorldClock() {
       setReferenceTimezone(localTz);
       setIpDetectedTimezone(localTz);
     }
-  }, [location, geoError]);
+  }, [location, geoError, hasUserSetReference]);
 
   // Update current time every minute
   useEffect(() => {
@@ -147,6 +177,7 @@ export default function WorldClock() {
     
     // Set the new reference timezone
     setReferenceTimezone(timezone);
+    setHasUserSetReference(true);
     
     // Always add the old reference to the timezone list if it's not already there
     // and it's not the same as the new reference
