@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { X, MapPin } from 'lucide-react';
+import { X, MapPin, Star } from 'lucide-react';
 import { formatTime, formatDate, formatDay } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
@@ -12,6 +12,7 @@ interface TimezoneCardProps {
   displayTime: Date;
   isReference?: boolean;
   onRemove?: () => void;
+  onSetAsReference?: () => void;
   children?: React.ReactNode;
 }
 
@@ -20,6 +21,7 @@ export function TimezoneCard({
   displayTime, 
   isReference = false, 
   onRemove, 
+  onSetAsReference,
   children 
 }: TimezoneCardProps) {
   const [clientTime, setClientTime] = useState<{
@@ -68,15 +70,31 @@ export function TimezoneCard({
             </div>
           </div>
           
-          {!isReference && onRemove && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onRemove}
-              className="h-9 w-9 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          {!isReference && (onRemove || onSetAsReference) && (
+            <div className="flex items-center gap-2">
+              {onSetAsReference && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSetAsReference}
+                  className="h-9 w-9 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-blue-300 transition-all duration-300 group"
+                  title="Set as reference timezone"
+                >
+                  <Star className="h-4 w-4 group-hover:fill-current" />
+                </Button>
+              )}
+              {onRemove && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRemove}
+                  className="h-9 w-9 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
+                  title="Remove timezone"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           )}
         </div>
 

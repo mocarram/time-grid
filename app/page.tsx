@@ -126,6 +126,28 @@ export default function WorldClock() {
     }));
   }, []);
 
+  const handleSetAsReference = useCallback((timezone: TimezoneData) => {
+    // Move current reference to the timezone list (if it's not the default local one)
+    const currentReference = referenceTimezone;
+    
+    // Remove the selected timezone from the list
+    setTimeState(prev => ({
+      ...prev,
+      timezones: prev.timezones.filter(tz => tz.id !== timezone.id),
+    }));
+    
+    // Set the new reference timezone
+    setReferenceTimezone(timezone);
+    
+    // Add the old reference to the timezone list (unless it's the default local timezone)
+    if (currentReference.id !== 'local' || currentReference.city !== getLocalTimezone().city) {
+      setTimeState(prev => ({
+        ...prev,
+        timezones: [...prev.timezones.filter(tz => tz.id !== timezone.id), currentReference],
+      }));
+    }
+  }, [referenceTimezone]);
+
   const resetToCurrentTime = () => {
     const now = new Date();
     setTimeState(prev => ({
@@ -197,6 +219,7 @@ export default function WorldClock() {
                 timezone={timezone}
                 displayTime={convertedTime}
                 onRemove={() => handleRemoveTimezone(timezone.id)}
+                onSetAsReference={() => handleSetAsReference(timezone)}
               />
             );
           })}
