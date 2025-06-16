@@ -18,6 +18,7 @@ const STORAGE_KEY = 'world-clock-timezones';
 export default function WorldClock() {
   const { location, error: geoError, loading: geoLoading } = useGeolocation();
   const [isClient, setIsClient] = useState(false);
+  const [ipDetectedTimezone, setIpDetectedTimezone] = useState<TimezoneData | null>(null);
   const [timeState, setTimeState] = useState<TimeState>({
     referenceTime: new Date(),
     selectedTime: new Date(),
@@ -72,17 +73,25 @@ export default function WorldClock() {
       fetch(`/api/location?lat=${location.latitude}&lng=${location.longitude}`)
         .then(res => res.json())
         .then(data => {
-          setReferenceTimezone({
+          const detectedTimezone = {
             id: 'local',
             city: data.city,
             timezone: data.timezone,
             country: data.country,
             offset: getTimezoneOffset(data.timezone)
-          });
+          };
+          setReferenceTimezone(detectedTimezone);
+          setIpDetectedTimezone(detectedTimezone);
         })
         .catch(() => {
-          setReferenceTimezone(getLocalTimezone());
+          const localTz = getLocalTimezone();
+          setReferenceTimezone(localTz);
+          setIpDetectedTimezone(localTz);
         });
+    } else {
+      const localTz = getLocalTimezone();
+      setReferenceTimezone(localTz);
+      setIpDetectedTimezone(localTz);
     }
   }, [location, geoError]);
 
@@ -127,7 +136,7 @@ export default function WorldClock() {
   }, []);
 
   const handleSetAsReference = useCallback((timezone: TimezoneData) => {
-    // Move current reference to the timezone list (if it's not the default local one)
+    // Move current reference to the timezone list
     const currentReference = referenceTimezone;
     
     // Remove the selected timezone from the list
@@ -139,11 +148,15 @@ export default function WorldClock() {
     // Set the new reference timezone
     setReferenceTimezone(timezone);
     
-    // Add the old reference to the timezone list (unless it's the default local timezone)
-    if (currentReference.id !== 'local' || currentReference.city !== getLocalTimezone().city) {
+    // Always add the old reference to the timezone list if it's not already there
+    // and it's not the same as the new reference
+    if (currentReference.id !== timezone.id) {
       setTimeState(prev => ({
         ...prev,
-        timezones: [...prev.timezones.filter(tz => tz.id !== timezone.id), currentReference],
+        timezones: [
+          ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
+          currentReference
+        ],
       }));
     }
   }, [referenceTimezone]);
