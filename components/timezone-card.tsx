@@ -59,7 +59,7 @@ export function TimezoneCard({
   const offsetString = `GMT${offsetSign}${offsetHours}${offsetMinutes > 0 ? ':' + offsetMinutes.toString().padStart(2, '0') : ''}`;
 
   return (
-    <div className={`glass-card rounded-3xl p-8 transition-all duration-300 hover:bg-white/[0.04] group ${
+    <div className={`glass-card rounded-3xl p-8 transition-all duration-500 hover:bg-white/[0.04] group ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
     } ${
       isDragging ? 'ring-2 ring-blue-400/50 glow bg-white/[0.08] backdrop-blur-3xl shadow-2xl shadow-blue-500/30' : ''

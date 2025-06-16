@@ -284,7 +284,7 @@ export default function WorldClock() {
     // Add a small delay to ensure smooth animation completion
     setTimeout(() => {
       setActiveId(null);
-    }, 100);
+    }, 150);
   }, []);
 
   const resetToCurrentTime = () => {
