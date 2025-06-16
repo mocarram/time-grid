@@ -43,8 +43,6 @@ export function SortableTimezoneCard({
       <div className={`transition-all duration-200 ${
         isDragging 
           ? 'border-2 border-dashed border-blue-400/60 rounded-3xl bg-blue-400/5 opacity-30' 
-          : isOver 
-            ? 'border-2 border-dashed border-blue-400/40 rounded-3xl bg-blue-400/5 animate-pulse' 
             : ''
       }`}>
         <TimezoneCard
