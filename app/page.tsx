@@ -11,7 +11,7 @@ import {
   getTimezoneOffset 
 } from '@/lib/timezone-utils';
 import type { TimezoneData, TimeState } from '@/types/timezone';
-import { Clock } from 'lucide-react';
+import { Clock, MapPin } from 'lucide-react';
 
 const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
