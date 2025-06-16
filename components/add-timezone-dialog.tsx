@@ -41,8 +41,8 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
 
   const filteredTimezones = POPULAR_TIMEZONES.filter(tz => 
     !existingTimezones.some(existing => 
-      existing.timezone === tz.timezone || 
-      (existing.city.toLowerCase() === tz.city.toLowerCase() && existing.country.toLowerCase() === tz.country.toLowerCase())
+      existing.city.toLowerCase() === tz.city.toLowerCase() && 
+      existing.country.toLowerCase() === tz.country.toLowerCase()
     ) &&
     (tz.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
      tz.country.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -113,16 +113,6 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
       const data = await response.json();
       
       if (data.timezone) {
-        // Double-check for timezone duplicates
-        const isTimezoneDuplicate = existingTimezones.some(existing => 
-          existing.timezone === data.timezone
-        );
-        
-        if (isTimezoneDuplicate) {
-          setIsSearching(false);
-          return;
-        }
-        
         const newTimezone: TimezoneData = {
           id: `custom-${city.id}-${Date.now()}`,
           city: city.city,

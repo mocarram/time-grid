@@ -195,15 +195,14 @@ export default function WorldClock() {
   }, []);
 
   const handleAddTimezone = useCallback((timezone: TimezoneData) => {
-    // Check for duplicates based on timezone or city+country combination
+    // Check for duplicates based on exact city+country combination only
+    // This allows multiple cities in the same timezone but prevents exact duplicates
     const isDuplicate = timeState.timezones.some(existing => 
-      existing.timezone === timezone.timezone || 
-      (existing.city.toLowerCase() === timezone.city.toLowerCase() && 
-       existing.country.toLowerCase() === timezone.country.toLowerCase())
+      existing.city.toLowerCase() === timezone.city.toLowerCase() && 
+      existing.country.toLowerCase() === timezone.country.toLowerCase()
     ) || (
-      referenceTimezone.timezone === timezone.timezone || 
-      (referenceTimezone.city.toLowerCase() === timezone.city.toLowerCase() && 
-       referenceTimezone.country.toLowerCase() === timezone.country.toLowerCase())
+      referenceTimezone.city.toLowerCase() === timezone.city.toLowerCase() && 
+      referenceTimezone.country.toLowerCase() === timezone.country.toLowerCase()
     );
     
     if (isDuplicate) {
