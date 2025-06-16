@@ -35,11 +35,11 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-blue-400" />
-          <span className="text-sm font-medium text-slate-300">Reference Time</span>
+          <Clock className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Reference Time</span>
         </div>
-        <span className="text-sm font-mono glass px-3 py-1 rounded-lg text-blue-300">
-          {clientTimeString || <DynamicSkeleton className="h-4 w-12 bg-white/10" />}
+        <span className="text-sm font-mono glass px-3 py-1 rounded-lg text-blue-600 dark:text-blue-300">
+          {clientTimeString || <DynamicSkeleton className="h-4 w-12 bg-slate-200 dark:bg-white/10" />}
         </span>
       </div>
       
@@ -54,7 +54,7 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
             className="w-full [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:border-blue-400 [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-blue-500/25"
           />
         </div>
-        <div className="flex justify-between text-xs text-slate-500 px-1">
+        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-500 px-1">
           <span>12:00 AM</span>
           <span>12:00 PM</span>
           <span>11:59 PM</span>

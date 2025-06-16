@@ -64,8 +64,8 @@ export function TimezoneCard({
           <div className="space-y-2">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-slate-400" />
-                <span className="text-white font-medium text-lg">{timezone.city}</span>
+                <MapPin className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                <span className="text-slate-800 dark:text-white font-medium text-lg">{timezone.city}</span>
               </div>
               {isReference && (
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">
@@ -74,25 +74,25 @@ export function TimezoneCard({
               )}
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+              <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-slate-700 dark:bg-white/5 dark:text-slate-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/10">
                 {timezone.country}
               </span>
-              <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-blue-300 text-xs font-medium rounded-full border border-white/10 font-mono">
+              <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-blue-600 dark:bg-white/5 dark:text-blue-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/10 font-mono">
                 {offsetString}
               </span>
               {clientTime ? (
                 <>
-                  <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                  <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-slate-700 dark:bg-white/5 dark:text-slate-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/10">
                     {clientTime.date}
                   </span>
-                  <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                  <span className="px-3 py-1 bg-white/30 backdrop-blur-sm text-slate-700 dark:bg-white/5 dark:text-slate-300 text-xs font-medium rounded-full border border-slate-200/50 dark:border-white/10">
                     {clientTime.day}
                   </span>
                 </>
               ) : (
                 <>
-                  <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
-                  <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+                  <Skeleton className="h-6 w-16 bg-slate-200 dark:bg-white/10 rounded-full" />
+                  <Skeleton className="h-6 w-12 bg-slate-200 dark:bg-white/10 rounded-full" />
                 </>
               )}
             </div>
@@ -108,7 +108,7 @@ export function TimezoneCard({
                   className="h-9 w-9 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-blue-300 transition-all duration-300 group"
                   title="Set as reference timezone"
                 >
-                  <Star className="h-4 w-4 group-hover:fill-current" />
+                  <Star className="h-4 w-4 text-slate-600 dark:text-slate-400 group-hover:fill-current group-hover:text-blue-500 dark:group-hover:text-blue-300" />
                 </Button>
               )}
               {onRemove && (
@@ -120,18 +120,18 @@ export function TimezoneCard({
                   className="h-9 w-9 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
                   title="Remove timezone"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4 text-slate-600 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-300" />
                 </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="glass-card border-white/10 text-white">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-white">Remove Timezone</AlertDialogTitle>
-                      <AlertDialogDescription className="text-slate-300">
-                        Are you sure you want to remove <span className="font-medium text-white">{timezone.city}, {timezone.country}</span> from your world clock? This action cannot be undone.
+                      <AlertDialogTitle className="text-slate-800 dark:text-white">Remove Timezone</AlertDialogTitle>
+                      <AlertDialogDescription className="text-slate-600 dark:text-slate-300">
+                        Are you sure you want to remove <span className="font-medium text-slate-800 dark:text-white">{timezone.city}, {timezone.country}</span> from your world clock? This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="glass-button border-white/20 text-slate-300 hover:bg-white/10 hover:text-white">
+                      <AlertDialogCancel className="glass-button border-slate-200/50 dark:border-white/20 text-slate-700 dark:text-slate-300 hover:bg-white/20 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction 
@@ -150,8 +150,8 @@ export function TimezoneCard({
 
         {/* Time Display */}
         <div className="space-y-2">
-          <div className="text-5xl font-thin text-white tracking-tight">
-            {clientTime?.time || <Skeleton className="h-16 w-32 bg-white/10" />}
+          <div className="text-5xl font-thin text-slate-800 dark:text-white tracking-tight">
+            {clientTime?.time || <Skeleton className="h-16 w-32 bg-slate-200 dark:bg-white/10" />}
           </div>
         </div>
 
