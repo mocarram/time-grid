@@ -25,11 +25,12 @@ export function SortableTimezoneCard({
     transform,
     transition,
     isDragging,
+    isOver,
   } = useSortable({ id: timezone.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+    transition: isDragging ? 'none' : (transition || 'transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94)'),
   };
 
   return (
@@ -37,24 +38,28 @@ export function SortableTimezoneCard({
       ref={setNodeRef} 
       style={style} 
       {...attributes}
-      className={`relative transition-all duration-200 ease-out h-full ${
+      className={`relative h-full ${
         isDragging ? 'z-50' : 'z-0'
       }`}
     >
-      <div className={`transition-all duration-200 ease-out h-full ${
-        isDragging 
-          ? 'border-2 border-dashed border-blue-400/80 rounded-2xl bg-blue-400/10 backdrop-blur-sm opacity-50' 
-          : 'opacity-100'
-      }`}>
+      {/* Show dashed placeholder when this item is being dragged */}
+      {isDragging ? (
+        <div className="h-full border-2 border-dashed border-blue-400/60 rounded-2xl bg-blue-400/5 backdrop-blur-sm flex items-center justify-center transition-all duration-200 ease-out">
+          <div className="text-blue-400/60 text-sm font-medium flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-400/60 rounded-full animate-pulse" />
+            Moving {timezone.city}...
+          </div>
+        </div>
+      ) : (
         <TimezoneCard
           timezone={timezone}
           displayTime={displayTime}
           onRemove={onRemove}
           onSetAsReference={onSetAsReference}
           dragHandleProps={listeners}
-          isDragging={isDragging}
+          isDragging={false}
         />
-      </div>
+      )}
     </div>
   );
 }

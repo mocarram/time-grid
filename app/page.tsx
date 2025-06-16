@@ -10,13 +10,14 @@ import {
   useSensors,
   DragEndEvent,
   DragStartEvent,
+  DragOverEvent,
   DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { TimezoneCard } from '@/components/timezone-card';
 import { SortableTimezoneCard } from '@/components/sortable-timezone-card';
@@ -42,6 +43,7 @@ export default function WorldClock() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const [timeState, setTimeState] = useState<TimeState>({
     referenceTime: new Date(),
     selectedTime: new Date(),
@@ -266,6 +268,9 @@ export default function WorldClock() {
     setActiveId(event.active.id as string);
   }, []);
 
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    setOverId(event.over?.id as string || null);
+  }, []);
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -284,6 +289,7 @@ export default function WorldClock() {
     // Add a small delay to ensure smooth animation completion
     setTimeout(() => {
       setActiveId(null);
+      setOverId(null);
     }, 150);
   }, []);
 
@@ -482,11 +488,12 @@ export default function WorldClock() {
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={timeState.timezones.map(tz => tz.id)}
-              strategy={verticalListSortingStrategy}
+              items={timeState.timezones}
+              strategy={rectSortingStrategy}
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
                 {timeState.timezones.map((timezone) => {
