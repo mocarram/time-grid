@@ -225,6 +225,7 @@ export default function WorldClock() {
 
   const resetToCurrentTime = () => {
     const now = new Date(); 
+    console.log("ref timezone", referenceTimezone.timezone);
     const referenceTime = toZonedTime(now, referenceTimezone.timezone);
   
     setTimeState(prev => ({
