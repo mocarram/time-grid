@@ -134,22 +134,44 @@ export default function WorldClock() {
   }, [location, geoError, hasUserSetReference]);
 
   // Update current time every minute
+  // useEffect(() => {
+  //   const updateTime = () => {
+  //     if (!timeState.isTimeModified) {
+  //       const now = new Date();
+  //       setTimeState(prev => ({
+  //         ...prev,
+  //         referenceTime: now,
+  //         selectedTime: now,
+  //       }));
+  //     }
+  //   };
+
+  //   updateTime();
+  //   const interval = setInterval(updateTime, 60000);
+  //   return () => clearInterval(interval);
+  // }, [timeState.isTimeModified]);
   useEffect(() => {
-    const updateTime = () => {
+      const updateTime = () => {
       if (!timeState.isTimeModified) {
+        // grab the current instant…
         const now = new Date();
+  
+        // …and re-interpret it in your reference zone
+        const referenceTime = toZonedTime(now, referenceTimezone.timezone);
+  
         setTimeState(prev => ({
           ...prev,
-          referenceTime: now,
-          selectedTime: now,
+          referenceTime,
+          selectedTime: referenceTime,
         }));
       }
     };
-
+  
     updateTime();
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
-  }, [timeState.isTimeModified]);
+  // add `referenceTimezone` so it re-runs when you switch zones
+  }, [timeState.isTimeModified, referenceTimezone]);
 
   const handleTimeChange = useCallback((newTime: Date) => {
     setTimeState(prev => ({
@@ -224,8 +246,7 @@ export default function WorldClock() {
   // };
 
   const resetToCurrentTime = () => {
-    const now = new Date(); 
-    console.log("ref timezone", referenceTimezone.timezone);
+    const now = new Date();
     const referenceTime = toZonedTime(now, referenceTimezone.timezone);
   
     setTimeState(prev => ({
