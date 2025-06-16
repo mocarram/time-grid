@@ -215,7 +215,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <Globe className="h-12 w-12 text-slate-400 dark:text-slate-700 mx-auto mb-3" />
+                  <Globe className="h-12 w-12 text-slate-400 dark:text-slate-600 mx-auto mb-3" />
                   <p className="text-slate-600 dark:text-slate-400 font-light">
                     {searchQuery ? 'No cities found. Try a different search term.' : 'All popular cities added'}
                   </p>
@@ -225,7 +225,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
               (!showResults || searchResults.length === 0) && filteredTimezones.map((timezone) => (
                 <div
                   key={timezone.id}
-                  className="glass p-4 rounded-xl cursor-pointer hover:bg-white/[0.05] dark:hover:bg-white/[0.03] transition-all duration-300 group"
+                  className="glass p-4 rounded-xl cursor-pointer hover:bg-white/[0.05] dark:hover:bg-white/[0.02] transition-all duration-300 group"
                   onClick={() => handleAddTimezone(timezone)}
                 >
                   <div className="flex items-center justify-between">
@@ -235,7 +235,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                       </div>
                       <div className="text-sm text-slate-600 dark:text-slate-400">{timezone.country}</div>
                     </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-500 font-mono px-2 py-1 bg-white/20 dark:bg-white/[0.03] rounded-lg">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 font-mono px-2 py-1 bg-white/20 dark:bg-white/[0.04] rounded-lg">
                       GMT{timezone.offset >= 0 ? '+' : ''}
                       {Math.floor(timezone.offset / 60)}
                       {timezone.offset % 60 !== 0 ? ':' + (timezone.offset % 60).toString().padStart(2, '0') : ''}

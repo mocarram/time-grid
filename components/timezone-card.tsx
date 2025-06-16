@@ -91,8 +91,8 @@ export function TimezoneCard({
                 </>
               ) : (
                 <>
-                  <Skeleton className="h-6 w-16 bg-slate-200 dark:bg-white/10 rounded-full" />
-                  <Skeleton className="h-6 w-12 bg-slate-200 dark:bg-white/10 rounded-full" />
+                  <Skeleton className="h-6 w-16 bg-slate-200 dark:bg-white/[0.05] rounded-full" />
+                  <Skeleton className="h-6 w-12 bg-slate-200 dark:bg-white/[0.05] rounded-full" />
                 </>
               )}
             </div>
@@ -131,12 +131,12 @@ export function TimezoneCard({
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel className="glass-button border-slate-200/50 dark:border-white/20 text-slate-700 dark:text-slate-300 hover:bg-white/20 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white">
+                      <AlertDialogCancel className="glass-button border-slate-200/50 dark:border-white/[0.1] text-slate-700 dark:text-slate-300 hover:bg-white/20 dark:hover:bg-white/[0.05] hover:text-slate-800 dark:hover:text-white">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={onRemove}
-                        className="bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30 hover:border-red-400/50 hover:text-red-200"
+                        className="bg-red-500/20 border-red-400/30 text-red-200 hover:bg-red-500/30 hover:border-red-400/50 hover:text-red-100"
                       >
                         Remove
                       </AlertDialogAction>
@@ -151,7 +151,7 @@ export function TimezoneCard({
         {/* Time Display */}
         <div className="space-y-2">
           <div className="text-5xl font-thin text-slate-800 dark:text-white tracking-tight">
-            {clientTime?.time || <Skeleton className="h-16 w-32 bg-slate-200 dark:bg-white/10" />}
+            {clientTime?.time || <Skeleton className="h-16 w-32 bg-slate-200 dark:bg-white/[0.05]" />}
           </div>
         </div>
 
