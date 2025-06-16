@@ -3,6 +3,17 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { X, MapPin, Star } from 'lucide-react';
 import { formatTime, formatDate, formatDay } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
@@ -84,15 +95,37 @@ export function TimezoneCard({
                 </Button>
               )}
               {onRemove && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={onRemove}
                   className="h-9 w-9 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
                   title="Remove timezone"
                 >
                   <X className="h-4 w-4" />
                 </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="glass-card border-white/10 text-white">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-white">Remove Timezone</AlertDialogTitle>
+                      <AlertDialogDescription className="text-slate-300">
+                        Are you sure you want to remove <span className="font-medium text-white">{timezone.city}, {timezone.country}</span> from your world clock? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="glass-button border-white/20 text-slate-300 hover:bg-white/10 hover:text-white">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={onRemove}
+                        className="bg-red-500/20 border-red-400/30 text-red-300 hover:bg-red-500/30 hover:border-red-400/50 hover:text-red-200"
+                      >
+                        Remove
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           )}
