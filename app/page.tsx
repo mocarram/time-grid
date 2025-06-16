@@ -195,7 +195,23 @@ export default function WorldClock() {
   }, []);
 
   const handleAddTimezone = useCallback((timezone: TimezoneData) => {
-    // Ensure unique ID by adding timestamp if needed
+    // Check for duplicates based on timezone or city+country combination
+    const isDuplicate = timeState.timezones.some(existing => 
+      existing.timezone === timezone.timezone || 
+      (existing.city.toLowerCase() === timezone.city.toLowerCase() && 
+       existing.country.toLowerCase() === timezone.country.toLowerCase())
+    ) || (
+      referenceTimezone.timezone === timezone.timezone || 
+      (referenceTimezone.city.toLowerCase() === timezone.city.toLowerCase() && 
+       referenceTimezone.country.toLowerCase() === timezone.country.toLowerCase())
+    );
+    
+    if (isDuplicate) {
+      console.log('Duplicate timezone detected, not adding:', timezone.city, timezone.country);
+      return;
+    }
+    
+    // Ensure unique ID
     const uniqueTimezone = {
       ...timezone,
       id: timezone.id.includes('custom-') ? timezone.id : `${timezone.id}-${Date.now()}`

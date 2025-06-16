@@ -40,7 +40,10 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
   const [showResults, setShowResults] = useState(false);
 
   const filteredTimezones = POPULAR_TIMEZONES.filter(tz => 
-    !existingTimezones.some(existing => existing.id === tz.id) &&
+    !existingTimezones.some(existing => 
+      existing.timezone === tz.timezone || 
+      (existing.city.toLowerCase() === tz.city.toLowerCase() && existing.country.toLowerCase() === tz.country.toLowerCase())
+    ) &&
     (tz.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
      tz.country.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -93,12 +96,33 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
   };
 
   const handleAddSearchResult = async (city: CitySearchResult) => {
+    // Check if this city/timezone already exists
+    const isDuplicate = existingTimezones.some(existing => 
+      existing.city.toLowerCase() === city.city.toLowerCase() && 
+      existing.country.toLowerCase() === city.country.toLowerCase()
+    );
+    
+    if (isDuplicate) {
+      // Show a brief visual feedback that it's already added
+      return;
+    }
+    
     setIsSearching(true);
     try {
       const response = await fetch(`/api/timezone?lat=${city.latitude}&lng=${city.longitude}`);
       const data = await response.json();
       
       if (data.timezone) {
+        // Double-check for timezone duplicates
+        const isTimezoneDuplicate = existingTimezones.some(existing => 
+          existing.timezone === data.timezone
+        );
+        
+        if (isTimezoneDuplicate) {
+          setIsSearching(false);
+          return;
+        }
+        
         const newTimezone: TimezoneData = {
           id: `custom-${city.id}-${Date.now()}`,
           city: city.city,
@@ -167,20 +191,53 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                 {searchResults.map((city) => (
                   <div
                     key={city.id}
-                    className="glass p-4 rounded-xl cursor-pointer hover:bg-white/10 transition-all duration-300 group"
+                    className={`glass p-4 rounded-xl transition-all duration-300 group ${
+                      existingTimezones.some(existing => 
+                        existing.city.toLowerCase() === city.city.toLowerCase() && 
+                        existing.country.toLowerCase() === city.country.toLowerCase()
+                      ) 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'cursor-pointer hover:bg-white/10'
+                    }`}
                     onClick={() => handleAddSearchResult(city)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <div className="font-medium text-white group-hover:text-blue-300 transition-colors">
+                        <div className={`font-medium transition-colors ${
+                          existingTimezones.some(existing => 
+                            existing.city.toLowerCase() === city.city.toLowerCase() && 
+                            existing.country.toLowerCase() === city.country.toLowerCase()
+                          )
+                            ? 'text-slate-500'
+                            : 'text-white group-hover:text-blue-300'
+                        }`}>
                           {city.city}
+                          {existingTimezones.some(existing => 
+                            existing.city.toLowerCase() === city.city.toLowerCase() && 
+                            existing.country.toLowerCase() === city.country.toLowerCase()
+                          ) && (
+                            <span className="ml-2 text-xs text-slate-600">(Already added)</span>
+                          )}
                         </div>
-                        <div className="text-sm text-slate-400">
+                        <div className={`text-sm ${
+                          existingTimezones.some(existing => 
+                            existing.city.toLowerCase() === city.city.toLowerCase() && 
+                            existing.country.toLowerCase() === city.country.toLowerCase()
+                          )
+                            ? 'text-slate-600'
+                            : 'text-slate-400'
+                        }`}>
                           {city.country}
-                          {city.state && ` • ${city.state}`}
                         </div>
                       </div>
-                      <div className="text-xs text-slate-500 px-2 py-1 bg-white/5 rounded-lg capitalize">
+                      <div className={`text-xs px-2 py-1 bg-white/5 rounded-lg capitalize ${
+                        existingTimezones.some(existing => 
+                          existing.city.toLowerCase() === city.city.toLowerCase() && 
+                          existing.country.toLowerCase() === city.country.toLowerCase()
+                        )
+                          ? 'text-slate-600'
+                          : 'text-slate-500'
+                      }`}>
                         {city.placeType}
                       </div>
                     </div>
