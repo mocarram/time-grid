@@ -187,7 +187,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                   </div>
                 ))}
                 {filteredTimezones.length > 0 && (
-                  <div className="border-t border-slate-200/30 dark:border-white/[0.06] pt-4 mt-6">
+                  <div className="border-t border-white/10 pt-4 mt-6">
                     <div className="text-sm text-slate-600 dark:text-slate-400 mb-3 flex items-center gap-2">
                       <Globe className="h-4 w-4" />
                       Popular Cities
@@ -205,10 +205,10 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                     <div key={i} className="glass p-4 rounded-xl">
                       <div className="flex items-center justify-between">
                         <div className="space-y-2 flex-1">
-                          <Skeleton className="h-4 w-24 bg-slate-200 dark:bg-white/[0.05]" />
-                          <Skeleton className="h-3 w-16 bg-slate-200 dark:bg-white/[0.05]" />
+                          <Skeleton className="h-4 w-24 bg-slate-200 dark:bg-white/10" />
+                          <Skeleton className="h-3 w-16 bg-slate-200 dark:bg-white/10" />
                         </div>
-                        <Skeleton className="h-6 w-12 bg-slate-200 dark:bg-white/[0.05]" />
+                        <Skeleton className="h-6 w-12 bg-slate-200 dark:bg-white/10" />
                       </div>
                     </div>
                   ))}
@@ -225,7 +225,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
               (!showResults || searchResults.length === 0) && filteredTimezones.map((timezone) => (
                 <div
                   key={timezone.id}
-                  className="glass p-4 rounded-xl cursor-pointer hover:bg-white/[0.05] dark:hover:bg-white/[0.02] transition-all duration-300 group"
+                  className="glass p-4 rounded-xl cursor-pointer hover:bg-white/10 transition-all duration-300 group"
                   onClick={() => handleAddTimezone(timezone)}
                 >
                   <div className="flex items-center justify-between">
@@ -235,7 +235,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                       </div>
                       <div className="text-sm text-slate-600 dark:text-slate-400">{timezone.country}</div>
                     </div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400 font-mono px-2 py-1 bg-white/20 dark:bg-white/[0.04] rounded-lg">
+                    <div className="text-xs text-slate-600 dark:text-slate-500 font-mono px-2 py-1 bg-white/20 dark:bg-white/5 rounded-lg">
                       GMT{timezone.offset >= 0 ? '+' : ''}
                       {Math.floor(timezone.offset / 60)}
                       {timezone.offset % 60 !== 0 ? ':' + (timezone.offset % 60).toString().padStart(2, '0') : ''}
