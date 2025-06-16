@@ -45,8 +45,14 @@ export async function GET(request: NextRequest) {
           `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
           {
             headers: {
-              'User-Agent': 'WorldClock/1.0'
+              'User-Agent': 'WorldClock/1.0',
+              'Accept-Language': 'en'
             }
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+          {
+            headers: {
+              "Accept-Language": "en",
+            },
           }
         );
         

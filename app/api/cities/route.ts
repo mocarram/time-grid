@@ -18,11 +18,13 @@ export async function GET(request: NextRequest) {
       `addressdetails=1&` +
       `limit=15&` +
       `extratags=1&` +
+      `accept-language=en&` +
       `dedupe=1`;
 
     const response = await fetch(searchUrl, {
       headers: {
         "User-Agent": "WorldClock/1.0",
+        "Accept-Language": "en",
       },
     });
 

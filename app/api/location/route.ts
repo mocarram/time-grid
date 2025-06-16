@@ -12,7 +12,12 @@ export async function GET(request: NextRequest) {
   try {
     // Using a free reverse geocoding service
     const response = await fetch(
-      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+      {
+        headers: {
+          "Accept-Language": "en",
+        },
+      }
     );
 
     if (!response.ok) {
