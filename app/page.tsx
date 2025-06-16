@@ -206,19 +206,11 @@ export default function WorldClock() {
   }, [referenceTimezone, timeState.selectedTime]);
 
   const resetToCurrentTime = () => {
-    // Get the current UTC time
+    // Get the current time in the reference timezone
     const now = new Date();
-    
-    // Convert current UTC time to the reference timezone
-    // We need to account for the timezone offset difference
-    const systemOffset = now.getTimezoneOffset(); // System timezone offset in minutes (negative for ahead of UTC)
-    const referenceOffsetMinutes = referenceTimezone.offset; // Reference timezone offset in minutes
-    
-    // Calculate the difference between reference timezone and system timezone
-    const offsetDifference = referenceOffsetMinutes + systemOffset;
-    
-    // Create the current time in the reference timezone
-    const currentTimeInReferenceTimezone = new Date(now.getTime() + (offsetDifference * 60000));
+    const currentTimeInReferenceTimezone = new Date(now.toLocaleString('en-US', { 
+      timeZone: referenceTimezone.timezone 
+    }));
     
     setTimeState(prev => ({
       ...prev,
