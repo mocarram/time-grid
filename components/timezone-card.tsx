@@ -129,7 +129,7 @@ export function TimezoneCard({
                     <AlertDialogHeader>
                       <AlertDialogTitle className="text-white">Remove Timezone</AlertDialogTitle>
                       <AlertDialogDescription className="text-slate-300">
-                        Are you sure you want to remove <span className="font-medium text-white">{timezone.city}, {timezone.country}</span> from your world clock? This action cannot be undone.
+                        Are you sure you want to remove <span className="font-medium text-white">{timezone.city}, {timezone.country}</span> from your world clock?
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
