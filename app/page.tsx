@@ -205,22 +205,62 @@ export default function WorldClock() {
     }));
   }, [referenceTimezone, timeState.selectedTime]);
 
+  // const resetToCurrentTime = () => {
+  //   // Get the current UTC time
+  //   const now = new Date();
+    
+  //   // Convert current UTC time to reference timezone
+  //   const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
+  //   const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
+  //   const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
+    
+  //   setTimeState(prev => ({
+  //     ...prev,
+  //     referenceTime: referenceTime,
+  //     selectedTime: referenceTime,
+  //     isTimeModified: false,
+  //   }));
+  // };
+
   const resetToCurrentTime = () => {
-    // Get the current UTC time
-    const now = new Date();
-    
-    // Convert current UTC time to reference timezone
-    const localOffset = now.getTimezoneOffset(); // Local timezone offset in minutes (negative for ahead of UTC)
-    const utcTime = new Date(now.getTime() + (localOffset * 60000)); // Convert to UTC
-    const referenceTime = new Date(utcTime.getTime() + (referenceTimezone.offset * 60000)); // Convert to reference timezone
-    
-    setTimeState(prev => ({
-      ...prev,
-      referenceTime: referenceTime,
-      selectedTime: referenceTime,
-      isTimeModified: false,
-    }));
-  };
+  const timeZone = referenceTimezone.timezone;
+
+  // Get the current date and time in the reference timezone
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  const parts = formatter.formatToParts(now);
+  const getPart = (type: string) => parts.find(p => p.type === type)?.value ?? '00';
+
+  const year = parseInt(getPart('year'));
+  const month = parseInt(getPart('month'));
+  const day = parseInt(getPart('day'));
+  const hour = parseInt(getPart('hour'));
+  const minute = parseInt(getPart('minute'));
+  const second = parseInt(getPart('second'));
+
+  // Create a naive string for the local time in the target timezone
+  const localTimeStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${hour}:${minute}:${second}`;
+
+  // Convert that time string to a Date in UTC
+  const dateInReferenceTz = zonedTimeToUtc(localTimeStr, timeZone);
+
+  setTimeState(prev => ({
+    ...prev,
+    referenceTime: dateInReferenceTz,
+    selectedTime: dateInReferenceTz,
+    isTimeModified: false,
+  }));
+};
 
   // Don't render until we've loaded from localStorage to prevent flash
   if (!isLoaded) {
