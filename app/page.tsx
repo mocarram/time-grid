@@ -392,7 +392,7 @@ export default function WorldClock() {
             {/* Additional Timezone Cards Skeleton */}
             <div className="space-y-6">
               {[...Array(2)].map((_, i) => (
-                <div key={i} className="glass-card rounded-3xl p-8">
+                <div key={i} className="glass-card rounded-2xl p-6 min-h-[200px] flex flex-col">
                   <div className="space-y-6">
                     {/* Header Skeleton */}
                     <div className="flex items-start justify-between">
@@ -403,24 +403,26 @@ export default function WorldClock() {
                             <Skeleton className="h-6 w-20 bg-white/10" />
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-slate-400">
-                          <Skeleton className="h-4 w-16 bg-white/10" />
-                          <Skeleton className="h-4 w-12 bg-white/10" />
-                          <span>•</span>
-                          <Skeleton className="h-4 w-16 bg-white/10" />
-                          <Skeleton className="h-3 w-12 bg-white/10" />
-                        </div>
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Skeleton className="h-9 w-9 bg-white/10 rounded-lg" />
-                        <Skeleton className="h-9 w-9 bg-white/10 rounded-lg" />
+                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
+                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
+                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
                       </div>
                     </div>
 
                     {/* Time Display Skeleton */}
                     <div className="space-y-2">
-                      <Skeleton className="h-16 w-32 bg-white/10" />
+                      <Skeleton className="h-12 w-28 bg-white/10" />
+                    </div>
+
+                    {/* Badge Skeleton */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
+                      <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+                      <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
+                      <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
                     </div>
                   </div>
                 </div>
