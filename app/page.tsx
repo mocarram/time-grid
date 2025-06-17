@@ -471,12 +471,19 @@ export default function WorldClock() {
                 onTimeChange={handleTimeChange}
               />
               {timeState.isTimeModified && (
-                <button
+                <div className="flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
                   onClick={resetToCurrentTime}
-                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
-                >
-                  Reset to current time
-                </button>
+                    className="h-8 px-4 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group"
+                    title="Reset to current time"
+                  >
+                    <span className="text-sm text-slate-400 group-hover:text-blue-300 font-medium">
+                      Reset to current time
+                    </span>
+                  </Button>
+                </div>
               )}
             </div>
           </TimezoneCard>
