@@ -14,8 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { X, MapPin, Star, GripVertical } from 'lucide-react';
-import { X, MapPin, Home, GripVertical } from 'lucide-react';
+import { X, MapPin, Star, GripVertical, Home } from 'lucide-react';
 import { formatTime, formatDate, formatDay } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
