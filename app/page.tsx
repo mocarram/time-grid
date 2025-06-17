@@ -25,7 +25,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { TimeSelector } from '@/components/time-selector';
 import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
+import { ShareButton } from '@/components/share-button';
 import { useGeolocation } from '@/hooks/use-geolocation';
+import { useShareData } from '@/hooks/use-share-data';
 import { 
   getLocalTimezone, 
   convertTime, 
@@ -52,6 +54,21 @@ export default function WorldClock() {
     isTimeModified: false,
   });
   const [referenceTimezone, setReferenceTimezone] = useState<TimezoneData>(getLocalTimezone());
+
+  // Handle shared data loading
+  const handleLoadSharedData = useCallback((data: {
+    referenceTimezone: TimezoneData;
+    timeState: Partial<TimeState>;
+  }) => {
+    setReferenceTimezone(data.referenceTimezone);
+    setHasUserSetReference(true);
+    setTimeState(prev => ({
+      ...prev,
+      ...data.timeState,
+    }));
+  }, []);
+
+  useShareData({ onLoadSharedData: handleLoadSharedData });
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -567,7 +584,11 @@ export default function WorldClock() {
       </div>
 
       {/* Floating Add Timezone Button */}
-      <div className="fixed bottom-8 right-8 z-50">
+      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4">
+        <ShareButton 
+          referenceTimezone={referenceTimezone}
+          timeState={timeState}
+        />
         <AddTimezoneDialog
           onAddTimezone={handleAddTimezone}
           existingTimezones={[referenceTimezone, ...timeState.timezones]}
