@@ -2,9 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
-import { timeToMinutes, minutesToTime, formatTime } from '@/lib/timezone-utils';
-import { Clock } from 'lucide-react';
+import { timeToMinutes, minutesToTime, formatTime, formatDate } from '@/lib/timezone-utils';
+import { Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 
 const DynamicSkeleton = dynamic(() => import('@/components/ui/skeleton').then(mod => ({ default: mod.Skeleton })), {
   ssr: false
@@ -19,10 +27,13 @@ interface TimeSelectorProps {
 export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSelectorProps) {
   const [minutes, setMinutes] = useState<number[]>([timeToMinutes(selectedTime)]);
   const [clientTimeString, setClientTimeString] = useState<string | null>(null);
+  const [clientDateString, setClientDateString] = useState<string | null>(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   useEffect(() => {
     setMinutes([timeToMinutes(selectedTime)]);
     setClientTimeString(formatTime(selectedTime));
+    setClientDateString(formatDate(selectedTime));
   }, [selectedTime]);
 
   const handleSliderChange = (newMinutes: number[]) => {
@@ -31,16 +42,55 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
     onTimeChange(newTime);
   };
 
+  const handleDateChange = (newDate: Date | undefined) => {
+    if (newDate) {
+      // Preserve the current time when changing date
+      const updatedDateTime = new Date(newDate);
+      updatedDateTime.setHours(selectedTime.getHours());
+      updatedDateTime.setMinutes(selectedTime.getMinutes());
+      updatedDateTime.setSeconds(selectedTime.getSeconds());
+      updatedDateTime.setMilliseconds(selectedTime.getMilliseconds());
+      
+      onTimeChange(updatedDateTime);
+      setIsCalendarOpen(false);
+    }
+  };
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-blue-400" />
-          <span className="text-sm font-medium text-slate-300">Reference Time</span>
+          <span className="text-sm font-medium text-slate-300">Reference Date & Time</span>
         </div>
-        <span className="text-sm font-mono glass px-3 py-1 rounded-lg text-blue-300">
-          {clientTimeString || <DynamicSkeleton className="h-4 w-12 bg-white/10" />}
-        </span>
+        <div className="flex items-center gap-2">
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-3 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group text-xs font-medium"
+                title="Change date"
+              >
+                <CalendarIcon className="h-3 w-3 text-blue-400 group-hover:text-blue-300 mr-1.5" />
+                <span className="text-blue-300 group-hover:text-white">
+                  {clientDateString || <DynamicSkeleton className="h-3 w-16 bg-white/10" />}
+                </span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 glass-card border-white/10" align="end">
+              <Calendar
+                mode="single"
+                selected={selectedTime}
+                onSelect={handleDateChange}
+                initialFocus
+                className="text-white"
+              />
+            </PopoverContent>
+          </Popover>
+          <span className="text-sm font-mono glass px-3 py-1 rounded-lg text-blue-300">
+            {clientTimeString || <DynamicSkeleton className="h-4 w-12 bg-white/10" />}
+          </span>
+        </div>
       </div>
       
       <div className="space-y-3">
