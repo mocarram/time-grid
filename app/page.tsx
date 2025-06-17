@@ -245,7 +245,7 @@ export default function WorldClock() {
       ...prev,
       timezones: [...prev.timezones, uniqueTimezone],
     }));
-  }, []);
+  }, [referenceTimezone]);
 
   const handleRemoveTimezone = useCallback((timezoneId: string) => {
     setTimeState(prev => ({
@@ -294,6 +294,7 @@ export default function WorldClock() {
   const handleDragOver = useCallback((event: DragOverEvent) => {
     setOverId(event.over?.id as string || null);
   }, []);
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -500,7 +501,7 @@ export default function WorldClock() {
                   <Button
                     variant="ghost"
                     size="sm"
-                  onClick={resetToCurrentTime}
+                    onClick={resetToCurrentTime}
                     className="h-8 px-4 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group"
                     title="Reset to current time"
                   >
