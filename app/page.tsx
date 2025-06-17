@@ -584,7 +584,34 @@ export default function WorldClock() {
       </div>
 
       {/* Floating Add Timezone Button */}
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4">
+      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4 sm:flex-col md:flex-col lg:flex-col">
+        {/* Mobile: Horizontal layout */}
+        <div className="flex flex-row gap-4 sm:hidden">
+          <ShareButton 
+            referenceTimezone={referenceTimezone}
+            timeState={timeState}
+          />
+          <AddTimezoneDialog
+            onAddTimezone={handleAddTimezone}
+            existingTimezones={[referenceTimezone, ...timeState.timezones]}
+          />
+        </div>
+        
+        {/* Desktop: Vertical layout */}
+        <div className="hidden sm:flex sm:flex-col sm:gap-4">
+          <ShareButton 
+            referenceTimezone={referenceTimezone}
+            timeState={timeState}
+          />
+          <AddTimezoneDialog
+            onAddTimezone={handleAddTimezone}
+            existingTimezones={[referenceTimezone, ...timeState.timezones]}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
         <ShareButton 
           referenceTimezone={referenceTimezone}
           timeState={timeState}
