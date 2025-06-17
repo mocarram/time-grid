@@ -612,15 +612,3 @@ export default function WorldClock() {
     </div>
   );
 }
-        <ShareButton 
-          referenceTimezone={referenceTimezone}
-          timeState={timeState}
-        />
-        <AddTimezoneDialog
-          onAddTimezone={handleAddTimezone}
-          existingTimezones={[referenceTimezone, ...timeState.timezones]}
-        />
-      </div>
-    </div>
-  );
-}
