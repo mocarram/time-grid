@@ -73,7 +73,14 @@ export function TimezoneCard({
                 <MapPin className="h-4 w-4 text-slate-400" />
                 <span className={`font-medium text-base transition-colors duration-300 ${
                   isDragging ? 'text-blue-200' : 'text-white'
-                } truncate`}>{timezone.city}</span>
+                } truncate`} title={timezone.city}>
+                  {isReference 
+                    ? timezone.city 
+                    : timezone.city.length > 10 
+                      ? `${timezone.city.substring(0, 10)}...` 
+                      : timezone.city
+                  }
+                </span>
               </div>
               {isReference && (
                 <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">
