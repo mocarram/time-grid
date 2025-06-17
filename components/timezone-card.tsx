@@ -135,10 +135,10 @@ export function TimezoneCard({
                   variant="ghost"
                   size="sm"
                   onClick={onSetAsReference}
-                  className="h-8 w-8 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-blue-300 transition-all duration-300 group"
+                  className="h-8 w-8 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group"
                   title="Set as reference timezone"
                 >
-                  <Home className="h-3.5 w-3.5" />
+                  <Home className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-300" />
                 </Button>
               )}
               {onRemove && (
@@ -147,10 +147,10 @@ export function TimezoneCard({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 hover:text-red-300 transition-all duration-300"
+                      className="h-8 w-8 p-0 glass-button hover:bg-red-500/20 hover:border-red-400/30 transition-all duration-300 group"
                       title="Remove timezone"
                     >
-                      <X className="h-3.5 w-3.5" />
+                      <X className="h-3.5 w-3.5 text-slate-400 group-hover:text-red-300" />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="glass-card border-white/10 text-white">
