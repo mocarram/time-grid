@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/popover';
 import { Slider } from '@/components/ui/slider';
 import { timeToMinutes, minutesToTime, formatTime, formatDate } from '@/lib/timezone-utils';
-import { Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 
 const DynamicSkeleton = dynamic(() => import('@/components/ui/skeleton').then(mod => ({ default: mod.Skeleton })), {
@@ -75,6 +75,7 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
                 <span className="text-blue-300 group-hover:text-white">
                   {clientDateString || <DynamicSkeleton className="h-3 w-16 bg-white/10" />}
                 </span>
+                <ChevronDown className="h-3 w-3 text-blue-400 group-hover:text-blue-300 ml-1.5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 glass-card border-white/10" align="end">
