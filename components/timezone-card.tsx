@@ -90,18 +90,18 @@ export function TimezoneCard({
             </div>
             {isReference && (
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
                   {timezone.country}
                 </span>
-                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-blue-300 text-xs font-medium rounded-full border border-white/10 font-mono">
+                <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-blue-400/70 text-xs font-medium rounded-full border border-white/[0.06] font-mono">
                   {offsetString}
                 </span>
                 {clientTime ? (
                   <>
-                    <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                    <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
                       {clientTime.date}
                     </span>
-                    <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                    <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
                       {clientTime.day}
                     </span>
                   </>
@@ -192,18 +192,18 @@ export function TimezoneCard({
           <div className={`flex items-center gap-1.5 flex-wrap transition-all duration-300 ${
             isDragging ? 'opacity-80' : ''
           }`}>
-            <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+            <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
               {timezone.country}
             </span>
-            <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-blue-300 text-xs font-medium rounded-full border border-white/10 font-mono">
+            <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-blue-400/70 text-xs font-medium rounded-full border border-white/[0.06] font-mono">
               {offsetString}
             </span>
             {clientTime ? (
               <>
-                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
                   {clientTime.date}
                 </span>
-                <span className="px-3 py-1 bg-white/5 backdrop-blur-sm text-slate-300 text-xs font-medium rounded-full border border-white/10">
+                <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
                   {clientTime.day}
                 </span>
               </>
