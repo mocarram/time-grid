@@ -96,14 +96,15 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
   };
 
   const handleAddSearchResult = async (city: CitySearchResult) => {
-    // Check if this city/timezone already exists
+    // Check if this city/timezone already exists (excluding auto-detected local reference)
     const isDuplicate = existingTimezones.some(existing => 
       existing.city.toLowerCase() === city.city.toLowerCase() && 
-      existing.country.toLowerCase() === city.country.toLowerCase()
+      existing.country.toLowerCase() === city.country.toLowerCase() &&
+      existing.id !== 'local' // Allow adding if the existing one is just auto-detected local
     );
     
     if (isDuplicate) {
-      // Show a brief visual feedback that it's already added
+      console.log('City already exists, not adding:', city.city, city.country);
       return;
     }
     
@@ -184,7 +185,8 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                     className={`glass p-4 rounded-xl transition-all duration-300 group ${
                       existingTimezones.some(existing => 
                         existing.city.toLowerCase() === city.city.toLowerCase() && 
-                        existing.country.toLowerCase() === city.country.toLowerCase()
+                        existing.country.toLowerCase() === city.country.toLowerCase() &&
+                        existing.id !== 'local'
                       ) 
                         ? 'opacity-50 cursor-not-allowed' 
                         : 'cursor-pointer hover:bg-white/10'
@@ -196,7 +198,8 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                         <div className={`font-medium transition-colors ${
                           existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
-                            existing.country.toLowerCase() === city.country.toLowerCase()
+                            existing.country.toLowerCase() === city.country.toLowerCase() &&
+                            existing.id !== 'local'
                           )
                             ? 'text-slate-500'
                             : 'text-white group-hover:text-blue-300'
@@ -204,7 +207,8 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                           {city.city}
                           {existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
-                            existing.country.toLowerCase() === city.country.toLowerCase()
+                            existing.country.toLowerCase() === city.country.toLowerCase() &&
+                            existing.id !== 'local'
                           ) && (
                             <span className="ml-2 text-xs text-slate-600">(Already added)</span>
                           )}
@@ -223,7 +227,9 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                       <div className={`text-xs px-2 py-1 bg-white/5 rounded-lg capitalize ${
                         existingTimezones.some(existing => 
                           existing.city.toLowerCase() === city.city.toLowerCase() && 
-                          existing.country.toLowerCase() === city.country.toLowerCase()
+                          existing.country.toLowerCase() === city.country.toLowerCase() &&
+                          existing.country.toLowerCase() === city.country.toLowerCase() &&
+                          existing.id !== 'local'
                         )
                           ? 'text-slate-600'
                           : 'text-slate-500'

@@ -203,13 +203,18 @@ export default function WorldClock() {
     const isDuplicate = timeState.timezones.some(existing => 
       existing.city.toLowerCase() === timezone.city.toLowerCase() && 
       existing.country.toLowerCase() === timezone.country.toLowerCase()
-    ) || (
-      referenceTimezone.city.toLowerCase() === timezone.city.toLowerCase() && 
-      referenceTimezone.country.toLowerCase() === timezone.country.toLowerCase()
     );
     
-    if (isDuplicate) {
-      console.log('Duplicate timezone detected, not adding:', timezone.city, timezone.country);
+    // Only check against reference timezone if it's not the same as what we're trying to add
+    // This prevents blocking when reference timezone is auto-detected as the same city
+    const isDuplicateOfReference = (
+      referenceTimezone.city.toLowerCase() === timezone.city.toLowerCase() && 
+      referenceTimezone.country.toLowerCase() === timezone.country.toLowerCase() &&
+      referenceTimezone.id !== 'local' // Allow adding if reference is just auto-detected local
+    );
+    
+    if (isDuplicate || isDuplicateOfReference) {
+      console.log('Duplicate timezone detected, not adding:', timezone.city, timezone.country, 'isDuplicate:', isDuplicate, 'isDuplicateOfReference:', isDuplicateOfReference);
       return;
     }
     
