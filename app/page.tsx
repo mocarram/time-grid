@@ -444,28 +444,28 @@ export default function WorldClock() {
       
       <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="p-3 glass rounded-xl">
-              <Clock className="h-6 w-6 text-blue-400" />
+            <div className="p-4 glass rounded-2xl">
+              <Clock className="h-8 w-8 text-blue-400" />
             </div>
           </div>
-          <h1 className="text-4xl font-thin tracking-tight text-white mb-3 text-glow">
+          <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
             TimeGrid
           </h1>
-          <p className="text-slate-400 text-base font-light">
+          <p className="text-slate-400 text-lg font-light">
             Synchronize time across the globe
           </p>
         </div>
 
         {/* Reference Timezone Card */}
-        <div className="mb-6">
+        <div className="mb-8">
           <TimezoneCard
             timezone={referenceTimezone}
             displayTime={timeState.selectedTime}
             isReference={true}
           >
-            <div className="space-y-4">
+            <div className="space-y-6 mt-6">
               <TimeSelector
                 selectedTime={timeState.selectedTime}
                 onTimeChange={handleTimeChange}
@@ -473,7 +473,7 @@ export default function WorldClock() {
               {timeState.isTimeModified && (
                 <button
                   onClick={resetToCurrentTime}
-                  className="text-xs text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
+                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-300 font-medium"
                 >
                   Reset to current time
                 </button>
@@ -495,7 +495,7 @@ export default function WorldClock() {
               items={timeState.timezones}
               strategy={rectSortingStrategy}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
                 {timeState.timezones.map((timezone) => {
                   const convertedTime = convertTime(
                     timeState.selectedTime,
@@ -518,7 +518,7 @@ export default function WorldClock() {
 
             <DragOverlay>
               {activeTimezone ? (
-                <div className="rotate-1 scale-95 shadow-2xl shadow-blue-500/25 opacity-95 transition-all duration-200 ease-out w-72">
+                <div className="rotate-2 scale-90 shadow-2xl shadow-blue-500/25 opacity-95 transition-all duration-200 ease-out w-80">
                   <TimezoneCard
                     timezone={activeTimezone}
                     displayTime={convertTime(
@@ -538,21 +538,21 @@ export default function WorldClock() {
         {geoLoading && (
           <div className="text-center text-slate-400 mt-8 font-light">
             <div className="inline-flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
               Detecting your location...
             </div>
           </div>
         )}
         
         {geoError && (
-          <div className="text-center text-slate-500 mt-6 text-sm font-light">
+          <div className="text-center text-slate-500 mt-8 font-light">
             Using system timezone as reference
           </div>
         )}
       </div>
 
       {/* Floating Add Timezone Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-8 right-8 z-50">
         <AddTimezoneDialog
           onAddTimezone={handleAddTimezone}
           existingTimezones={[referenceTimezone, ...timeState.timezones]}

@@ -137,20 +137,20 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="h-12 w-12 rounded-full glass-button hover:glow transition-all duration-500 group shadow-xl hover:shadow-blue-500/25 hover:scale-105">
-          <Plus className="h-5 w-5 text-blue-300 group-hover:text-white transition-colors duration-300 group-hover:rotate-90" />
+        <Button className="h-14 w-14 rounded-full glass-button hover:glow transition-all duration-500 group shadow-2xl hover:shadow-blue-500/25 hover:scale-110">
+          <Plus className="h-6 w-6 text-blue-300 group-hover:text-white transition-colors duration-300 group-hover:rotate-90" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md glass-card border-white/10 text-white">
+      <DialogContent className="sm:max-w-lg glass-card border-white/10 text-white">
         <DialogHeader>
-          <DialogTitle className="text-lg font-light flex items-center gap-2">
-            <Globe className="h-4 w-4 text-blue-400" />
+          <DialogTitle className="text-xl font-light flex items-center gap-2">
+            <Globe className="h-5 w-5 text-blue-400" />
             Add Timezone
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
-          <div className="space-y-2">
+        <div className="space-y-6">
+          <div className="space-y-3">
             <Label htmlFor="search" className="text-slate-300 font-medium">
               Search cities
             </Label>
@@ -165,16 +165,16 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                 placeholder="Search for a city..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 glass-input text-white placeholder:text-slate-500 h-10 rounded-lg"
+                className="pl-12 glass-input text-white placeholder:text-slate-500 h-12 rounded-xl"
               />
             </div>
           </div>
           
-          <div className="max-h-64 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+          <div className="max-h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {/* Search Results */}
             {showResults && searchResults.length > 0 && (
               <>
-                <div className="flex items-center gap-2 text-xs text-slate-400 mb-2">
+                <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
                   <MapPin className="h-4 w-4" />
                   <span>Search Results</span>
                 </div>
@@ -191,9 +191,9 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                     }`}
                     onClick={() => handleAddSearchResult(city)}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-center justify-between">
                       <div className="space-y-1">
-                        <div className={`font-medium text-sm transition-colors ${
+                        <div className={`font-medium transition-colors ${
                           existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
                             existing.country.toLowerCase() === city.country.toLowerCase()
@@ -209,7 +209,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                             <span className="ml-2 text-xs text-slate-600">(Already added)</span>
                           )}
                         </div>
-                        <div className={`text-xs ${
+                        <div className={`text-sm ${
                           existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
                             existing.country.toLowerCase() === city.country.toLowerCase()
@@ -235,7 +235,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                 ))}
                 {filteredTimezones.length > 0 && (
                   <div className="border-t border-white/10 pt-4 mt-6">
-                    <div className="text-xs text-slate-400 mb-2 flex items-center gap-2">
+                    <div className="text-sm text-slate-400 mb-3 flex items-center gap-2">
                       <Globe className="h-4 w-4" />
                       Popular Cities
                     </div>
@@ -272,17 +272,17 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
               (!showResults || searchResults.length === 0) && filteredTimezones.map((timezone) => (
                 <div
                   key={timezone.id}
-                  className="glass p-3 rounded-lg cursor-pointer hover:bg-white/10 transition-all duration-300 group"
+                  className="glass p-4 rounded-xl cursor-pointer hover:bg-white/10 transition-all duration-300 group"
                   onClick={() => handleAddTimezone(timezone)}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <div className="font-medium text-sm text-white group-hover:text-blue-300 transition-colors">
+                      <div className="font-medium text-white group-hover:text-blue-300 transition-colors">
                         {timezone.city}
                       </div>
-                      <div className="text-xs text-slate-400">{timezone.country}</div>
+                      <div className="text-sm text-slate-400">{timezone.country}</div>
                     </div>
-                    <div className="text-xs text-slate-500 font-mono px-2 py-0.5 bg-white/5 rounded">
+                    <div className="text-xs text-slate-500 font-mono px-2 py-1 bg-white/5 rounded-lg">
                       GMT{timezone.offset >= 0 ? '+' : ''}
                       {Math.floor(timezone.offset / 60)}
                       {timezone.offset % 60 !== 0 ? ':' + (timezone.offset % 60).toString().padStart(2, '0') : ''}
