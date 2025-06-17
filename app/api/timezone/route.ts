@@ -49,12 +49,6 @@ export async function GET(request: NextRequest) {
               'Accept-Language': 'en'
             }
           }
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
-          {
-            headers: {
-              "Accept-Language": "en",
-            },
-          }
         );
         
         if (nominatimResponse.ok) {
