@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { X, MapPin, Star, GripVertical } from 'lucide-react';
+import { X, MapPin, Home, GripVertical } from 'lucide-react';
 import { formatTime, formatDate, formatDay } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
@@ -131,7 +132,7 @@ export function TimezoneCard({
                   className="h-8 w-8 p-0 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 hover:text-blue-300 transition-all duration-300 group"
                   title="Set as reference timezone"
                 >
-                  <Star className="h-3.5 w-3.5 group-hover:fill-current" />
+                  <Home className="h-3.5 w-3.5" />
                 </Button>
               )}
               {onRemove && (
