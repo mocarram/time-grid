@@ -50,8 +50,7 @@ export async function GET(request: NextRequest) {
           try {
             console.log(`Trying ${service.name}...`);
             const response = await fetch(service.url, {
-              headers: service.headers,
-              timeout: 5000
+              headers: service.headers
             });
             
             if (response.ok) {
