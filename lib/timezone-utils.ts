@@ -23,18 +23,20 @@ export const POPULAR_TIMEZONES: TimezoneData[] = createPopularTimezones();
 
 export function getTimezoneOffset(timezone: string): number {
   try {
-    // Create a date in UTC
     const now = new Date();
-    
-    // Get the time in the target timezone
-    const targetTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
-    
-    // Get the time in UTC
+    // Use the standard method to get timezone offset
+    // This returns the offset in minutes from UTC (negative means ahead of UTC)
     const utcTime = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
-    
-    // Calculate the difference in minutes
-    const offsetMs = targetTime.getTime() - utcTime.getTime();
-    return Math.round(offsetMs / 60000);
+    const localTime = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+    const offsetMs = localTime.getTime() - utcTime.getTime();
+    const offsetMinutes = Math.round(offsetMs / 60000);
+    console.log(`Timezone ${timezone} offset calculation:`, {
+      utcTime: utcTime.toISOString(),
+      localTime: localTime.toISOString(),
+      offsetMs,
+      offsetMinutes
+    });
+    return offsetMinutes;
   } catch {
     return 0;
   }

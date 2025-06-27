@@ -163,10 +163,9 @@ export default function WorldClock() {
     // Only update from geolocation if:
     // 1. We've finished loading from localStorage (hasUserSetReference is not null)
     // 2. User hasn't set a custom reference (hasUserSetReference is false)
-    // 3. We have IP location data
-    if (hasUserSetReference !== false || !ipLocation) return;
+    if (hasUserSetReference !== false) return;
     
-    if (!ipError) {
+    if (ipLocation && !ipError && ipLocation.timezone !== 'UTC') {
       const detectedTimezone = {
         id: 'detected-ip',
         city: ipLocation.city,
@@ -176,10 +175,9 @@ export default function WorldClock() {
       };
       setReferenceTimezone(detectedTimezone);
       console.log('Set detected timezone as reference:', detectedTimezone);
-      // Mark that we've set the reference from IP detection
       setHasUserSetReference(true);
     } else {
-      // IP detection failed, use browser timezone
+      // IP detection failed or returned UTC, use browser timezone
       const localTz = getLocalTimezone();
       setReferenceTimezone(localTz);
       setHasUserSetReference(true);
