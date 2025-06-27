@@ -107,15 +107,15 @@ export async function GET(request: NextRequest) {
         
         // Map common offsets to likely timezones
         const offsetToTimezone: { [key: number]: { timezone: string; city: string; country: string } } = {
-          -360: { timezone: 'Asia/Dhaka', city: 'Dhaka', country: 'Bangladesh' },
-          -330: { timezone: 'Asia/Kolkata', city: 'Mumbai', country: 'India' },
-          -480: { timezone: 'Asia/Shanghai', city: 'Beijing', country: 'China' },
-          -540: { timezone: 'Asia/Tokyo', city: 'Tokyo', country: 'Japan' },
-          0: { timezone: 'Europe/London', city: 'London', country: 'United Kingdom' },
-          -60: { timezone: 'Europe/Paris', city: 'Paris', country: 'France' },
-          300: { timezone: 'America/New_York', city: 'New York', country: 'United States' },
-          480: { timezone: 'America/Los_Angeles', city: 'Los Angeles', country: 'United States' },
-          600: { timezone: 'Australia/Sydney', city: 'Sydney', country: 'Australia' },
+          "-360": { timezone: 'Asia/Dhaka', city: 'Dhaka', country: 'Bangladesh' },
+          "-330": { timezone: 'Asia/Kolkata', city: 'Mumbai', country: 'India' },
+          "-480": { timezone: 'Asia/Shanghai', city: 'Beijing', country: 'China' },
+          "-540": { timezone: 'Asia/Tokyo', city: 'Tokyo', country: 'Japan' },
+          "0": { timezone: 'Europe/London', city: 'London', country: 'United Kingdom' },
+          "-60": { timezone: 'Europe/Paris', city: 'Paris', country: 'France' },
+          "300": { timezone: 'America/New_York', city: 'New York', country: 'United States' },
+          "480": { timezone: 'America/Los_Angeles', city: 'Los Angeles', country: 'United States' },
+          "600": { timezone: 'Australia/Sydney', city: 'Sydney', country: 'Australia' },
         };
         
         const fallbackData = offsetToTimezone[timezoneOffset];
