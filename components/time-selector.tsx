@@ -62,13 +62,13 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
           <Clock className="h-4 w-4 text-blue-400" />
           <span className="text-sm font-medium text-slate-300">Set Time</span>
         </div>
-        <div className="flex items-center gap-2 h-8">
+        <div className="flex items-center gap-2">
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-3 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group text-xs font-medium"
+                className="h-7 px-3 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group text-xs font-medium"
                 title="Change date"
               >
                 <CalendarIcon className="h-3 w-3 text-blue-400 group-hover:text-blue-300 mr-1.5" />
@@ -88,9 +88,6 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
               />
             </PopoverContent>
           </Popover>
-          <span className="text-sm font-mono glass px-3 py-1.5 rounded-lg text-blue-300 h-8 flex items-center">
-            {clientTimeString || <DynamicSkeleton className="h-4 w-12 bg-white/10" />}
-          </span>
         </div>
       </div>
       
