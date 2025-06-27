@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { TimeSelector } from '@/components/time-selector';
 import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
 import { ShareButton } from '@/components/share-button';
-import { useGeolocation } from '@/hooks/use-geolocation';
+import { useIpTimezone } from '@/hooks/use-ip-timezone';
 import { useShareData } from '@/hooks/use-share-data';
 import { 
   getLocalTimezone, 
@@ -41,7 +41,7 @@ const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
 export default function WorldClock() {
-  const { location, error: geoError, loading: geoLoading } = useGeolocation();
+  const { location: ipLocation, error: ipError, loading: ipLoading } = useIpTimezone();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
@@ -160,28 +160,20 @@ export default function WorldClock() {
     // 2. User hasn't set a custom reference (hasUserSetReference is false)
     if (hasUserSetReference === null || hasUserSetReference === true) return;
     
-    if (location && !geoError) {
-      fetch(`/api/location?lat=${location.latitude}&lng=${location.longitude}`)
-        .then(res => res.json())
-        .then(data => {
-          const detectedTimezone = {
-            id: 'local',
-            city: data.city,
-            timezone: data.timezone,
-            country: data.country,
-            offset: getTimezoneOffset(data.timezone)
-          };
-          setReferenceTimezone(detectedTimezone);
-        })
-        .catch(() => {
-          const localTz = getLocalTimezone();
-          setReferenceTimezone(localTz);
-        });
+    if (ipLocation && !ipError) {
+      const detectedTimezone = {
+        id: 'local',
+        city: ipLocation.city,
+        timezone: ipLocation.timezone,
+        country: ipLocation.country,
+        offset: getTimezoneOffset(ipLocation.timezone)
+      };
+      setReferenceTimezone(detectedTimezone);
     } else {
       const localTz = getLocalTimezone();
       setReferenceTimezone(localTz);
     }
-  }, [location, geoError, hasUserSetReference]);
+  }, [ipLocation, ipError, hasUserSetReference]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -472,13 +464,13 @@ export default function WorldClock() {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="p-4 glass rounded-2xl">
-              <Clock className="h-8 w-8 text-blue-400" />
+            <div className="p-3 glass rounded-xl">
+              <Clock className="h-6 w-6 text-blue-400" />
             </div>
+            <h1 className="text-5xl font-thin tracking-tight text-white text-glow">
+              TimeGrid
+            </h1>
           </div>
-          <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
-            TimeGrid
-          </h1>
           <p className="text-slate-400 text-lg font-light">
             Synchronize time across the globe
           </p>
@@ -568,18 +560,18 @@ export default function WorldClock() {
         )}
 
         {/* Status Messages */}
-        {geoLoading && (
+        {ipLoading && (
           <div className="text-center text-slate-400 mt-8 font-light">
             <div className="inline-flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-              Detecting your location...
+              Detecting your timezone...
             </div>
           </div>
         )}
         
-        {geoError && (
+        {ipError && (
           <div className="text-center text-slate-500 mt-8 font-light">
-            Using system timezone as reference
+            {ipLocation?.source === 'browser' ? 'Using browser timezone as reference' : 'Using system timezone as reference'}
           </div>
         )}
       </div>

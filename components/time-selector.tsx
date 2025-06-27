@@ -60,7 +60,7 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-blue-400" />
-          <span className="text-sm font-medium text-slate-300">Reference Date & Time</span>
+          <span className="text-sm font-medium text-slate-300">Set Time</span>
         </div>
         <div className="flex items-center gap-2">
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
@@ -88,9 +88,6 @@ export function TimeSelector({ selectedTime, onTimeChange, className }: TimeSele
               />
             </PopoverContent>
           </Popover>
-          <span className="text-sm font-mono glass px-3 py-1 rounded-lg text-blue-300">
-            {clientTimeString || <DynamicSkeleton className="h-4 w-12 bg-white/10" />}
-          </span>
         </div>
       </div>
       

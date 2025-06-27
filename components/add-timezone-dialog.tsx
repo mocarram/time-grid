@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Search, MapPin, Loader2, Globe } from 'lucide-react';
-import { POPULAR_TIMEZONES, getTimezoneOffset } from '@/lib/timezone-utils';
+import { POPULAR_TIMEZONES, getTimezoneOffset, getTimezoneDisplayName } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
 interface CitySearchResult {
@@ -149,29 +149,26 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
             Add Timezone
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="search" className="text-slate-300 font-medium">
-              Search cities
-            </Label>
-            <div className="relative">
-              {isSearching ? (
-                <Loader2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-400 animate-spin" />
-              ) : (
-                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              )}
-              <Input
-                id="search"
-                placeholder="Search for a city..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 glass-input text-white placeholder:text-slate-500 h-12 rounded-xl"
-              />
-            </div>
+
+        <div className="relative">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
+            {isSearching ? (
+              <Loader2 className="h-4 w-4 text-blue-400 animate-spin origin-center" />
+            ) : (
+              <Search className="h-4 w-4 text-slate-400" />
+            )}
           </div>
-          
-          <div className="max-h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        
+          <Input
+            id="search"
+            placeholder="Search for a city..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 glass-input text-white placeholder:text-slate-500 h-12 rounded-xl"
+          />
+        </div>
+
+        <div className="h-60 sm:h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {/* Search Results */}
             {showResults && searchResults.length > 0 && (
               <>
@@ -201,22 +198,16 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                             existing.country.toLowerCase() === city.country.toLowerCase() &&
                             existing.id !== 'local'
                           )
-                            ? 'text-slate-500'
+                            ? 'text-slate-600'
                             : 'text-white group-hover:text-blue-300'
                         }`}>
                           {city.city}
-                          {existingTimezones.some(existing => 
-                            existing.city.toLowerCase() === city.city.toLowerCase() && 
-                            existing.country.toLowerCase() === city.country.toLowerCase() &&
-                            existing.id !== 'local'
-                          ) && (
-                            <span className="ml-2 text-xs text-slate-600">(Already added)</span>
-                          )}
                         </div>
                         <div className={`text-sm ${
                           existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
-                            existing.country.toLowerCase() === city.country.toLowerCase()
+                            existing.country.toLowerCase() === city.country.toLowerCase() &&
+                            existing.id !== 'local'
                           )
                             ? 'text-slate-600'
                             : 'text-slate-400'
@@ -227,7 +218,6 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                       <div className={`text-xs px-2 py-1 bg-white/5 rounded-lg capitalize ${
                         existingTimezones.some(existing => 
                           existing.city.toLowerCase() === city.city.toLowerCase() && 
-                          existing.country.toLowerCase() === city.country.toLowerCase() &&
                           existing.country.toLowerCase() === city.country.toLowerCase() &&
                           existing.id !== 'local'
                         )
@@ -298,7 +288,6 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
               ))
             )}
           </div>
-        </div>
       </DialogContent>
     </Dialog>
   );
