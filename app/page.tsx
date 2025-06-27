@@ -155,6 +155,11 @@ export default function WorldClock() {
 
   // Update reference timezone with geolocation data
   useEffect(() => {
+    console.log('=== Reference timezone update effect ===');
+    console.log('hasUserSetReference:', hasUserSetReference);
+    console.log('ipLocation:', ipLocation);
+    console.log('ipError:', ipError);
+    
     // Only update from geolocation if:
     // 1. We've finished loading from localStorage (hasUserSetReference is not null)
     // 2. User hasn't set a custom reference (hasUserSetReference is false)
@@ -170,6 +175,7 @@ export default function WorldClock() {
         offset: getTimezoneOffset(ipLocation.timezone)
       };
       setReferenceTimezone(detectedTimezone);
+      console.log('Set detected timezone as reference:', detectedTimezone);
       // Mark that we've set the reference from IP detection
       setHasUserSetReference(true);
     } else {
@@ -177,6 +183,7 @@ export default function WorldClock() {
       const localTz = getLocalTimezone();
       setReferenceTimezone(localTz);
       setHasUserSetReference(true);
+      console.log('Set local timezone as reference:', localTz);
     }
   }, [ipLocation, ipError, hasUserSetReference]);
 

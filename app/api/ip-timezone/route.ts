@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('=== IP Timezone Detection Debug ===');
+    
     // Get the client's IP address
     const forwarded = request.headers.get('x-forwarded-for');
     const realIp = request.headers.get('x-real-ip');
@@ -12,7 +14,13 @@ export async function GET(request: NextRequest) {
                      request.ip || 
                      '127.0.0.1';
     
-    console.log('Detected IP:', clientIp);
+    console.log('Raw IP headers:', {
+      forwarded,
+      realIp,
+      vercelIp,
+      requestIp: request.ip,
+      finalClientIp: clientIp
+    });
     
     // For development/localhost or invalid IPs, use a fallback
     const isLocalhost = clientIp === '127.0.0.1' || 
@@ -86,7 +94,41 @@ export async function GET(request: NextRequest) {
     // If IP detection failed or we're on localhost, use browser timezone
     if (!data || !data.timezone) {
       const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      console.log('Using browser timezone fallback:', browserTimezone);
+      console.log('Using browser timezone fallback. Browser timezone:', browserTimezone);
+      
+      // Validate that we got a real timezone
+      if (!browserTimezone || browserTimezone === 'UTC') {
+        console.log('Browser timezone is UTC or invalid, trying alternative detection...');
+        
+        // Try to get timezone from Date object
+        const now = new Date();
+        const timezoneOffset = now.getTimezoneOffset();
+        console.log('Timezone offset in minutes:', timezoneOffset);
+        
+        // Map common offsets to likely timezones
+        const offsetToTimezone: { [key: number]: { timezone: string; city: string; country: string } } = {
+          -360: { timezone: 'Asia/Dhaka', city: 'Dhaka', country: 'Bangladesh' },
+          -330: { timezone: 'Asia/Kolkata', city: 'Mumbai', country: 'India' },
+          -480: { timezone: 'Asia/Shanghai', city: 'Beijing', country: 'China' },
+          -540: { timezone: 'Asia/Tokyo', city: 'Tokyo', country: 'Japan' },
+          0: { timezone: 'Europe/London', city: 'London', country: 'United Kingdom' },
+          -60: { timezone: 'Europe/Paris', city: 'Paris', country: 'France' },
+          300: { timezone: 'America/New_York', city: 'New York', country: 'United States' },
+          480: { timezone: 'America/Los_Angeles', city: 'Los Angeles', country: 'United States' },
+          600: { timezone: 'Australia/Sydney', city: 'Sydney', country: 'Australia' },
+        };
+        
+        const fallbackData = offsetToTimezone[timezoneOffset];
+        if (fallbackData) {
+          console.log('Using offset-based fallback:', fallbackData);
+          return NextResponse.json({
+            city: fallbackData.city,
+            country: fallbackData.country,
+            timezone: fallbackData.timezone,
+            source: 'offset-fallback'
+          });
+        }
+      }
       
       // Get proper city and country from timezone
       const city = browserTimezone.split('/').pop()?.replace(/_/g, ' ') || 'Local';
@@ -118,6 +160,8 @@ export async function GET(request: NextRequest) {
       };
       
       const country = timezoneToCountry[browserTimezone] || browserTimezone.split('/')[0] || 'Local';
+      
+      console.log('Final browser fallback result:', { city, country, timezone: browserTimezone });
       
       return NextResponse.json({
         city: city,

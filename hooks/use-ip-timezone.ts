@@ -22,9 +22,15 @@ export function useIpTimezone() {
 
   useEffect(() => {
     const detectTimezone = async () => {
+      console.log('=== Client-side timezone detection ===');
+      console.log('Browser timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log('Timezone offset:', new Date().getTimezoneOffset());
+      
       try {
         const response = await fetch('/api/ip-timezone');
         const data = await response.json();
+        
+        console.log('IP timezone API response:', data);
         
         setState({
           location: {
