@@ -61,7 +61,7 @@ export default function WorldClock() {
     timeState: Partial<TimeState>;
   }) => {
     setReferenceTimezone(data.referenceTimezone);
-    setHasUserSetReference(true);
+    setHasUserSetReference(true); // Mark as user-set to prevent override
     setTimeState(prev => ({
       ...prev,
       ...data.timeState,
@@ -163,6 +163,7 @@ export default function WorldClock() {
     // Only update from geolocation if:
     // 1. We've finished loading from localStorage (hasUserSetReference is not null)
     // 2. User hasn't set a custom reference (hasUserSetReference is false)
+    // 3. No shared data has been loaded (which would set hasUserSetReference to true)
     if (hasUserSetReference !== false) return;
     
     if (ipLocation && !ipError && ipLocation.timezone !== 'UTC') {
@@ -175,12 +176,14 @@ export default function WorldClock() {
       };
       setReferenceTimezone(detectedTimezone);
       console.log('Set detected timezone as reference:', detectedTimezone);
-      setHasUserSetReference(true);
+      // Don't mark as user-set since this is auto-detection
+      // setHasUserSetReference(true);
     } else {
       // IP detection failed or returned UTC, use browser timezone
       const localTz = getLocalTimezone();
       setReferenceTimezone(localTz);
-      setHasUserSetReference(true);
+      // Don't mark as user-set since this is auto-detection
+      // setHasUserSetReference(true);
       console.log('Set local timezone as reference:', localTz);
     }
   }, [ipLocation, ipError, hasUserSetReference]);

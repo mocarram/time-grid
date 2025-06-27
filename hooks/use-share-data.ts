@@ -37,10 +37,15 @@ export function useShareData({ onLoadSharedData }: UseShareDataProps) {
     const shareParam = urlParams.get('share');
     
     if (shareParam) {
+      console.log('=== Loading shared data ===');
+      console.log('Share parameter found:', shareParam);
+      
       try {
         // Decode the shared data
         const decodedData = JSON.parse(atob(shareParam));
         const shareData: ShareData = decodedData;
+        
+        console.log('Decoded share data:', shareData);
         
         // Reconstruct the reference timezone with current offset
         const referenceTimezone: TimezoneData = {
@@ -50,6 +55,8 @@ export function useShareData({ onLoadSharedData }: UseShareDataProps) {
           timezone: shareData.ref.timezone,
           offset: getTimezoneOffset(shareData.ref.timezone)
         };
+        
+        console.log('Reconstructed reference timezone:', referenceTimezone);
         
         // Reconstruct the timezones with current offsets
         const timezones: TimezoneData[] = shareData.zones.map(zone => ({
@@ -70,6 +77,8 @@ export function useShareData({ onLoadSharedData }: UseShareDataProps) {
           timezones,
           isTimeModified: shareData.modified
         };
+        
+        console.log('Loading shared data with reference timezone:', referenceTimezone);
         
         // Load the shared data
         onLoadSharedData({
