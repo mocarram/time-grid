@@ -168,7 +168,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
           />
         </div>
 
-        <div className="h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+        <div className="h-60 sm:h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {/* Search Results */}
             {showResults && searchResults.length > 0 && (
               <>
