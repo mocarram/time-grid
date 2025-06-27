@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     console.log('IP detection successful:', data);
     return NextResponse.json({
       city: data.city || 'Unknown City',
-      country: data.country_name || data.country || 'Unknown Country',
+      country: data.country_name || 'Unknown Country',
       timezone: data.timezone,
       source: 'ip',
       ip: ipToCheck
