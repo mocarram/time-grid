@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Search, MapPin, Loader2, Globe } from 'lucide-react';
-import { POPULAR_TIMEZONES, getTimezoneOffset } from '@/lib/timezone-utils';
+import { POPULAR_TIMEZONES, getTimezoneOffset, getTimezoneDisplayName } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
 interface CitySearchResult {
@@ -198,7 +198,12 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                         <div className={`font-medium transition-colors ${
                           existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
-                            existing.country.toLowerCase() === city.country.toLowerCase() &&
+                        <div className="text-sm text-slate-400 flex items-center gap-2">
+                          <span>{timezone.country}</span>
+                          <span className="text-xs text-blue-400/70 font-mono">
+                            {getTimezoneDisplayName(timezone.timezone).abbreviation}
+                          </span>
+                        </div>
                             existing.id !== 'local'
                           )
                             ? 'text-slate-500'

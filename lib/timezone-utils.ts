@@ -1,4 +1,5 @@
 import { format, addMinutes, parseISO } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 import type { TimezoneData } from '@/types/timezone';
 
 // Initialize popular timezones with dynamic offsets
@@ -180,4 +181,129 @@ export function minutesToTime(minutes: number, baseDate: Date): Date {
   const newDate = new Date(baseDate);
   newDate.setHours(hours, mins, 0, 0);
   return newDate;
+}
+
+// Get timezone abbreviation for a given timezone and date
+export function getTimezoneAbbreviation(timezone: string, date: Date = new Date()): string {
+  try {
+    // Use Intl.DateTimeFormat to get the timezone abbreviation
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'short'
+    });
+    
+    const parts = formatter.formatToParts(date);
+    const timeZonePart = parts.find(part => part.type === 'timeZoneName');
+    
+    if (timeZonePart) {
+      return timeZonePart.value;
+    }
+    
+    // Fallback: try to extract from formatted string
+    const formatted = formatter.format(date);
+    const match = formatted.match(/\b([A-Z]{3,4})\b$/);
+    if (match) {
+      return match[1];
+    }
+    
+    // Last resort: calculate from offset
+    return getAbbreviationFromOffset(getTimezoneOffset(timezone));
+  } catch (error) {
+    console.error('Error getting timezone abbreviation:', error);
+    return getAbbreviationFromOffset(getTimezoneOffset(timezone));
+  }
+}
+
+// Fallback function to get abbreviation from offset
+function getAbbreviationFromOffset(offsetMinutes: number): string {
+  const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+  const minutes = Math.abs(offsetMinutes) % 60;
+  const sign = offsetMinutes >= 0 ? '+' : '-';
+  
+  if (minutes === 0) {
+    return `UTC${sign}${hours}`;
+  } else {
+    return `UTC${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
+  }
+}
+
+// Get a more descriptive timezone name with abbreviation
+export function getTimezoneDisplayName(timezone: string, date: Date = new Date()): {
+  abbreviation: string;
+  description: string;
+} {
+  const abbreviation = getTimezoneAbbreviation(timezone, date);
+  
+  // Common timezone descriptions
+  const timezoneDescriptions: { [key: string]: string } = {
+    // US Timezones
+    'EST': 'Eastern Standard Time',
+    'EDT': 'Eastern Daylight Time',
+    'CST': 'Central Standard Time',
+    'CDT': 'Central Daylight Time',
+    'MST': 'Mountain Standard Time',
+    'MDT': 'Mountain Daylight Time',
+    'PST': 'Pacific Standard Time',
+    'PDT': 'Pacific Daylight Time',
+    'AKST': 'Alaska Standard Time',
+    'AKDT': 'Alaska Daylight Time',
+    'HST': 'Hawaii Standard Time',
+    
+    // European Timezones
+    'GMT': 'Greenwich Mean Time',
+    'BST': 'British Summer Time',
+    'CET': 'Central European Time',
+    'CEST': 'Central European Summer Time',
+    'EET': 'Eastern European Time',
+    'EEST': 'Eastern European Summer Time',
+    'WET': 'Western European Time',
+    'WEST': 'Western European Summer Time',
+    'MSK': 'Moscow Standard Time',
+    
+    // Asian Timezones
+    'JST': 'Japan Standard Time',
+    'KST': 'Korea Standard Time',
+    'CST': 'China Standard Time', // Note: CST can mean different things
+    'IST': 'India Standard Time',
+    'PKT': 'Pakistan Standard Time',
+    'SGT': 'Singapore Standard Time',
+    'HKT': 'Hong Kong Time',
+    'ICT': 'Indochina Time',
+    'WIB': 'Western Indonesian Time',
+    'WIT': 'Eastern Indonesian Time',
+    'WITA': 'Central Indonesian Time',
+    
+    // Australian Timezones
+    'AEST': 'Australian Eastern Standard Time',
+    'AEDT': 'Australian Eastern Daylight Time',
+    'ACST': 'Australian Central Standard Time',
+    'ACDT': 'Australian Central Daylight Time',
+    'AWST': 'Australian Western Standard Time',
+    'NZST': 'New Zealand Standard Time',
+    'NZDT': 'New Zealand Daylight Time',
+    
+    // Other Common Timezones
+    'CAT': 'Central Africa Time',
+    'EAT': 'East Africa Time',
+    'WAT': 'West Africa Time',
+    'SAST': 'South Africa Standard Time',
+    'BRT': 'Brasília Time',
+    'ART': 'Argentina Time',
+    'CLT': 'Chile Standard Time',
+    'CLST': 'Chile Summer Time',
+    'PET': 'Peru Time',
+    'COT': 'Colombia Time',
+    'VET': 'Venezuela Time',
+    'AST': 'Atlantic Standard Time',
+    'ADT': 'Atlantic Daylight Time',
+    'NST': 'Newfoundland Standard Time',
+    'NDT': 'Newfoundland Daylight Time',
+  };
+  
+  const description = timezoneDescriptions[abbreviation] || 'Local Time';
+  
+  return {
+    abbreviation,
+    description
+  };
 }

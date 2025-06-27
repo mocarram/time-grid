@@ -15,7 +15,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { X, MapPin, Star, GripVertical, Home } from 'lucide-react';
-import { formatTime, formatDate, formatDay } from '@/lib/timezone-utils';
+import { formatTime, formatDate, formatDay, getTimezoneDisplayName } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
 interface TimezoneCardProps {
@@ -43,15 +43,21 @@ export function TimezoneCard({
     time: string;
     date: string;
     day: string;
+    timezoneInfo: {
+      abbreviation: string;
+      description: string;
+    };
   } | null>(null);
 
   useEffect(() => {
+    const timezoneInfo = getTimezoneDisplayName(timezone.timezone, displayTime);
     setClientTime({
       time: formatTime(displayTime),
       date: formatDate(displayTime),
-      day: formatDay(displayTime)
+      day: formatDay(displayTime),
+      timezoneInfo
     });
-  }, [displayTime]);
+  }, [displayTime, timezone.timezone]);
 
   const offsetHours = Math.floor(Math.abs(timezone.offset) / 60);
   const offsetMinutes = Math.abs(timezone.offset) % 60;
@@ -88,9 +94,16 @@ export function TimezoneCard({
                 <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
                   {timezone.country}
                 </span>
-                <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-blue-400/70 text-xs font-medium rounded-full border border-white/[0.06] font-mono">
-                  {offsetString}
-                </span>
+                {clientTime ? (
+                  <span 
+                    className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-blue-400/70 text-xs font-medium rounded-full border border-white/[0.06] font-mono cursor-help"
+                    title={`${clientTime.timezoneInfo.description} (${offsetString})`}
+                  >
+                    {clientTime.timezoneInfo.abbreviation}
+                  </span>
+                ) : (
+                  <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+                )}
                 {clientTime ? (
                   <>
                     <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
@@ -199,9 +212,16 @@ export function TimezoneCard({
             <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
               {timezone.country}
             </span>
-            <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-blue-400/70 text-xs font-medium rounded-full border border-white/[0.06] font-mono">
-              {offsetString}
-            </span>
+            {clientTime ? (
+              <span 
+                className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-blue-400/70 text-xs font-medium rounded-full border border-white/[0.06] font-mono cursor-help"
+                title={`${clientTime.timezoneInfo.description} (${offsetString})`}
+              >
+                {clientTime.timezoneInfo.abbreviation}
+              </span>
+            ) : (
+              <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+            )}
             {clientTime ? (
               <>
                 <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
