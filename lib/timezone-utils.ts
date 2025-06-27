@@ -42,13 +42,11 @@ export function getTimezoneOffset(timezone: string): number {
 
 export function getLocalTimezone(): TimezoneData {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const timezoneParts = timezone.split('/');
-  const city = timezoneParts.pop()?.replace(/_/g, ' ') || 'Local';
+  const city = timezone.split('/').pop()?.replace(/_/g, ' ') || 'Local';
   
   // Try to get country from timezone
-  let country = timezoneParts[0] || 'Local';
+  let country = 'Local';
   try {
-    // Map common timezone regions/cities to countries
     const timezoneToCountry: { [key: string]: string } = {
       // Asia
       'Asia/Dhaka': 'Bangladesh',
@@ -134,25 +132,7 @@ export function getLocalTimezone(): TimezoneData {
       'Africa/Addis_Ababa': 'Ethiopia',
     };
     
-    // Try exact match first
-    if (timezoneToCountry[timezone]) {
-      country = timezoneToCountry[timezone];
-    } else {
-      // Fallback to region name with better formatting
-      const region = timezoneParts[0];
-      const regionMap: { [key: string]: string } = {
-        'America': 'Americas',
-        'Europe': 'Europe',
-        'Asia': 'Asia',
-        'Africa': 'Africa',
-        'Australia': 'Australia',
-        'Pacific': 'Pacific',
-        'Atlantic': 'Atlantic',
-        'Indian': 'Indian Ocean',
-        'Antarctica': 'Antarctica'
-      };
-      country = regionMap[region] || region || 'Local';
-    }
+    country = timezoneToCountry[timezone] || timezone.split('/')[0] || 'Local';
   } catch (error) {
     console.log('Could not determine country from timezone:', error);
   }

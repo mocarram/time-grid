@@ -88,13 +88,40 @@ export async function GET(request: NextRequest) {
       const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       console.log('Using browser timezone fallback:', browserTimezone);
       
-      // Try to get a better city name from the timezone
-      const timezoneParts = browserTimezone.split('/');
-      const cityFromTimezone = timezoneParts[timezoneParts.length - 1]?.replace('_', ' ') || 'Local';
+      // Get proper city and country from timezone
+      const city = browserTimezone.split('/').pop()?.replace(/_/g, ' ') || 'Local';
+      
+      // Map timezone to country
+      const timezoneToCountry: { [key: string]: string } = {
+        'Asia/Dhaka': 'Bangladesh',
+        'Asia/Kolkata': 'India',
+        'Asia/Shanghai': 'China',
+        'Asia/Tokyo': 'Japan',
+        'Asia/Seoul': 'South Korea',
+        'Asia/Bangkok': 'Thailand',
+        'Asia/Singapore': 'Singapore',
+        'Asia/Dubai': 'UAE',
+        'Europe/London': 'United Kingdom',
+        'Europe/Paris': 'France',
+        'Europe/Berlin': 'Germany',
+        'Europe/Rome': 'Italy',
+        'America/New_York': 'United States',
+        'America/Los_Angeles': 'United States',
+        'America/Chicago': 'United States',
+        'America/Denver': 'United States',
+        'America/Toronto': 'Canada',
+        'America/Vancouver': 'Canada',
+        'Australia/Sydney': 'Australia',
+        'Australia/Melbourne': 'Australia',
+        'Pacific/Auckland': 'New Zealand',
+        // Add more as needed
+      };
+      
+      const country = timezoneToCountry[browserTimezone] || browserTimezone.split('/')[0] || 'Local';
       
       return NextResponse.json({
-        city: cityFromTimezone,
-        country: timezoneParts[0] || 'Local',
+        city: city,
+        country: country,
         timezone: browserTimezone,
         source: 'browser'
       });
@@ -113,12 +140,12 @@ export async function GET(request: NextRequest) {
     
     // Ultimate fallback to browser timezone
     const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const timezoneParts = browserTimezone.split('/');
-    const cityFromTimezone = timezoneParts[timezoneParts.length - 1]?.replace('_', ' ') || 'Local';
+    const city = browserTimezone.split('/').pop()?.replace(/_/g, ' ') || 'Local';
+    const country = browserTimezone.split('/')[0] || 'Local';
     
     return NextResponse.json({
-      city: cityFromTimezone,
-      country: timezoneParts[0] || 'Local',
+      city: city,
+      country: country,
       timezone: browserTimezone,
       source: 'browser'
     });
