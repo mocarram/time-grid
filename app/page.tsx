@@ -464,13 +464,13 @@ export default function WorldClock() {
         {/* Header */}
         <div className="text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="p-4 glass rounded-2xl">
-              <Clock className="h-8 w-8 text-blue-400" />
+            <div className="p-3 glass rounded-xl">
+              <Clock className="h-6 w-6 text-blue-400" />
             </div>
+            <h1 className="text-5xl font-thin tracking-tight text-white text-glow">
+              TimeGrid
+            </h1>
           </div>
-          <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
-            TimeGrid
-          </h1>
           <p className="text-slate-400 text-lg font-light">
             Synchronize time across the globe
           </p>
