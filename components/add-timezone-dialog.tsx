@@ -157,7 +157,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
             </Label>
             <div className="relative">
               {isSearching ? (
-                <Loader2 className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-400 animate-spin" />
+                <Loader2 className="absolute left-4 top-1/2 h-4 w-4 text-blue-400 animate-spin" />
               ) : (
                 <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               )}
