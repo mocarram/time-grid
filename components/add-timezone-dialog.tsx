@@ -149,7 +149,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
             Add Timezone
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
             {isSearching ? (
@@ -168,7 +168,6 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
           />
         </div>
 
-          
           <div className="max-h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {/* Search Results */}
             {showResults && searchResults.length > 0 && (
