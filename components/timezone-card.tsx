@@ -68,7 +68,7 @@ export function TimezoneCard({
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-slate-400" />
                 <span className={`font-medium text-base transition-colors duration-300 ${
@@ -82,11 +82,6 @@ export function TimezoneCard({
                   }
                 </span>
               </div>
-              {isReference && (
-                <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">
-                  Reference
-                </span>
-              )}
             </div>
             {isReference && (
               <div className="flex items-center gap-1.5 flex-wrap">
@@ -115,8 +110,15 @@ export function TimezoneCard({
             )}
           </div>
           
+          {/* Reference Badge and Action Buttons */}
+          <div className="flex items-center gap-2">
+            {isReference && (
+              <div className="flex items-center justify-center w-8 h-8 bg-blue-500/20 text-blue-300 rounded-full border border-blue-400/30 group-hover:bg-blue-500/30 transition-all duration-300">
+                <Home className="h-4 w-4" />
+              </div>
+            )}
+            
           {!isReference && (onRemove || onSetAsReference) && (
-            <div className="flex items-center gap-2">
               {dragHandleProps && (
                 <Button
                   variant="ghost"
@@ -174,8 +176,8 @@ export function TimezoneCard({
                   </AlertDialogContent>
                 </AlertDialog>
               )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Time Display */}
