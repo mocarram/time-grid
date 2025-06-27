@@ -234,12 +234,33 @@ export function getTimezoneDisplayName(timezone: string, date: Date = new Date()
 } {
   const abbreviation = getTimezoneAbbreviation(timezone, date);
   
-  // Common timezone descriptions
-  const timezoneDescriptions: { [key: string]: string } = {
+  // Common timezone descriptions - handle context-dependent abbreviations
+  const getTimezoneDescription = (abbr: string, tz: string): string => {
+    // Handle CST ambiguity based on timezone
+    if (abbr === 'CST') {
+      if (tz.includes('America/') || tz.includes('US/')) {
+        return 'Central Standard Time';
+      } else if (tz.includes('Asia/') || tz.includes('China')) {
+        return 'China Standard Time';
+      }
+    }
+    
+    // Handle IST ambiguity
+    if (abbr === 'IST') {
+      if (tz.includes('Asia/Kolkata') || tz.includes('India')) {
+        return 'India Standard Time';
+      } else if (tz.includes('Asia/Jerusalem') || tz.includes('Israel')) {
+        return 'Israel Standard Time';
+      } else if (tz.includes('Europe/Dublin') || tz.includes('Ireland')) {
+        return 'Irish Standard Time';
+      }
+    }
+    
+    // Standard descriptions for non-ambiguous abbreviations
+    const descriptions: { [key: string]: string } = {
     // US Timezones
     'EST': 'Eastern Standard Time',
     'EDT': 'Eastern Daylight Time',
-    'CST': 'Central Standard Time',
     'CDT': 'Central Daylight Time',
     'MST': 'Mountain Standard Time',
     'MDT': 'Mountain Daylight Time',
@@ -263,8 +284,6 @@ export function getTimezoneDisplayName(timezone: string, date: Date = new Date()
     // Asian Timezones
     'JST': 'Japan Standard Time',
     'KST': 'Korea Standard Time',
-    'CST': 'China Standard Time', // Note: CST can mean different things
-    'IST': 'India Standard Time',
     'PKT': 'Pakistan Standard Time',
     'SGT': 'Singapore Standard Time',
     'HKT': 'Hong Kong Time',
@@ -299,8 +318,11 @@ export function getTimezoneDisplayName(timezone: string, date: Date = new Date()
     'NST': 'Newfoundland Standard Time',
     'NDT': 'Newfoundland Daylight Time',
   };
+    
+    return descriptions[abbr] || 'Local Time';
+  };
   
-  const description = timezoneDescriptions[abbreviation] || 'Local Time';
+  const description = getTimezoneDescription(abbreviation, timezone);
   
   return {
     abbreviation,
