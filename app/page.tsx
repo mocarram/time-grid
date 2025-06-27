@@ -45,6 +45,7 @@ export default function WorldClock() {
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
+  const [hasSharedData, setHasSharedData] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [timeState, setTimeState] = useState<TimeState>({
@@ -60,6 +61,10 @@ export default function WorldClock() {
     referenceTimezone: TimezoneData;
     timeState: Partial<TimeState>;
   }) => {
+    console.log('=== Loading shared data in main component ===');
+    console.log('Shared reference timezone:', data.referenceTimezone);
+    
+    setHasSharedData(true); // Mark that we have shared data
     setReferenceTimezone(data.referenceTimezone);
     setHasUserSetReference(true); // Mark as user-set to prevent override
     setTimeState(prev => ({
@@ -164,7 +169,11 @@ export default function WorldClock() {
     // 1. We've finished loading from localStorage (hasUserSetReference is not null)
     // 2. User hasn't set a custom reference (hasUserSetReference is false)
     // 3. No shared data has been loaded (which would set hasUserSetReference to true)
-    if (hasUserSetReference !== false) return;
+    // 4. No shared data is present
+    if (hasUserSetReference !== false || hasSharedData) {
+      console.log('Skipping auto-detection - hasUserSetReference:', hasUserSetReference, 'hasSharedData:', hasSharedData);
+      return;
+    }
     
     if (ipLocation && !ipError && ipLocation.timezone !== 'UTC') {
       const detectedTimezone = {
@@ -186,7 +195,7 @@ export default function WorldClock() {
       // setHasUserSetReference(true);
       console.log('Set local timezone as reference:', localTz);
     }
-  }, [ipLocation, ipError, hasUserSetReference]);
+  }, [ipLocation, ipError, hasUserSetReference, hasSharedData]);
 
   useEffect(() => {
     const updateTime = () => {

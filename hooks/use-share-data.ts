@@ -33,8 +33,13 @@ export function useShareData({ onLoadSharedData }: UseShareDataProps) {
     // Only run on client side
     if (typeof window === 'undefined') return;
 
+    console.log('=== useShareData effect running ===');
+    console.log('Current URL:', window.location.href);
+    
     const urlParams = new URLSearchParams(window.location.search);
     const shareParam = urlParams.get('share');
+    
+    console.log('Share parameter:', shareParam);
     
     if (shareParam) {
       console.log('=== Loading shared data ===');
@@ -81,6 +86,7 @@ export function useShareData({ onLoadSharedData }: UseShareDataProps) {
         console.log('Loading shared data with reference timezone:', referenceTimezone);
         
         // Load the shared data
+        console.log('Calling onLoadSharedData...');
         onLoadSharedData({
           referenceTimezone,
           timeState
@@ -88,11 +94,14 @@ export function useShareData({ onLoadSharedData }: UseShareDataProps) {
         
         // Clean up the URL
         const newUrl = window.location.pathname;
+        console.log('Cleaning up URL from', window.location.href, 'to', newUrl);
         window.history.replaceState({}, '', newUrl);
         
       } catch (error) {
         console.error('Failed to parse shared data:', error);
       }
+    } else {
+      console.log('No share parameter found in URL');
     }
   }, [onLoadSharedData]);
 }
