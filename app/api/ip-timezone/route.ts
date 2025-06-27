@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     }
     
     // If IP detection failed or we're on localhost, use browser timezone
-    if (data.error || !data.timezone) {
+    if (!data || data.error || !data.timezone) {
       const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       console.log('Using browser timezone fallback:', browserTimezone);
       
