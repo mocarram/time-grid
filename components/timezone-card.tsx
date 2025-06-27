@@ -119,6 +119,7 @@ export function TimezoneCard({
             )}
             
           {!isReference && (onRemove || onSetAsReference) && (
+            <>
               {dragHandleProps && (
                 <Button
                   variant="ghost"
@@ -176,7 +177,8 @@ export function TimezoneCard({
                   </AlertDialogContent>
                 </AlertDialog>
               )}
-            )}
+            </>
+          )}
           </div>
         </div>
 
