@@ -150,25 +150,23 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
           </DialogTitle>
         </DialogHeader>
         
-<div className="relative">
-  {/* fixed‐size icon container */}
-  <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
-    {isSearching ? (
-      // only the SVG spins, container stays put
-      <Loader2 className="h-4 w-4 text-blue-400 animate-spin origin-center" />
-    ) : (
-      <Search className="h-4 w-4 text-slate-400" />
-    )}
-  </div>
-
-  <Input
-    id="search"
-    placeholder="Search for a city..."
-    value={searchQuery}
-    onChange={(e) => setSearchQuery(e.target.value)}
-    className="pl-12 glass-input text-white placeholder:text-slate-500 h-12 rounded-xl"
-  />
-</div>
+        <div className="relative">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
+            {isSearching ? (
+              <Loader2 className="h-4 w-4 text-blue-400 animate-spin origin-center" />
+            ) : (
+              <Search className="h-4 w-4 text-slate-400" />
+            )}
+          </div>
+        
+          <Input
+            id="search"
+            placeholder="Search for a city..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-12 glass-input text-white placeholder:text-slate-500 h-12 rounded-xl"
+          />
+        </div>
 
           
           <div className="max-h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
