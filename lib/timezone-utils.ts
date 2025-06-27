@@ -42,10 +42,18 @@ export function getTimezoneOffset(timezone: string): number {
 
 export function getLocalTimezone(): TimezoneData {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const city = timezone.split('/').pop()?.replace(/_/g, ' ') || 'Local';
+  
+  // Extract city name from timezone (e.g., "Asia/Dhaka" -> "Dhaka")
+  let city = 'Local';
+  if (timezone.includes('/')) {
+    city = timezone.split('/').pop()?.replace(/_/g, ' ') || 'Local';
+  } else {
+    // Handle cases like "UTC" or other non-standard formats
+    city = timezone;
+  }
   
   // Try to get country from timezone
-  let country = 'Local';
+  let country = 'Unknown';
   try {
     const timezoneToCountry: { [key: string]: string } = {
       // Asia
@@ -132,9 +140,11 @@ export function getLocalTimezone(): TimezoneData {
       'Africa/Addis_Ababa': 'Ethiopia',
     };
     
-    country = timezoneToCountry[timezone] || timezone.split('/')[0] || 'Local';
+    country = timezoneToCountry[timezone] || 
+              (timezone.includes('/') ? timezone.split('/')[0] : 'Local');
   } catch (error) {
     console.log('Could not determine country from timezone:', error);
+    country = 'Local';
   }
   
   return {

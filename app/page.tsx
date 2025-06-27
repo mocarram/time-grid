@@ -155,23 +155,28 @@ export default function WorldClock() {
 
   // Update reference timezone with geolocation data
   useEffect(() => {
-    // Only update from geolocation if user hasn't explicitly set a custom reference
-    // and we have finished loading from localStorage
-    if (hasUserSetReference === true) return;
+    // Only update from geolocation if:
+    // 1. We've finished loading from localStorage (hasUserSetReference is not null)
+    // 2. User hasn't set a custom reference (hasUserSetReference is false)
+    // 3. We have IP location data
+    if (hasUserSetReference !== false || !ipLocation) return;
     
-    if (ipLocation && !ipError && hasUserSetReference !== null) {
+    if (!ipError) {
       const detectedTimezone = {
-        id: 'local',
+        id: 'detected-ip',
         city: ipLocation.city,
         timezone: ipLocation.timezone,
         country: ipLocation.country,
         offset: getTimezoneOffset(ipLocation.timezone)
       };
       setReferenceTimezone(detectedTimezone);
-    } else if (hasUserSetReference === false) {
-      // Only fall back to local timezone if we've confirmed no saved reference exists
+      // Mark that we've set the reference from IP detection
+      setHasUserSetReference(true);
+    } else {
+      // IP detection failed, use browser timezone
       const localTz = getLocalTimezone();
       setReferenceTimezone(localTz);
+      setHasUserSetReference(true);
     }
   }, [ipLocation, ipError, hasUserSetReference]);
 
