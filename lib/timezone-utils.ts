@@ -52,22 +52,22 @@ export function getLocalTimezone(): TimezoneData {
     const offsetMinutes = new Date().getTimezoneOffset();
     
     // Map common offsets to likely timezones (negative offset means ahead of UTC)
-    const offsetToTimezone: { [key: number]: { timezone: string; city: string; country: string } } = {
-      -360: { timezone: 'Asia/Dhaka', city: 'Dhaka', country: 'Bangladesh' },
-      -330: { timezone: 'Asia/Kolkata', city: 'Mumbai', country: 'India' },
-      -480: { timezone: 'Asia/Shanghai', city: 'Beijing', country: 'China' },
-      -540: { timezone: 'Asia/Tokyo', city: 'Tokyo', country: 'Japan' },
-      0: { timezone: 'Europe/London', city: 'London', country: 'United Kingdom' },
-      -60: { timezone: 'Europe/Paris', city: 'Paris', country: 'France' },
-      300: { timezone: 'America/New_York', city: 'New York', country: 'United States' },
-      360: { timezone: 'America/Chicago', city: 'Chicago', country: 'United States' },
-      420: { timezone: 'America/Denver', city: 'Denver', country: 'United States' },
-      480: { timezone: 'America/Los_Angeles', city: 'Los Angeles', country: 'United States' },
-      -600: { timezone: 'Australia/Sydney', city: 'Sydney', country: 'Australia' },
-      -780: { timezone: 'Pacific/Auckland', city: 'Auckland', country: 'New Zealand' },
+    const offsetToTimezone: { [key: string]: { timezone: string; city: string; country: string } } = {
+      "-360": { timezone: 'Asia/Dhaka', city: 'Dhaka', country: 'Bangladesh' },
+      "-330": { timezone: 'Asia/Kolkata', city: 'Mumbai', country: 'India' },
+      "-480": { timezone: 'Asia/Shanghai', city: 'Beijing', country: 'China' },
+      "-540": { timezone: 'Asia/Tokyo', city: 'Tokyo', country: 'Japan' },
+      "0": { timezone: 'Europe/London', city: 'London', country: 'United Kingdom' },
+      "-60": { timezone: 'Europe/Paris', city: 'Paris', country: 'France' },
+      "300": { timezone: 'America/New_York', city: 'New York', country: 'United States' },
+      "360": { timezone: 'America/Chicago', city: 'Chicago', country: 'United States' },
+      "420": { timezone: 'America/Denver', city: 'Denver', country: 'United States' },
+      "480": { timezone: 'America/Los_Angeles', city: 'Los Angeles', country: 'United States' },
+      "-600": { timezone: 'Australia/Sydney', city: 'Sydney', country: 'Australia' },
+      "-780": { timezone: 'Pacific/Auckland', city: 'Auckland', country: 'New Zealand' },
     };
     
-    const fallbackData = offsetToTimezone[offsetMinutes];
+    const fallbackData = offsetToTimezone[offsetMinutes.toString()];
     if (fallbackData) {
       console.log('Using offset-based timezone detection:', fallbackData);
       return {
