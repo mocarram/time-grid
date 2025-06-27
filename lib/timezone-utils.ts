@@ -42,104 +42,116 @@ export function getTimezoneOffset(timezone: string): number {
 
 export function getLocalTimezone(): TimezoneData {
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const city = timezone.split('/').pop()?.replace('_', ' ') || 'Local';
+  const timezoneParts = timezone.split('/');
+  const city = timezoneParts.pop()?.replace(/_/g, ' ') || 'Local';
   
   // Try to get country from timezone
-  let country = 'Local';
+  let country = timezoneParts[0] || 'Local';
   try {
-    // Extract country from timezone (e.g., "Asia/Dhaka" -> "Bangladesh")
-    const timezoneParts = timezone.split('/');
-    if (timezoneParts.length >= 2) {
+    // Map common timezone regions/cities to countries
+    const timezoneToCountry: { [key: string]: string } = {
+      // Asia
+      'Asia/Dhaka': 'Bangladesh',
+      'Asia/Kolkata': 'India',
+      'Asia/Shanghai': 'China',
+      'Asia/Tokyo': 'Japan',
+      'Asia/Seoul': 'South Korea',
+      'Asia/Bangkok': 'Thailand',
+      'Asia/Singapore': 'Singapore',
+      'Asia/Dubai': 'UAE',
+      'Asia/Karachi': 'Pakistan',
+      'Asia/Jakarta': 'Indonesia',
+      'Asia/Manila': 'Philippines',
+      'Asia/Kuala_Lumpur': 'Malaysia',
+      'Asia/Hong_Kong': 'Hong Kong',
+      'Asia/Taipei': 'Taiwan',
+      
+      // Europe
+      'Europe/London': 'United Kingdom',
+      'Europe/Paris': 'France',
+      'Europe/Berlin': 'Germany',
+      'Europe/Rome': 'Italy',
+      'Europe/Madrid': 'Spain',
+      'Europe/Amsterdam': 'Netherlands',
+      'Europe/Brussels': 'Belgium',
+      'Europe/Vienna': 'Austria',
+      'Europe/Zurich': 'Switzerland',
+      'Europe/Stockholm': 'Sweden',
+      'Europe/Oslo': 'Norway',
+      'Europe/Copenhagen': 'Denmark',
+      'Europe/Helsinki': 'Finland',
+      'Europe/Warsaw': 'Poland',
+      'Europe/Prague': 'Czech Republic',
+      'Europe/Budapest': 'Hungary',
+      'Europe/Moscow': 'Russia',
+      'Europe/Kiev': 'Ukraine',
+      'Europe/Istanbul': 'Turkey',
+      'Europe/Athens': 'Greece',
+      'Europe/Lisbon': 'Portugal',
+      'Europe/Dublin': 'Ireland',
+      
+      // America
+      'America/New_York': 'United States',
+      'America/Los_Angeles': 'United States',
+      'America/Chicago': 'United States',
+      'America/Denver': 'United States',
+      'America/Phoenix': 'United States',
+      'America/Anchorage': 'United States',
+      'America/Honolulu': 'United States',
+      'America/Toronto': 'Canada',
+      'America/Vancouver': 'Canada',
+      'America/Montreal': 'Canada',
+      'America/Mexico_City': 'Mexico',
+      'America/Sao_Paulo': 'Brazil',
+      'America/Buenos_Aires': 'Argentina',
+      'America/Lima': 'Peru',
+      'America/Bogota': 'Colombia',
+      'America/Santiago': 'Chile',
+      'America/Caracas': 'Venezuela',
+      'America/Havana': 'Cuba',
+      'America/Jamaica': 'Jamaica',
+      
+      // Australia/Pacific
+      'Australia/Sydney': 'Australia',
+      'Australia/Melbourne': 'Australia',
+      'Australia/Brisbane': 'Australia',
+      'Australia/Perth': 'Australia',
+      'Australia/Adelaide': 'Australia',
+      'Australia/Darwin': 'Australia',
+      'Pacific/Auckland': 'New Zealand',
+      'Pacific/Fiji': 'Fiji',
+      'Pacific/Honolulu': 'United States',
+      
+      // Africa
+      'Africa/Cairo': 'Egypt',
+      'Africa/Lagos': 'Nigeria',
+      'Africa/Johannesburg': 'South Africa',
+      'Africa/Nairobi': 'Kenya',
+      'Africa/Casablanca': 'Morocco',
+      'Africa/Algiers': 'Algeria',
+      'Africa/Tunis': 'Tunisia',
+      'Africa/Accra': 'Ghana',
+      'Africa/Addis_Ababa': 'Ethiopia',
+    };
+    
+    // Try exact match first
+    if (timezoneToCountry[timezone]) {
+      country = timezoneToCountry[timezone];
+    } else {
+      // Fallback to region name with better formatting
       const region = timezoneParts[0];
-      const cityPart = timezoneParts[1];
-      
-      // Map common timezone regions/cities to countries
-      const timezoneToCountry: { [key: string]: string } = {
-        // Asia
-        'Asia/Dhaka': 'Bangladesh',
-        'Asia/Kolkata': 'India',
-        'Asia/Shanghai': 'China',
-        'Asia/Tokyo': 'Japan',
-        'Asia/Seoul': 'South Korea',
-        'Asia/Bangkok': 'Thailand',
-        'Asia/Singapore': 'Singapore',
-        'Asia/Dubai': 'UAE',
-        'Asia/Karachi': 'Pakistan',
-        'Asia/Jakarta': 'Indonesia',
-        'Asia/Manila': 'Philippines',
-        'Asia/Kuala_Lumpur': 'Malaysia',
-        'Asia/Hong_Kong': 'Hong Kong',
-        'Asia/Taipei': 'Taiwan',
-        
-        // Europe
-        'Europe/London': 'United Kingdom',
-        'Europe/Paris': 'France',
-        'Europe/Berlin': 'Germany',
-        'Europe/Rome': 'Italy',
-        'Europe/Madrid': 'Spain',
-        'Europe/Amsterdam': 'Netherlands',
-        'Europe/Brussels': 'Belgium',
-        'Europe/Vienna': 'Austria',
-        'Europe/Zurich': 'Switzerland',
-        'Europe/Stockholm': 'Sweden',
-        'Europe/Oslo': 'Norway',
-        'Europe/Copenhagen': 'Denmark',
-        'Europe/Helsinki': 'Finland',
-        'Europe/Warsaw': 'Poland',
-        'Europe/Prague': 'Czech Republic',
-        'Europe/Budapest': 'Hungary',
-        'Europe/Moscow': 'Russia',
-        'Europe/Kiev': 'Ukraine',
-        'Europe/Istanbul': 'Turkey',
-        'Europe/Athens': 'Greece',
-        'Europe/Lisbon': 'Portugal',
-        'Europe/Dublin': 'Ireland',
-        
-        // America
-        'America/New_York': 'United States',
-        'America/Los_Angeles': 'United States',
-        'America/Chicago': 'United States',
-        'America/Denver': 'United States',
-        'America/Phoenix': 'United States',
-        'America/Anchorage': 'United States',
-        'America/Honolulu': 'United States',
-        'America/Toronto': 'Canada',
-        'America/Vancouver': 'Canada',
-        'America/Montreal': 'Canada',
-        'America/Mexico_City': 'Mexico',
-        'America/Sao_Paulo': 'Brazil',
-        'America/Buenos_Aires': 'Argentina',
-        'America/Lima': 'Peru',
-        'America/Bogota': 'Colombia',
-        'America/Santiago': 'Chile',
-        'America/Caracas': 'Venezuela',
-        'America/Havana': 'Cuba',
-        'America/Jamaica': 'Jamaica',
-        
-        // Australia/Pacific
-        'Australia/Sydney': 'Australia',
-        'Australia/Melbourne': 'Australia',
-        'Australia/Brisbane': 'Australia',
-        'Australia/Perth': 'Australia',
-        'Australia/Adelaide': 'Australia',
-        'Australia/Darwin': 'Australia',
-        'Pacific/Auckland': 'New Zealand',
-        'Pacific/Fiji': 'Fiji',
-        'Pacific/Honolulu': 'United States',
-        
-        // Africa
-        'Africa/Cairo': 'Egypt',
-        'Africa/Lagos': 'Nigeria',
-        'Africa/Johannesburg': 'South Africa',
-        'Africa/Nairobi': 'Kenya',
-        'Africa/Casablanca': 'Morocco',
-        'Africa/Algiers': 'Algeria',
-        'Africa/Tunis': 'Tunisia',
-        'Africa/Accra': 'Ghana',
-        'Africa/Addis_Ababa': 'Ethiopia',
+      const regionMap: { [key: string]: string } = {
+        'America': 'Americas',
+        'Europe': 'Europe',
+        'Asia': 'Asia',
+        'Africa': 'Africa',
+        'Australia': 'Australia',
+        'Pacific': 'Pacific',
+        'Atlantic': 'Atlantic',
+        'Indian': 'Indian Ocean',
+        'Antarctica': 'Antarctica'
       };
-      
-      country = timezoneToCountry[timezone] || region;
+      country = regionMap[region] || region || 'Local';
     }
   } catch (error) {
     console.log('Could not determine country from timezone:', error);
