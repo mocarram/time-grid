@@ -198,30 +198,11 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                         <div className={`font-medium transition-colors ${
                           existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
-                        <div className="text-sm text-slate-400 flex items-center gap-2">
-                          <span>{timezone.country}</span>
-                          <span className="text-xs text-blue-400/70 font-mono">
-                            {getTimezoneDisplayName(timezone.timezone).abbreviation}
-                          </span>
-                        </div>
-                            existing.id !== 'local'
-                          )
-                            ? 'text-slate-500'
-                            : 'text-white group-hover:text-blue-300'
-                        }`}>
-                          {city.city}
-                          {existingTimezones.some(existing => 
-                            existing.city.toLowerCase() === city.city.toLowerCase() && 
-                            existing.country.toLowerCase() === city.country.toLowerCase() &&
-                            existing.id !== 'local'
-                          ) && (
-                            <span className="ml-2 text-xs text-slate-600">(Already added)</span>
-                          )}
-                        </div>
                         <div className={`text-sm ${
                           existingTimezones.some(existing => 
                             existing.city.toLowerCase() === city.city.toLowerCase() && 
-                            existing.country.toLowerCase() === city.country.toLowerCase()
+                            existing.country.toLowerCase() === city.country.toLowerCase() &&
+                            existing.id !== 'local'
                           )
                             ? 'text-slate-600'
                             : 'text-slate-400'
@@ -232,7 +213,6 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
                       <div className={`text-xs px-2 py-1 bg-white/5 rounded-lg capitalize ${
                         existingTimezones.some(existing => 
                           existing.city.toLowerCase() === city.city.toLowerCase() && 
-                          existing.country.toLowerCase() === city.country.toLowerCase() &&
                           existing.country.toLowerCase() === city.country.toLowerCase() &&
                           existing.id !== 'local'
                         )
