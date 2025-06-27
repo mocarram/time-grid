@@ -37,12 +37,12 @@ export async function GET(request: NextRequest) {
           {
             name: 'ipapi.co',
             url: `https://ipapi.co/${ipToCheck}/json/`,
-            headers: { 'User-Agent': 'TimeGrid/1.0' }
+            headers: { 'User-Agent': 'TimeGrid/1.0' } as HeadersInit
           },
           {
             name: 'ip-api.com',
             url: `http://ip-api.com/json/${ipToCheck}?fields=status,country,countryCode,region,regionName,city,timezone,query`,
-            headers: {}
+            headers: {} as HeadersInit
           }
         ];
         
