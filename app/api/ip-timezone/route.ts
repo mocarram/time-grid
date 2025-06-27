@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
               const serviceData = await response.json();
               console.log(`${service.name} response:`, serviceData);
               
-              if (service.name === 'ipapi.co' && serviceData.timezone && !serviceData.error) {
+              if (service.name === 'ipapi.co' && serviceData.timezone && serviceData.error !== true) {
                 data = {
                   city: serviceData.city || 'Unknown City',
                   country_name: serviceData.country_name || 'Unknown Country',
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     }
     
     // If IP detection failed or we're on localhost, use browser timezone
-    if (!data || data.error || !data.timezone) {
+    if (!data || !data.timezone) {
       const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       console.log('Using browser timezone fallback:', browserTimezone);
       
