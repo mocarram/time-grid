@@ -4,6 +4,9 @@ export interface TimezoneData {
   timezone: string;
   country: string;
   offset: number; // in minutes
+  isAbbreviation?: boolean;
+  abbreviation?: string;
+  region?: string;
 }
 
 export interface TimeState {
