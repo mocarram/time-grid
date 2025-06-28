@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -12,8 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Search, MapPin, Loader2, Globe } from 'lucide-react';
-import { POPULAR_TIMEZONES, getTimezoneOffset, getTimezoneDisplayName } from '@/lib/timezone-utils';
+import { Plus, Search, MapPin, Loader2, Globe, Clock } from 'lucide-react';
+import { POPULAR_TIMEZONES, TIMEZONE_ABBREVIATIONS, getTimezoneOffset, getTimezoneDisplayName } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
 interface CitySearchResult {
@@ -38,6 +39,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
   const [searchResults, setSearchResults] = useState<CitySearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [activeTab, setActiveTab] = useState('cities');
 
   const filteredTimezones = POPULAR_TIMEZONES.filter(tz => 
     !existingTimezones.some(existing => 
@@ -48,8 +50,17 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
      tz.country.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const filteredAbbreviations = TIMEZONE_ABBREVIATIONS.filter(tz => 
+    !existingTimezones.some(existing => 
+      existing.timezone === tz.timezone && existing.isAbbreviation
+    ) &&
+    (tz.abbreviation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     tz.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+     tz.region.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   const searchCities = useCallback(async (query: string) => {
-    if (query.length < 2) {
+    if (query.length < 2 || activeTab !== 'cities') {
       setSearchResults([]);
       setShowResults(false);
       return;
@@ -70,11 +81,11 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
     } finally {
       setIsSearching(false);
     }
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchQuery.trim()) {
+      if (searchQuery.trim() && activeTab === 'cities') {
         searchCities(searchQuery.trim());
       } else {
         setSearchResults([]);
@@ -83,7 +94,7 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, searchCities]);
+  }, [searchQuery, searchCities, activeTab]);
 
   const handleAddTimezone = (timezone: TimezoneData) => {
     const updatedTimezone = {
@@ -91,6 +102,23 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
       offset: getTimezoneOffset(timezone.timezone)
     };
     onAddTimezone(updatedTimezone);
+    setOpen(false);
+    setSearchQuery('');
+  };
+
+  const handleAddAbbreviation = (abbr: typeof TIMEZONE_ABBREVIATIONS[0]) => {
+    const newTimezone: TimezoneData = {
+      id: `abbr-${abbr.id}-${Date.now()}`,
+      city: abbr.abbreviation,
+      country: abbr.region,
+      timezone: abbr.timezone,
+      offset: getTimezoneOffset(abbr.timezone),
+      isAbbreviation: true,
+      abbreviation: abbr.abbreviation,
+      region: abbr.region
+    };
+    
+    onAddTimezone(newTimezone);
     setOpen(false);
     setSearchQuery('');
   };
@@ -150,25 +178,44 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
           </DialogTitle>
         </DialogHeader>
 
-        <div className="relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
-            {isSearching ? (
-              <Loader2 className="h-4 w-4 text-blue-400 animate-spin origin-center" />
-            ) : (
-              <Search className="h-4 w-4 text-slate-400" />
-            )}
-          </div>
-        
-          <Input
-            id="search"
-            placeholder="Search for a city..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 glass-input text-white placeholder:text-slate-500 h-12 rounded-xl"
-          />
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 glass bg-white/5 border border-white/10">
+            <TabsTrigger 
+              value="cities" 
+              className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300 text-slate-400"
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              Cities
+            </TabsTrigger>
+            <TabsTrigger 
+              value="abbreviations" 
+              className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300 text-slate-400"
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              Time Zones
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="h-60 sm:h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+          <div className="relative mt-4">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 flex items-center justify-center">
+              {isSearching && activeTab === 'cities' ? (
+                <Loader2 className="h-4 w-4 text-blue-400 animate-spin origin-center" />
+              ) : (
+                <Search className="h-4 w-4 text-slate-400" />
+              )}
+            </div>
+          
+            <Input
+              id="search"
+              placeholder={activeTab === 'cities' ? "Search for a city..." : "Search time zones (e.g., PST, EST, GMT)..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-12 glass-input text-white placeholder:text-slate-500 h-12 rounded-xl"
+            />
+          </div>
+
+          <TabsContent value="cities" className="mt-4">
+            <div className="h-60 sm:h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
             {/* Search Results */}
             {showResults && searchResults.length > 0 && (
               <>
@@ -288,6 +335,62 @@ export function AddTimezoneDialog({ onAddTimezone, existingTimezones }: AddTimez
               ))
             )}
           </div>
+          </TabsContent>
+
+          <TabsContent value="abbreviations" className="mt-4">
+            <div className="h-60 sm:h-80 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+              {filteredAbbreviations.length === 0 ? (
+                searchQuery ? (
+                  <div className="text-center py-8">
+                    <Clock className="h-12 w-12 text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-400 font-light">
+                      No time zones found. Try searching for PST, EST, GMT, etc.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Clock className="h-12 w-12 text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-400 font-light">
+                      All common time zones added
+                    </p>
+                  </div>
+                )
+              ) : (
+                filteredAbbreviations.map((abbr) => (
+                  <div
+                    key={abbr.id}
+                    className="glass p-4 rounded-xl cursor-pointer hover:bg-white/10 transition-all duration-300 group border-l-4 border-l-orange-400/50"
+                    onClick={() => handleAddAbbreviation(abbr)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                          <div className="font-bold text-orange-300 text-lg font-mono group-hover:text-orange-200 transition-colors">
+                            {abbr.abbreviation}
+                          </div>
+                          {abbr.isDST && (
+                            <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-300 text-xs font-medium rounded-full border border-yellow-400/30">
+                              DST
+                            </span>
+                          )}
+                        </div>
+                        <div className="font-medium text-white group-hover:text-blue-300 transition-colors text-sm">
+                          {abbr.name}
+                        </div>
+                        <div className="text-sm text-slate-400">{abbr.region}</div>
+                      </div>
+                      <div className="text-xs text-slate-500 font-mono px-2 py-1 bg-white/5 rounded-lg">
+                        GMT{getTimezoneOffset(abbr.timezone) >= 0 ? '+' : ''}
+                        {Math.floor(getTimezoneOffset(abbr.timezone) / 60)}
+                        {getTimezoneOffset(abbr.timezone) % 60 !== 0 ? ':' + (getTimezoneOffset(abbr.timezone) % 60).toString().padStart(2, '0') : ''}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

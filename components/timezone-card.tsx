@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { X, MapPin, Star, GripVertical, Home } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { formatTime, formatDate, formatDay, getTimezoneDisplayName } from '@/lib/timezone-utils';
 import type { TimezoneData } from '@/types/timezone';
 
@@ -68,6 +69,8 @@ export function TimezoneCard({
     <div className={`glass-card rounded-2xl p-6 transition-all duration-500 hover:bg-white/[0.04] group min-h-[200px] flex flex-col ${
       isReference ? 'ring-1 ring-blue-400/30 glow' : ''
     } ${
+      timezone.isAbbreviation ? 'border-l-4 border-l-orange-400/50' : ''
+    } ${
       isDragging ? 'ring-2 ring-blue-400/50 glow bg-white/[0.08] backdrop-blur-3xl shadow-2xl shadow-blue-500/30' : ''
     }`}>
       <div className="space-y-3 flex-1 flex flex-col">
@@ -76,10 +79,14 @@ export function TimezoneCard({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-slate-400" />
+                {timezone.isAbbreviation ? (
+                  <Clock className="h-4 w-4 text-orange-400" />
+                ) : (
+                  <MapPin className="h-4 w-4 text-slate-400" />
+                )}
                 <span className={`font-medium text-base transition-colors duration-300 ${
                   isDragging ? 'text-blue-200' : 'text-white'
-                } truncate`} title={timezone.city}>
+                } truncate ${timezone.isAbbreviation ? 'font-mono text-orange-300' : ''}`} title={timezone.city}>
                   {isReference 
                     ? timezone.city 
                     : timezone.city.length > 10 
@@ -87,11 +94,18 @@ export function TimezoneCard({
                       : timezone.city
                   }
                 </span>
+                {timezone.isAbbreviation && !isReference && (
+                  <span className="px-2 py-0.5 bg-orange-500/20 text-orange-300 text-xs font-medium rounded-full border border-orange-400/30">
+                    TZ
+                  </span>
+                )}
               </div>
             </div>
             {isReference && (
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
+                <span className={`px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-xs font-medium rounded-full border border-white/[0.06] ${
+                  timezone.isAbbreviation ? 'text-orange-400' : 'text-slate-400'
+                }`}>
                   {timezone.country}
                 </span>
                 {clientTime ? (
@@ -209,7 +223,9 @@ export function TimezoneCard({
           <div className={`flex items-center gap-1.5 flex-wrap transition-all duration-300 ${
             isDragging ? 'opacity-80' : ''
           }`}>
-            <span className="px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-slate-400 text-xs font-medium rounded-full border border-white/[0.06]">
+            <span className={`px-3 py-1 bg-white/[0.03] backdrop-blur-sm text-xs font-medium rounded-full border border-white/[0.06] ${
+              timezone.isAbbreviation ? 'text-orange-400' : 'text-slate-400'
+            }`}>
               {timezone.country}
             </span>
             {clientTime ? (

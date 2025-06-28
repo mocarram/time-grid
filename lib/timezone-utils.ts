@@ -2,6 +2,56 @@ import { format, addMinutes, parseISO } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import type { TimezoneData } from '@/types/timezone';
 
+// Common timezone abbreviations with their full timezone names
+export const TIMEZONE_ABBREVIATIONS: Array<{
+  id: string;
+  abbreviation: string;
+  name: string;
+  timezone: string;
+  region: string;
+  isDST?: boolean;
+}> = [
+  // US Timezones
+  { id: 'pst', abbreviation: 'PST', name: 'Pacific Standard Time', timezone: 'America/Los_Angeles', region: 'US West Coast' },
+  { id: 'pdt', abbreviation: 'PDT', name: 'Pacific Daylight Time', timezone: 'America/Los_Angeles', region: 'US West Coast', isDST: true },
+  { id: 'mst', abbreviation: 'MST', name: 'Mountain Standard Time', timezone: 'America/Denver', region: 'US Mountain' },
+  { id: 'mdt', abbreviation: 'MDT', name: 'Mountain Daylight Time', timezone: 'America/Denver', region: 'US Mountain', isDST: true },
+  { id: 'cst', abbreviation: 'CST', name: 'Central Standard Time', timezone: 'America/Chicago', region: 'US Central' },
+  { id: 'cdt', abbreviation: 'CDT', name: 'Central Daylight Time', timezone: 'America/Chicago', region: 'US Central', isDST: true },
+  { id: 'est', abbreviation: 'EST', name: 'Eastern Standard Time', timezone: 'America/New_York', region: 'US East Coast' },
+  { id: 'edt', abbreviation: 'EDT', name: 'Eastern Daylight Time', timezone: 'America/New_York', region: 'US East Coast', isDST: true },
+  { id: 'akst', abbreviation: 'AKST', name: 'Alaska Standard Time', timezone: 'America/Anchorage', region: 'Alaska' },
+  { id: 'akdt', abbreviation: 'AKDT', name: 'Alaska Daylight Time', timezone: 'America/Anchorage', region: 'Alaska', isDST: true },
+  { id: 'hst', abbreviation: 'HST', name: 'Hawaii Standard Time', timezone: 'Pacific/Honolulu', region: 'Hawaii' },
+  
+  // European Timezones
+  { id: 'gmt', abbreviation: 'GMT', name: 'Greenwich Mean Time', timezone: 'Europe/London', region: 'UK' },
+  { id: 'bst', abbreviation: 'BST', name: 'British Summer Time', timezone: 'Europe/London', region: 'UK', isDST: true },
+  { id: 'cet', abbreviation: 'CET', name: 'Central European Time', timezone: 'Europe/Paris', region: 'Central Europe' },
+  { id: 'cest', abbreviation: 'CEST', name: 'Central European Summer Time', timezone: 'Europe/Paris', region: 'Central Europe', isDST: true },
+  { id: 'eet', abbreviation: 'EET', name: 'Eastern European Time', timezone: 'Europe/Helsinki', region: 'Eastern Europe' },
+  { id: 'eest', abbreviation: 'EEST', name: 'Eastern European Summer Time', timezone: 'Europe/Helsinki', region: 'Eastern Europe', isDST: true },
+  { id: 'msk', abbreviation: 'MSK', name: 'Moscow Standard Time', timezone: 'Europe/Moscow', region: 'Russia' },
+  
+  // Asian Timezones
+  { id: 'jst', abbreviation: 'JST', name: 'Japan Standard Time', timezone: 'Asia/Tokyo', region: 'Japan' },
+  { id: 'kst', abbreviation: 'KST', name: 'Korea Standard Time', timezone: 'Asia/Seoul', region: 'South Korea' },
+  { id: 'ist', abbreviation: 'IST', name: 'India Standard Time', timezone: 'Asia/Kolkata', region: 'India' },
+  { id: 'cst-china', abbreviation: 'CST', name: 'China Standard Time', timezone: 'Asia/Shanghai', region: 'China' },
+  { id: 'sgt', abbreviation: 'SGT', name: 'Singapore Standard Time', timezone: 'Asia/Singapore', region: 'Singapore' },
+  { id: 'hkt', abbreviation: 'HKT', name: 'Hong Kong Time', timezone: 'Asia/Hong_Kong', region: 'Hong Kong' },
+  { id: 'ict', abbreviation: 'ICT', name: 'Indochina Time', timezone: 'Asia/Bangkok', region: 'Southeast Asia' },
+  
+  // Australian Timezones
+  { id: 'aest', abbreviation: 'AEST', name: 'Australian Eastern Standard Time', timezone: 'Australia/Sydney', region: 'Eastern Australia' },
+  { id: 'aedt', abbreviation: 'AEDT', name: 'Australian Eastern Daylight Time', timezone: 'Australia/Sydney', region: 'Eastern Australia', isDST: true },
+  { id: 'acst', abbreviation: 'ACST', name: 'Australian Central Standard Time', timezone: 'Australia/Adelaide', region: 'Central Australia' },
+  { id: 'acdt', abbreviation: 'ACDT', name: 'Australian Central Daylight Time', timezone: 'Australia/Adelaide', region: 'Central Australia', isDST: true },
+  { id: 'awst', abbreviation: 'AWST', name: 'Australian Western Standard Time', timezone: 'Australia/Perth', region: 'Western Australia' },
+  { id: 'nzst', abbreviation: 'NZST', name: 'New Zealand Standard Time', timezone: 'Pacific/Auckland', region: 'New Zealand' },
+  { id: 'nzdt', abbreviation: 'NZDT', name: 'New Zealand Daylight Time', timezone: 'Pacific/Auckland', region: 'New Zealand', isDST: true },
+];
+
 // Initialize popular timezones with dynamic offsets
 const createPopularTimezones = (): TimezoneData[] => [
   { id: 'london', city: 'London', timezone: 'Europe/London', country: 'UK', offset: getTimezoneOffset('Europe/London') },
