@@ -27,7 +27,7 @@ import { TimeSelector } from '@/components/time-selector';
 import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
 import { ShareButton } from '@/components/share-button';
 import { useIpTimezone } from '@/hooks/use-ip-timezone';
-import { useShareData } from '@/hooks/use-share-data';
+import { useUrlState } from '@/hooks/use-url-state';
 import { 
   getLocalTimezone, 
   convertTime, 
@@ -42,10 +42,11 @@ const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
 export default function WorldClock() {
   const { location: ipLocation, error: ipError, loading: ipLoading } = useIpTimezone();
+  const { urlState, updateUrl, generateShareUrl, hasProcessedUrl } = useUrlState();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
-  const [hasSharedData, setHasSharedData] = useState(false);
+  const [hasLoadedFromUrl, setHasLoadedFromUrl] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [timeState, setTimeState] = useState<TimeState>({
@@ -56,24 +57,28 @@ export default function WorldClock() {
   });
   const [referenceTimezone, setReferenceTimezone] = useState<TimezoneData>(getLocalTimezone());
 
-  // Handle shared data loading
-  const handleLoadSharedData = useCallback((data: {
-    referenceTimezone: TimezoneData;
-    timeState: Partial<TimeState>;
-  }) => {
-    console.log('=== Loading shared data in main component ===');
-    console.log('Shared reference timezone:', data.referenceTimezone);
-    
-    setHasSharedData(true); // Mark that we have shared data
-    setReferenceTimezone(data.referenceTimezone);
-    setHasUserSetReference(true); // Mark as user-set to prevent override
-    setTimeState(prev => ({
-      ...prev,
-      ...data.timeState,
-    }));
-  }, []);
-
-  useShareData({ onLoadSharedData: handleLoadSharedData });
+  // Handle URL state loading
+  useEffect(() => {
+    if (!urlState.isLoading && !hasLoadedFromUrl && (urlState.referenceTimezone || urlState.timeState)) {
+      console.log('=== Loading URL state ===');
+      console.log('URL reference timezone:', urlState.referenceTimezone);
+      console.log('URL time state:', urlState.timeState);
+      
+      if (urlState.referenceTimezone) {
+        setReferenceTimezone(urlState.referenceTimezone);
+        setHasUserSetReference(true); // Mark as user-set to prevent override
+      }
+      
+      if (urlState.timeState) {
+        setTimeState(prev => ({
+          ...prev,
+          ...urlState.timeState,
+        }));
+      }
+      
+      setHasLoadedFromUrl(true);
+    }
+  }, [urlState, hasLoadedFromUrl]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -93,7 +98,14 @@ export default function WorldClock() {
 
   // Load timezones from localStorage on mount
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !hasProcessedUrl) return;
+    
+    // Skip localStorage loading if we have URL state to load
+    if (urlState.referenceTimezone || urlState.timeState) {
+      console.log('Skipping localStorage load - URL state takes precedence');
+      setIsLoaded(true);
+      return;
+    }
     
     try {
       // Load saved reference timezone first
@@ -134,29 +146,29 @@ export default function WorldClock() {
       console.error('Failed to load timezones from localStorage:', error);
       setIsLoaded(true); // Still mark as loaded even if there's an error
     }
-  }, [isMounted]);
+  }, [isMounted, hasProcessedUrl, urlState.referenceTimezone, urlState.timeState]);
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
     
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
     } catch (error) {
       console.error('Failed to save timezones to localStorage:', error);
     }
-  }, [timeState.timezones, isMounted]);
+  }, [timeState.timezones, isMounted, isLoaded, hasLoadedFromUrl]);
 
   // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (!isMounted || hasUserSetReference !== true) return;
+    if (!isMounted || !isLoaded || hasUserSetReference !== true || hasLoadedFromUrl) return;
     
     try {
       localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
     } catch (error) {
       console.error('Failed to save reference timezone to localStorage:', error);
     }
-  }, [referenceTimezone, isMounted, hasUserSetReference]);
+  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference, hasLoadedFromUrl]);
 
   // Update reference timezone with geolocation data
   useEffect(() => {
@@ -168,10 +180,9 @@ export default function WorldClock() {
     // Only update from geolocation if:
     // 1. We've finished loading from localStorage (hasUserSetReference is not null)
     // 2. User hasn't set a custom reference (hasUserSetReference is false)
-    // 3. No shared data has been loaded (which would set hasUserSetReference to true)
-    // 4. No shared data is present
-    if (hasUserSetReference !== false || hasSharedData) {
-      console.log('Skipping auto-detection - hasUserSetReference:', hasUserSetReference, 'hasSharedData:', hasSharedData);
+    // 3. No URL state has been loaded (which would set hasUserSetReference to true)
+    if (hasUserSetReference !== false || urlState.referenceTimezone) {
+      console.log('Skipping auto-detection - hasUserSetReference:', hasUserSetReference, 'hasUrlState:', !!urlState.referenceTimezone);
       return;
     }
     
@@ -195,7 +206,18 @@ export default function WorldClock() {
       // setHasUserSetReference(true);
       console.log('Set local timezone as reference:', localTz);
     }
-  }, [ipLocation, ipError, hasUserSetReference, hasSharedData]);
+  }, [ipLocation, ipError, hasUserSetReference, urlState.referenceTimezone]);
+
+  // Update URL when state changes (debounced)
+  useEffect(() => {
+    if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
+    
+    const timer = setTimeout(() => {
+      updateUrl(referenceTimezone, timeState);
+    }, 1000); // Debounce URL updates
+
+    return () => clearTimeout(timer);
+  }, [referenceTimezone, timeState, updateUrl, isMounted, isLoaded, hasLoadedFromUrl]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -603,8 +625,7 @@ export default function WorldClock() {
         {/* Mobile: Horizontal layout */}
         <div className="flex flex-row gap-4 sm:hidden">
           <ShareButton 
-            referenceTimezone={referenceTimezone}
-            timeState={timeState}
+            onShare={() => generateShareUrl(referenceTimezone, timeState)}
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}
@@ -615,8 +636,7 @@ export default function WorldClock() {
         {/* Desktop: Vertical layout */}
         <div className="hidden sm:flex sm:flex-col sm:gap-4">
           <ShareButton 
-            referenceTimezone={referenceTimezone}
-            timeState={timeState}
+            onShare={() => generateShareUrl(referenceTimezone, timeState)}
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}

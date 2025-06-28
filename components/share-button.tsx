@@ -9,44 +9,16 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Share2, Check, Copy } from 'lucide-react';
-import type { TimezoneData, TimeState } from '@/types/timezone';
 
 interface ShareButtonProps {
-  referenceTimezone: TimezoneData;
-  timeState: TimeState;
+  onShare: () => string;
 }
 
-export function ShareButton({ referenceTimezone, timeState }: ShareButtonProps) {
+export function ShareButton({ onShare }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
-  const generateShareUrl = () => {
-    const baseUrl = window.location.origin + window.location.pathname;
-    
-    // Create the share data
-    const shareData = {
-      ref: {
-        id: referenceTimezone.id,
-        city: referenceTimezone.city,
-        country: referenceTimezone.country,
-        timezone: referenceTimezone.timezone,
-      },
-      time: timeState.selectedTime.toISOString(),
-      zones: timeState.timezones.map(tz => ({
-        id: tz.id,
-        city: tz.city,
-        country: tz.country,
-        timezone: tz.timezone,
-      })),
-      modified: timeState.isTimeModified
-    };
-
-    // Encode the data
-    const encodedData = btoa(JSON.stringify(shareData));
-    return `${baseUrl}?share=${encodedData}`;
-  };
-
   const handleShare = async () => {
-    const shareUrl = generateShareUrl();
+    const shareUrl = onShare();
     
     try {
       await navigator.clipboard.writeText(shareUrl);
