@@ -61,7 +61,7 @@ export function WorkspaceSelector({
         <DropdownMenuTrigger asChild>
           <Button 
             variant="ghost" 
-            className="h-12 px-4 glass-button hover:bg-white/10 hover:border-white/20 transition-all duration-300 group justify-start gap-3 min-w-[200px]"
+            className="h-12 px-4 glass-button hover:bg-white/10 hover:border-white/20 transition-all duration-300 group justify-start gap-3 w-full sm:min-w-[200px] sm:w-auto"
           >
             <div className={`p-2 rounded-lg ${activeColor.bg} ${activeColor.border} border`}>
               <ActiveIcon className={`h-4 w-4 ${activeColor.text}`} />
@@ -78,7 +78,7 @@ export function WorkspaceSelector({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
-          className="w-64 glass-card border-white/10 text-white"
+          className="w-full sm:w-64 glass-card border-white/10 text-white"
           align="start"
         >
           <DropdownMenuLabel className="text-slate-300 font-medium">
