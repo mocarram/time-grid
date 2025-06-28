@@ -42,10 +42,11 @@ const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
 export default function WorldClock() {
   const { location: ipLocation, error: ipError, loading: ipLoading } = useIpTimezone();
-  const { urlState, updateUrl, generateShareUrl } = useUrlState();
+  const { urlState, updateUrl, generateShareUrl, hasProcessedUrl } = useUrlState();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
+  const [hasLoadedFromUrl, setHasLoadedFromUrl] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [timeState, setTimeState] = useState<TimeState>({
@@ -58,7 +59,7 @@ export default function WorldClock() {
 
   // Handle URL state loading
   useEffect(() => {
-    if (!urlState.isLoading && (urlState.referenceTimezone || urlState.timeState)) {
+    if (!urlState.isLoading && !hasLoadedFromUrl && (urlState.referenceTimezone || urlState.timeState)) {
       console.log('=== Loading URL state ===');
       console.log('URL reference timezone:', urlState.referenceTimezone);
       console.log('URL time state:', urlState.timeState);
@@ -74,8 +75,10 @@ export default function WorldClock() {
           ...urlState.timeState,
         }));
       }
+      
+      setHasLoadedFromUrl(true);
     }
-  }, [urlState]);
+  }, [urlState, hasLoadedFromUrl]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -95,7 +98,14 @@ export default function WorldClock() {
 
   // Load timezones from localStorage on mount
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !hasProcessedUrl) return;
+    
+    // Skip localStorage loading if we have URL state to load
+    if (urlState.referenceTimezone || urlState.timeState) {
+      console.log('Skipping localStorage load - URL state takes precedence');
+      setIsLoaded(true);
+      return;
+    }
     
     try {
       // Load saved reference timezone first
@@ -136,29 +146,29 @@ export default function WorldClock() {
       console.error('Failed to load timezones from localStorage:', error);
       setIsLoaded(true); // Still mark as loaded even if there's an error
     }
-  }, [isMounted]);
+  }, [isMounted, hasProcessedUrl, urlState.referenceTimezone, urlState.timeState]);
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
     
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
     } catch (error) {
       console.error('Failed to save timezones to localStorage:', error);
     }
-  }, [timeState.timezones, isMounted]);
+  }, [timeState.timezones, isMounted, isLoaded, hasLoadedFromUrl]);
 
   // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (!isMounted || hasUserSetReference !== true) return;
+    if (!isMounted || !isLoaded || hasUserSetReference !== true || hasLoadedFromUrl) return;
     
     try {
       localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
     } catch (error) {
       console.error('Failed to save reference timezone to localStorage:', error);
     }
-  }, [referenceTimezone, isMounted, hasUserSetReference]);
+  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference, hasLoadedFromUrl]);
 
   // Update reference timezone with geolocation data
   useEffect(() => {
@@ -200,14 +210,14 @@ export default function WorldClock() {
 
   // Update URL when state changes (debounced)
   useEffect(() => {
-    if (!isMounted || !isLoaded) return;
+    if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
     
     const timer = setTimeout(() => {
       updateUrl(referenceTimezone, timeState);
     }, 1000); // Debounce URL updates
 
     return () => clearTimeout(timer);
-  }, [referenceTimezone, timeState, updateUrl, isMounted, isLoaded]);
+  }, [referenceTimezone, timeState, updateUrl, isMounted, isLoaded, hasLoadedFromUrl]);
 
   useEffect(() => {
     const updateTime = () => {

@@ -19,6 +19,7 @@ export function useUrlState() {
     timeState: null,
     isLoading: true,
   });
+  const [hasProcessedUrl, setHasProcessedUrl] = useState(false);
 
   // Parse URL parameters on mount
   useEffect(() => {
@@ -91,9 +92,12 @@ export function useUrlState() {
           timeState,
           isLoading: false,
         });
+        setHasProcessedUrl(true);
 
-        // Clean up URL after parsing
-        router.replace(window.location.pathname, { scroll: false });
+        // Clean up URL after a short delay to ensure state is loaded
+        setTimeout(() => {
+          router.replace(window.location.pathname, { scroll: false });
+        }, 100);
         
       } catch (error) {
         console.error('Failed to parse URL state:', error);
@@ -102,6 +106,7 @@ export function useUrlState() {
           timeState: null,
           isLoading: false,
         });
+        setHasProcessedUrl(true);
       }
     } else {
       console.log('No URL parameters found');
@@ -110,14 +115,20 @@ export function useUrlState() {
         timeState: null,
         isLoading: false,
       });
+      setHasProcessedUrl(true);
     }
   }, [searchParams, router]);
 
   // Function to update URL with current state
-  const updateUrl = useCallback((
+  const updateUrl = useCallback(async (
     referenceTimezone: TimezoneData,
     timeState: TimeState
   ) => {
+    // Don't update URL if we haven't processed initial URL state yet
+    if (!hasProcessedUrl) {
+      return '';
+    }
+
     const params = new URLSearchParams();
 
     // Add reference timezone
@@ -147,7 +158,7 @@ export function useUrlState() {
     window.history.replaceState({}, '', newUrl);
     
     return newUrl;
-  }, []);
+  }, [hasProcessedUrl]);
 
   // Function to generate shareable URL
   const generateShareUrl = useCallback((
@@ -184,5 +195,6 @@ export function useUrlState() {
     urlState,
     updateUrl,
     generateShareUrl,
+    hasProcessedUrl,
   };
 }
