@@ -382,28 +382,68 @@ export default function WorldClock() {
   }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, timeState.timezones]);
 
   const handleRemoveTimezone = useCallback((timezoneId: string) => {
-    setTimeState(prev => ({
-      ...prev,
-      timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
-    }));
-    
-    // Remove from all workspaces
-    workspaces.forEach(workspace => {
-      if (workspace.timezones.includes(timezoneId)) {
-        removeTimezoneFromWorkspace(workspace.id, timezoneId);
-      }
-    });
-  }, [workspaces, removeTimezoneFromWorkspace]);
+    if (activeWorkspace) {
+      // For workspaces, remove from workspace-specific storage
+      const currentWorkspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
+      const updatedWorkspaceTimezones = currentWorkspaceTimezones.filter(tz => tz.id !== timezoneId);
+      
+      // Update workspace-specific storage
+      const workspaceTimezones = JSON.parse(localStorage.getItem('world-clock-workspace-timezones') || '{}');
+      workspaceTimezones[activeWorkspace.id] = updatedWorkspaceTimezones;
+      localStorage.setItem('world-clock-workspace-timezones', JSON.stringify(workspaceTimezones));
+      
+      // Also remove from workspace's timezone ID list
+      removeTimezoneFromWorkspace(activeWorkspace.id, timezoneId);
+      
+      console.log('Removed timezone from workspace:', activeWorkspace.id, timezoneId);
+    } else {
+      // For no workspace (global), remove from global timezone list
+      setTimeState(prev => ({
+        ...prev,
+        timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
+      }));
+      
+      // Remove from all workspaces
+      workspaces.forEach(workspace => {
+        if (workspace.timezones?.includes(timezoneId)) {
+          removeTimezoneFromWorkspace(workspace.id, timezoneId);
+        }
+      });
+    }
+  }, [activeWorkspace, getWorkspaceTimezones, removeTimezoneFromWorkspace, workspaces]);
 
   const handleSetAsReference = useCallback((timezone: TimezoneData) => {
     // Move current reference to the timezone list
     const currentReference = referenceTimezone;
     
-    // Remove the selected timezone from the list
-    setTimeState(prev => ({
-      ...prev,
-      timezones: prev.timezones.filter(tz => tz.id !== timezone.id),
-    }));
+    if (activeWorkspace) {
+      // For workspaces, remove from workspace-specific storage and add current reference
+      const currentWorkspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
+      const updatedWorkspaceTimezones = [
+        ...currentWorkspaceTimezones.filter(tz => tz.id !== timezone.id),
+        currentReference
+      ];
+      
+      // Update workspace-specific storage
+      const workspaceTimezones = JSON.parse(localStorage.getItem('world-clock-workspace-timezones') || '{}');
+      workspaceTimezones[activeWorkspace.id] = updatedWorkspaceTimezones;
+      localStorage.setItem('world-clock-workspace-timezones', JSON.stringify(workspaceTimezones));
+      
+      // Update workspace timezone ID list
+      removeTimezoneFromWorkspace(activeWorkspace.id, timezone.id);
+      if (currentReference.id !== 'local') {
+        addTimezoneToWorkspace(activeWorkspace.id, currentReference.id);
+      }
+    } else {
+      // For no workspace (global), use global timezone list
+      setTimeState(prev => ({
+        ...prev,
+        timezones: [
+          ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
+          currentReference
+        ],
+      }));
+    }
     
     // Convert the current selected time to the new reference timezone
     const convertedTime = convertTime(
@@ -421,8 +461,30 @@ export default function WorldClock() {
       ...prev,
       selectedTime: convertedTime,
       referenceTime: convertedTime,
-      timezones: [
-        ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
+      
+      // Remove from workspace's timezone ID list
+      removeTimezoneFromWorkspace(activeWorkspace.id, timezoneId);
+      
+      // Force a re-render
+      setTimeState(prev => ({
+        ...prev,
+        lastUpdate: Date.now()
+      }));
+    } else {
+      // Remove from global timezone list
+      setTimeState(prev => ({
+        ...prev,
+        timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
+      }));
+      
+      // Remove from all workspaces
+      workspaces.forEach(workspace => {
+        if (workspace.timezones?.includes(timezoneId)) {
+          removeTimezoneFromWorkspace(workspace.id, timezoneId);
+        }
+      });
+    }
+  }, [activeWorkspace, workspaces, removeTimezoneFromWorkspace]);
         currentReference
       ],
     }));

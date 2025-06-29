@@ -178,7 +178,7 @@ export function useWorkspaces() {
     const workspaceTimezones = loadWorkspaceTimezones();
     delete workspaceTimezones[id];
     saveWorkspaceTimezones(workspaceTimezones);
-  }, []);
+  }, [loadWorkspaceTimezones, saveWorkspaceTimezones]);
 
   const setActiveWorkspace = useCallback((id: string) => {
     setWorkspaceState(prev => ({
@@ -212,7 +212,7 @@ export function useWorkspaces() {
         ws.id === workspaceId 
           ? {
               ...ws,
-              timezones: ws.timezones.filter(id => id !== timezoneId),
+              timezones: (ws.timezones || []).filter(id => id !== timezoneId),
               updatedAt: new Date(),
             }
           : ws
