@@ -207,6 +207,47 @@ export function useWorkspaces() {
     []
   );
 
+  // Load workspaces from server data (for auth sync)
+  const loadWorkspacesFromServer = useCallback(
+    (serverWorkspaces: Workspace[], serverActiveId?: string | null) => {
+      try {
+        // Convert server data to proper format
+        const processedWorkspaces = serverWorkspaces.map((ws: any) => ({
+          ...ws,
+          createdAt: new Date(ws.createdAt),
+          updatedAt: new Date(ws.updatedAt),
+          timezones: ws.timezones || [],
+          referenceTimezone: ws.referenceTimezone || undefined,
+        }));
+
+        // Ensure there's at least one workspace
+        const workspaces =
+          processedWorkspaces.length > 0
+            ? processedWorkspaces
+            : [createDefaultWorkspace()];
+
+        // Set active workspace
+        let activeWorkspaceId = serverActiveId;
+        if (
+          !activeWorkspaceId ||
+          !workspaces.find(ws => ws.id === activeWorkspaceId)
+        ) {
+          activeWorkspaceId = workspaces[0].id;
+        }
+
+        setWorkspaceState({
+          workspaces,
+          activeWorkspaceId: activeWorkspaceId || null,
+        });
+
+        console.log("Loaded workspaces from server:", workspaces);
+      } catch (error) {
+        console.error("Failed to load workspaces from server:", error);
+      }
+    },
+    []
+  );
+
   const activeWorkspace =
     workspaceState.workspaces.find(
       ws => ws.id === workspaceState.activeWorkspaceId
@@ -223,5 +264,6 @@ export function useWorkspaces() {
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
     setWorkspaceReferenceTimezone,
+    loadWorkspacesFromServer,
   };
 }
