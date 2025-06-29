@@ -145,7 +145,7 @@ export function CreateWorkspaceDialog({
 
           <div className='space-y-3'>
             <Label className='text-sm font-medium text-slate-300'>Icon</Label>
-            <div className='scrollbar-thin grid max-h-32 grid-cols-8 gap-2 overflow-y-auto'>
+            <div className='scrollbar-thin grid max-h-32 grid-cols-8 gap-2 overflow-y-auto p-2'>
               {WORKSPACE_ICONS.map(iconName => {
                 const Icon = getIcon(iconName);
                 const color = WORKSPACE_COLORS.find(
@@ -157,7 +157,7 @@ export function CreateWorkspaceDialog({
                     key={iconName}
                     type='button'
                     onClick={() => setSelectedIcon(iconName)}
-                    className={`rounded-lg border p-2 transition-all duration-200 ${
+                    className={`flex items-center justify-center rounded-lg border p-2 transition-all duration-200 ${
                       selectedIcon === iconName
                         ? `${color.bg} ${color.border} ring-2 ring-white/30`
                         : "border-white/10 bg-white/5 hover:bg-white/10"

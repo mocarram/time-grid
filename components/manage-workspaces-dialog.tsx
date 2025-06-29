@@ -208,7 +208,7 @@ export function ManageWorkspacesDialog({
                                     icon: iconName,
                                   }))
                                 }
-                                className={`rounded-lg border p-1.5 transition-all duration-200 ${
+                                className={`flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-200 ${
                                   editForm.icon === iconName
                                     ? `${selectedColor.bg} ${selectedColor.border}`
                                     : "border-white/10 bg-white/5 hover:bg-white/10"
