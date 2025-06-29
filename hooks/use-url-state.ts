@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getTimezoneOffset } from '@/lib/timezone-utils';
 import type { TimezoneData, TimeState } from '@/types/timezone';
+import type { Workspace } from '@/types/workspace';
 
 interface UrlState {
   referenceTimezone: TimezoneData | null;
   timeState: Partial<TimeState> | null;
+  workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'> | null;
   isLoading: boolean;
 }
 
@@ -17,6 +19,7 @@ export function useUrlState() {
   const [urlState, setUrlState] = useState<UrlState>({
     referenceTimezone: null,
     timeState: null,
+    workspace: null,
     isLoading: true,
   });
   const [hasProcessedUrl, setHasProcessedUrl] = useState(false);
@@ -28,14 +31,16 @@ export function useUrlState() {
     const ref = searchParams.get('ref');
     const time = searchParams.get('time');
     const zones = searchParams.get('zones');
+    const workspace = searchParams.get('workspace');
     const modified = searchParams.get('modified');
 
-    if (ref || time || zones) {
-      console.log('Found URL parameters:', { ref, time, zones, modified });
+    if (ref || time || zones || workspace) {
+      console.log('Found URL parameters:', { ref, time, zones, workspace, modified });
       
       try {
         let referenceTimezone: TimezoneData | null = null;
         let timeState: Partial<TimeState> | null = null;
+        let workspaceData: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'> | null = null;
 
         // Parse reference timezone
         if (ref) {
@@ -85,11 +90,21 @@ export function useUrlState() {
           }
         }
 
-        console.log('Parsed URL state:', { referenceTimezone, timeState });
+        // Parse workspace data
+        if (workspace) {
+          try {
+            workspaceData = JSON.parse(decodeURIComponent(workspace));
+          } catch (error) {
+            console.error('Failed to parse workspace:', error);
+          }
+        }
+
+        console.log('Parsed URL state:', { referenceTimezone, timeState, workspace: workspaceData });
         
         setUrlState({
           referenceTimezone,
           timeState,
+          workspace: workspaceData,
           isLoading: false,
         });
         setHasProcessedUrl(true);
@@ -104,6 +119,7 @@ export function useUrlState() {
         setUrlState({
           referenceTimezone: null,
           timeState: null,
+          workspace: null,
           isLoading: false,
         });
         setHasProcessedUrl(true);
@@ -113,6 +129,7 @@ export function useUrlState() {
       setUrlState({
         referenceTimezone: null,
         timeState: null,
+        workspace: null,
         isLoading: false,
       });
       setHasProcessedUrl(true);
@@ -122,7 +139,8 @@ export function useUrlState() {
   // Function to update URL with current state
   const updateUrl = useCallback(async (
     referenceTimezone: TimezoneData,
-    timeState: TimeState
+    timeState: TimeState,
+    activeWorkspace?: Workspace | null
   ) => {
     // Don't update URL if we haven't processed initial URL state yet
     if (!hasProcessedUrl) {
@@ -152,6 +170,18 @@ export function useUrlState() {
       params.set('modified', 'true');
     }
 
+    // Add workspace data if available
+    if (activeWorkspace) {
+      const workspaceData = {
+        name: activeWorkspace.name,
+        description: activeWorkspace.description,
+        color: activeWorkspace.color,
+        icon: activeWorkspace.icon,
+        timezones: activeWorkspace.timezones,
+      };
+      params.set('workspace', encodeURIComponent(JSON.stringify(workspaceData)));
+    }
+
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     
     // Update URL without triggering navigation
@@ -163,7 +193,8 @@ export function useUrlState() {
   // Function to generate shareable URL
   const generateShareUrl = useCallback((
     referenceTimezone: TimezoneData,
-    timeState: TimeState
+    timeState: TimeState,
+    activeWorkspace?: Workspace | null
   ) => {
     const params = new URLSearchParams();
 
@@ -186,6 +217,18 @@ export function useUrlState() {
     // Add modified flag
     if (timeState.isTimeModified) {
       params.set('modified', 'true');
+    }
+
+    // Add workspace data if available
+    if (activeWorkspace) {
+      const workspaceData = {
+        name: activeWorkspace.name,
+        description: activeWorkspace.description,
+        color: activeWorkspace.color,
+        icon: activeWorkspace.icon,
+        timezones: activeWorkspace.timezones,
+      };
+      params.set('workspace', encodeURIComponent(JSON.stringify(workspaceData)));
     }
 
     return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
