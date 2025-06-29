@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
 
   try {
     // Simple search - let the API do the work and show all results
-    const searchUrl = `https://nominatim.openstreetmap.org/search?` +
+    const searchUrl =
+      `https://nominatim.openstreetmap.org/search?` +
       `q=${encodeURIComponent(query)}&` +
       `format=json&` +
       `addressdetails=1&` +
@@ -44,14 +45,14 @@ export async function GET(request: NextRequest) {
         // Only filter out results that are clearly not places or lack basic data
         const hasCoordinates = item.lat && item.lon;
         const hasName = item.name || item.display_name;
-        
+
         return hasCoordinates && hasName;
       })
       .map((item: any) => {
         const address = item.address || {};
-        
+
         // Extract city name - prefer the main name, then address components
-        const cityName = 
+        const cityName =
           item.name ||
           address.city ||
           address.town ||
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
         const placeType = item.type;
         const placeClass = item.class;
         const addressType = item.addresstype;
-        
+
         // Create a readable place type description
         let placeDescription = "";
         if (placeType === "administrative") {
@@ -103,18 +104,20 @@ export async function GET(request: NextRequest) {
           longitude: lon,
           displayName: item.display_name,
           placeType: placeDescription,
-          importance: parseFloat(item.importance || 0)
+          importance: parseFloat(item.importance || 0),
         };
       })
       .filter((city: any) => {
         // Only filter out clearly invalid results
-        return city.city && 
-               city.country && 
-               city.city !== "Unknown" &&
-               !isNaN(city.latitude) && 
-               !isNaN(city.longitude) &&
-               Math.abs(city.latitude) <= 90 &&
-               Math.abs(city.longitude) <= 180;
+        return (
+          city.city &&
+          city.country &&
+          city.city !== "Unknown" &&
+          !isNaN(city.latitude) &&
+          !isNaN(city.longitude) &&
+          Math.abs(city.latitude) <= 90 &&
+          Math.abs(city.longitude) <= 180
+        );
       })
       // Sort by importance (OSM's own relevance scoring)
       .sort((a: any, b: any) => b.importance - a.importance)

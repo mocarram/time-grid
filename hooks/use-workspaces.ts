@@ -52,7 +52,7 @@ export function useWorkspaces() {
       let activeWorkspaceId = savedActiveId;
       if (
         !activeWorkspaceId ||
-        !workspaces.find((ws) => ws.id === activeWorkspaceId)
+        !workspaces.find(ws => ws.id === activeWorkspaceId)
       ) {
         activeWorkspaceId = workspaces[0].id;
       }
@@ -104,7 +104,7 @@ export function useWorkspaces() {
         updatedAt: new Date(),
       };
 
-      setWorkspaceState((prev) => ({
+      setWorkspaceState(prev => ({
         ...prev,
         workspaces: [...prev.workspaces, newWorkspace],
       }));
@@ -116,9 +116,9 @@ export function useWorkspaces() {
 
   const updateWorkspace = useCallback(
     (id: string, updates: Partial<Workspace>) => {
-      setWorkspaceState((prev) => ({
+      setWorkspaceState(prev => ({
         ...prev,
-        workspaces: prev.workspaces.map((ws) =>
+        workspaces: prev.workspaces.map(ws =>
           ws.id === id ? { ...ws, ...updates, updatedAt: new Date() } : ws
         ),
       }));
@@ -127,8 +127,8 @@ export function useWorkspaces() {
   );
 
   const deleteWorkspace = useCallback((id: string) => {
-    setWorkspaceState((prev) => {
-      const newWorkspaces = prev.workspaces.filter((ws) => ws.id !== id);
+    setWorkspaceState(prev => {
+      const newWorkspaces = prev.workspaces.filter(ws => ws.id !== id);
 
       // If we're deleting the active workspace, switch to the first available one
       let newActiveId = prev.activeWorkspaceId;
@@ -144,7 +144,7 @@ export function useWorkspaces() {
   }, []);
 
   const setActiveWorkspace = useCallback((id: string) => {
-    setWorkspaceState((prev) => ({
+    setWorkspaceState(prev => ({
       ...prev,
       activeWorkspaceId: id,
     }));
@@ -153,13 +153,13 @@ export function useWorkspaces() {
   const addTimezoneToWorkspace = useCallback(
     (workspaceId: string, timezone: TimezoneData) => {
       console.log("Adding timezone to workspace:", workspaceId, timezone);
-      setWorkspaceState((prev) => ({
+      setWorkspaceState(prev => ({
         ...prev,
-        workspaces: prev.workspaces.map((ws) =>
+        workspaces: prev.workspaces.map(ws =>
           ws.id === workspaceId
             ? {
                 ...ws,
-                timezones: ws.timezones.some((tz) => tz.id === timezone.id)
+                timezones: ws.timezones.some(tz => tz.id === timezone.id)
                   ? ws.timezones
                   : [...ws.timezones, timezone],
                 updatedAt: new Date(),
@@ -173,13 +173,13 @@ export function useWorkspaces() {
 
   const removeTimezoneFromWorkspace = useCallback(
     (workspaceId: string, timezoneId: string) => {
-      setWorkspaceState((prev) => ({
+      setWorkspaceState(prev => ({
         ...prev,
-        workspaces: prev.workspaces.map((ws) =>
+        workspaces: prev.workspaces.map(ws =>
           ws.id === workspaceId
             ? {
                 ...ws,
-                timezones: ws.timezones.filter((tz) => tz.id !== timezoneId),
+                timezones: ws.timezones.filter(tz => tz.id !== timezoneId),
                 updatedAt: new Date(),
               }
             : ws
@@ -191,9 +191,9 @@ export function useWorkspaces() {
 
   const setWorkspaceReferenceTimezone = useCallback(
     (workspaceId: string, referenceTimezone: TimezoneData | null) => {
-      setWorkspaceState((prev) => ({
+      setWorkspaceState(prev => ({
         ...prev,
-        workspaces: prev.workspaces.map((ws) =>
+        workspaces: prev.workspaces.map(ws =>
           ws.id === workspaceId
             ? {
                 ...ws,
@@ -209,7 +209,7 @@ export function useWorkspaces() {
 
   const activeWorkspace =
     workspaceState.workspaces.find(
-      (ws) => ws.id === workspaceState.activeWorkspaceId
+      ws => ws.id === workspaceState.activeWorkspaceId
     ) || null;
 
   return {

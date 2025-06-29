@@ -88,7 +88,7 @@ export default function WorldClock() {
         ? toZonedTime(now, activeWorkspace.referenceTimezone.timezone)
         : now;
 
-      setTimeState((prev) => ({
+      setTimeState(prev => ({
         ...prev,
         timezones: activeWorkspace.timezones || [],
         selectedTime: referenceTime,
@@ -135,7 +135,7 @@ export default function WorldClock() {
       // If we have timeState but no workspace, add to current workspace
       if (urlState.timeState && !urlState.workspace && activeWorkspace) {
         const newTimezones = urlState.timeState.timezones || [];
-        newTimezones.forEach((timezone) => {
+        newTimezones.forEach(timezone => {
           addTimezoneToWorkspace(activeWorkspace.id, timezone);
         });
 
@@ -222,7 +222,7 @@ export default function WorldClock() {
           workspaceReferenceTimezone.timezone
         );
 
-        setTimeState((prev) => ({
+        setTimeState(prev => ({
           ...prev,
           referenceTime,
           selectedTime: referenceTime,
@@ -237,7 +237,7 @@ export default function WorldClock() {
   }, [timeState.isTimeModified, workspaceReferenceTimezone]);
 
   const handleTimeChange = useCallback((newTime: Date) => {
-    setTimeState((prev) => ({
+    setTimeState(prev => ({
       ...prev,
       selectedTime: newTime,
       isTimeModified: true,
@@ -253,7 +253,7 @@ export default function WorldClock() {
         : timeState.timezones;
 
       const isDuplicate = currentTimezones.some(
-        (existing) =>
+        existing =>
           existing.city.toLowerCase() === timezone.city.toLowerCase() &&
           existing.country.toLowerCase() === timezone.country.toLowerCase()
       );
@@ -289,7 +289,7 @@ export default function WorldClock() {
           : `${timezone.id}-${Date.now()}`,
       };
 
-      setTimeState((prev) => ({
+      setTimeState(prev => ({
         ...prev,
         timezones: [...prev.timezones, uniqueTimezone],
       }));
@@ -309,9 +309,9 @@ export default function WorldClock() {
 
   const handleRemoveTimezone = useCallback(
     (timezoneId: string) => {
-      setTimeState((prev) => ({
+      setTimeState(prev => ({
         ...prev,
-        timezones: prev.timezones.filter((tz) => tz.id !== timezoneId),
+        timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
       }));
 
       // Remove from current workspace
@@ -330,9 +330,9 @@ export default function WorldClock() {
       const currentReference = workspaceReferenceTimezone;
 
       // Remove the selected timezone from the list
-      setTimeState((prev) => ({
+      setTimeState(prev => ({
         ...prev,
-        timezones: prev.timezones.filter((tz) => tz.id !== timezone.id),
+        timezones: prev.timezones.filter(tz => tz.id !== timezone.id),
       }));
 
       // Remove from workspace timezones
@@ -351,7 +351,7 @@ export default function WorldClock() {
       setWorkspaceReferenceTimezone(activeWorkspace.id, timezone);
 
       // Update the time state with the converted time
-      setTimeState((prev) => ({
+      setTimeState(prev => ({
         ...prev,
         selectedTime: convertedTime,
         referenceTime: convertedTime,
@@ -384,9 +384,9 @@ export default function WorldClock() {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      setTimeState((prev) => {
-        const oldIndex = prev.timezones.findIndex((tz) => tz.id === active.id);
-        const newIndex = prev.timezones.findIndex((tz) => tz.id === over?.id);
+      setTimeState(prev => {
+        const oldIndex = prev.timezones.findIndex(tz => tz.id === active.id);
+        const newIndex = prev.timezones.findIndex(tz => tz.id === over?.id);
 
         return {
           ...prev,
@@ -408,7 +408,7 @@ export default function WorldClock() {
     const now = new Date();
     const referenceTime = toZonedTime(now, workspaceReferenceTimezone.timezone);
 
-    setTimeState((prev) => ({
+    setTimeState(prev => ({
       ...prev,
       referenceTime,
       selectedTime: referenceTime,
@@ -420,81 +420,81 @@ export default function WorldClock() {
   const displayedTimezones = activeWorkspace
     ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
     : timeState.timezones;
-  const activeTimezone = displayedTimezones.find((tz) => tz.id === activeId);
+  const activeTimezone = displayedTimezones.find(tz => tz.id === activeId);
 
   // Don't render until we've loaded workspaces
   if (!workspacesLoaded) {
     return (
-      <div className="min-h-screen relative overflow-hidden">
+      <div className='relative min-h-screen overflow-hidden'>
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+        <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900' />
+        <div className='absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]' />
 
-        <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
+        <div className='container relative z-10 mx-auto max-w-5xl px-6 py-12'>
           {/* Header */}
-          <div className="text-center mb-16">
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="p-4 glass rounded-2xl">
-                <Clock className="h-8 w-8 text-blue-400" />
+          <div className='mb-16 text-center'>
+            <div className='mb-6 flex items-center justify-center gap-4'>
+              <div className='glass rounded-2xl p-4'>
+                <Clock className='h-8 w-8 text-blue-400' />
               </div>
             </div>
-            <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
+            <h1 className='text-glow mb-4 text-6xl font-thin tracking-tight text-white'>
               TimeGrid
             </h1>
-            <p className="text-slate-400 text-lg font-light">
+            <p className='text-lg font-light text-slate-400'>
               Synchronize time across the globe
             </p>
           </div>
 
           {/* Skeleton Loading State */}
-          <div className="space-y-8">
+          <div className='space-y-8'>
             {/* Reference Timezone Card Skeleton */}
-            <div className="glass-card rounded-3xl p-8 ring-1 ring-blue-400/30 glow">
-              <div className="space-y-6">
+            <div className='glass-card glow rounded-3xl p-8 ring-1 ring-blue-400/30'>
+              <div className='space-y-6'>
                 {/* Header Skeleton */}
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-slate-400" />
-                        <Skeleton className="h-6 w-24 bg-white/10" />
+                <div className='flex items-start justify-between'>
+                  <div className='space-y-2'>
+                    <div className='flex items-center gap-3'>
+                      <div className='flex items-center gap-2'>
+                        <MapPin className='h-4 w-4 text-slate-400' />
+                        <Skeleton className='h-6 w-24 bg-white/10' />
                       </div>
-                      <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">
+                      <span className='rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300'>
                         Reference
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-slate-400">
-                      <Skeleton className="h-4 w-16 bg-white/10" />
-                      <Skeleton className="h-4 w-12 bg-white/10" />
+                    <div className='flex items-center gap-4 text-sm text-slate-400'>
+                      <Skeleton className='h-4 w-16 bg-white/10' />
+                      <Skeleton className='h-4 w-12 bg-white/10' />
                       <span>•</span>
-                      <Skeleton className="h-4 w-16 bg-white/10" />
-                      <Skeleton className="h-3 w-12 bg-white/10" />
+                      <Skeleton className='h-4 w-16 bg-white/10' />
+                      <Skeleton className='h-3 w-12 bg-white/10' />
                     </div>
                   </div>
                 </div>
 
                 {/* Time Display Skeleton */}
-                <div className="space-y-2">
-                  <Skeleton className="h-16 w-32 bg-white/10" />
+                <div className='space-y-2'>
+                  <Skeleton className='h-16 w-32 bg-white/10' />
                 </div>
 
                 {/* Time Selector Skeleton */}
-                <div className="space-y-4 mt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-400" />
-                      <span className="text-sm font-medium text-slate-300">
+                <div className='mt-6 space-y-4'>
+                  <div className='flex items-center justify-between'>
+                    <div className='flex items-center gap-2'>
+                      <Clock className='h-4 w-4 text-blue-400' />
+                      <span className='text-sm font-medium text-slate-300'>
                         Reference Time
                       </span>
                     </div>
-                    <Skeleton className="h-6 w-16 bg-white/10 rounded-lg" />
+                    <Skeleton className='h-6 w-16 rounded-lg bg-white/10' />
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="px-1">
-                      <Skeleton className="h-6 w-full bg-white/10 rounded-full" />
+                  <div className='space-y-3'>
+                    <div className='px-1'>
+                      <Skeleton className='h-6 w-full rounded-full bg-white/10' />
                     </div>
-                    <div className="flex justify-between text-xs text-slate-500 px-1">
+                    <div className='flex justify-between px-1 text-xs text-slate-500'>
                       <span>12:00 AM</span>
                       <span>12:00 PM</span>
                       <span>11:59 PM</span>
@@ -505,42 +505,42 @@ export default function WorldClock() {
             </div>
 
             {/* Additional Timezone Cards Skeleton */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+            <div className='mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3'>
               {[...Array(6)].map((_, i) => (
                 <div
                   key={i}
-                  className="glass-card rounded-2xl p-6 min-h-[200px] flex flex-col"
+                  className='glass-card flex min-h-[200px] flex-col rounded-2xl p-6'
                 >
-                  <div className="space-y-6">
+                  <div className='space-y-6'>
                     {/* Header Skeleton */}
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-slate-400" />
-                            <Skeleton className="h-6 w-20 bg-white/10" />
+                    <div className='flex items-start justify-between'>
+                      <div className='space-y-2'>
+                        <div className='flex items-center gap-3'>
+                          <div className='flex items-center gap-2'>
+                            <MapPin className='h-4 w-4 text-slate-400' />
+                            <Skeleton className='h-6 w-20 bg-white/10' />
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
-                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
-                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
+                      <div className='flex items-center gap-2'>
+                        <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
+                        <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
+                        <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
                       </div>
                     </div>
 
                     {/* Time Display Skeleton */}
-                    <div className="space-y-2">
-                      <Skeleton className="h-12 w-28 bg-white/10" />
+                    <div className='space-y-2'>
+                      <Skeleton className='h-12 w-28 bg-white/10' />
                     </div>
 
                     {/* Badge Skeleton */}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
-                      <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
-                      <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
-                      <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+                    <div className='flex flex-wrap items-center gap-1.5'>
+                      <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
+                      <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
+                      <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
+                      <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
                     </div>
                   </div>
                 </div>
@@ -548,8 +548,8 @@ export default function WorldClock() {
             </div>
 
             {/* Add Button Skeleton */}
-            <div className="flex justify-center">
-              <Skeleton className="h-16 w-16 bg-white/10 rounded-full" />
+            <div className='flex justify-center'>
+              <Skeleton className='h-16 w-16 rounded-full bg-white/10' />
             </div>
           </div>
         </div>
@@ -558,29 +558,29 @@ export default function WorldClock() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className='relative min-h-screen overflow-hidden'>
       {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+      <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900' />
+      <div className='absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]' />
 
-      <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
+      <div className='container relative z-10 mx-auto max-w-5xl px-6 py-12'>
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="p-3 glass rounded-xl">
-              <Clock className="h-6 w-6 text-blue-400" />
+        <div className='mb-16 text-center'>
+          <div className='mb-6 flex items-center justify-center gap-4'>
+            <div className='glass rounded-xl p-3'>
+              <Clock className='h-6 w-6 text-blue-400' />
             </div>
-            <h1 className="text-5xl font-thin tracking-tight text-white text-glow">
+            <h1 className='text-glow text-5xl font-thin tracking-tight text-white'>
               TimeGrid
             </h1>
           </div>
-          <p className="text-slate-400 text-lg font-light">
+          <p className='text-lg font-light text-slate-400'>
             Synchronize time across the globe
           </p>
         </div>
 
         {/* Workspace Selector */}
-        <div className="mb-8">
+        <div className='mb-8'>
           <WorkspaceSelector
             workspaces={workspaces}
             activeWorkspace={activeWorkspace}
@@ -593,27 +593,27 @@ export default function WorldClock() {
 
         {/* Reference Timezone Card */}
         {workspaceReferenceTimezone && (
-          <div className="mb-8">
+          <div className='mb-8'>
             <TimezoneCard
               timezone={workspaceReferenceTimezone}
               displayTime={timeState.selectedTime}
               isReference={true}
             >
-              <div className="space-y-6 mt-6">
+              <div className='mt-6 space-y-6'>
                 <TimeSelector
                   selectedTime={timeState.selectedTime}
                   onTimeChange={handleTimeChange}
                 />
                 {timeState.isTimeModified && (
-                  <div className="flex justify-center">
+                  <div className='flex justify-center'>
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant='ghost'
+                      size='sm'
                       onClick={resetToCurrentTime}
-                      className="h-8 px-4 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group"
-                      title="Reset to current time"
+                      className='glass-button group h-8 px-4 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20'
+                      title='Reset to current time'
                     >
-                      <span className="text-sm text-slate-400 group-hover:text-blue-300 font-medium">
+                      <span className='text-sm font-medium text-slate-400 group-hover:text-blue-300'>
                         Reset to current time
                       </span>
                     </Button>
@@ -637,8 +637,8 @@ export default function WorldClock() {
               items={displayedTimezones}
               strategy={rectSortingStrategy}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-                {displayedTimezones.map((timezone) => {
+              <div className='mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3'>
+                {displayedTimezones.map(timezone => {
                   const convertedTime = workspaceReferenceTimezone
                     ? convertTime(
                         timeState.selectedTime,
@@ -662,7 +662,7 @@ export default function WorldClock() {
 
             <DragOverlay>
               {activeTimezone ? (
-                <div className="rotate-2 scale-90 shadow-2xl shadow-blue-500/25 opacity-95 transition-all duration-200 ease-out w-80">
+                <div className='w-80 rotate-2 scale-90 opacity-95 shadow-2xl shadow-blue-500/25 transition-all duration-200 ease-out'>
                   <TimezoneCard
                     timezone={activeTimezone}
                     displayTime={
@@ -684,16 +684,16 @@ export default function WorldClock() {
 
         {/* Status Messages */}
         {ipLoading && (
-          <div className="text-center text-slate-400 mt-8 font-light">
-            <div className="inline-flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+          <div className='mt-8 text-center font-light text-slate-400'>
+            <div className='inline-flex items-center gap-2'>
+              <div className='h-2 w-2 animate-pulse rounded-full bg-blue-400' />
               Detecting your timezone...
             </div>
           </div>
         )}
 
         {ipError && (
-          <div className="text-center text-slate-500 mt-8 font-light">
+          <div className='mt-8 text-center font-light text-slate-500'>
             {ipLocation?.source === "browser"
               ? "Using browser timezone as reference"
               : "Using system timezone as reference"}
@@ -702,9 +702,9 @@ export default function WorldClock() {
       </div>
 
       {/* Floating Add Timezone Button */}
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4 sm:flex-col md:flex-col lg:flex-col">
+      <div className='fixed bottom-8 right-8 z-50 flex flex-col gap-4 sm:flex-col md:flex-col lg:flex-col'>
         {/* Mobile: Horizontal layout */}
-        <div className="flex flex-row gap-4 sm:hidden">
+        <div className='flex flex-row gap-4 sm:hidden'>
           <ShareButton
             onShare={() =>
               workspaceReferenceTimezone
@@ -728,7 +728,7 @@ export default function WorldClock() {
         </div>
 
         {/* Desktop: Vertical layout */}
-        <div className="hidden sm:flex sm:flex-col sm:gap-4">
+        <div className='hidden sm:flex sm:flex-col sm:gap-4'>
           <ShareButton
             onShare={() =>
               workspaceReferenceTimezone

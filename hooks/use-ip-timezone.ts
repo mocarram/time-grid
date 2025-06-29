@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface IpTimezoneState {
   location: {
     city: string;
     country: string;
     timezone: string;
-    source: 'ip' | 'browser';
+    source: "ip" | "browser";
   } | null;
   error: string | null;
   loading: boolean;
@@ -22,38 +22,41 @@ export function useIpTimezone() {
 
   useEffect(() => {
     const detectTimezone = async () => {
-      console.log('=== Client-side timezone detection ===');
-      console.log('Browser timezone:', Intl.DateTimeFormat().resolvedOptions().timeZone);
-      console.log('Timezone offset:', new Date().getTimezoneOffset());
-      
+      console.log("=== Client-side timezone detection ===");
+      console.log(
+        "Browser timezone:",
+        Intl.DateTimeFormat().resolvedOptions().timeZone
+      );
+      console.log("Timezone offset:", new Date().getTimezoneOffset());
+
       try {
-        const response = await fetch('/api/ip-timezone');
+        const response = await fetch("/api/ip-timezone");
         const data = await response.json();
-        
-        console.log('IP timezone API response:', data);
-        
+
+        console.log("IP timezone API response:", data);
+
         setState({
           location: {
             city: data.city,
             country: data.country,
             timezone: data.timezone,
-            source: data.source
+            source: data.source,
           },
           error: null,
           loading: false,
         });
       } catch (error) {
-        console.error('Failed to detect timezone:', error);
-        
+        console.error("Failed to detect timezone:", error);
+
         // Ultimate fallback to browser timezone
         setState({
           location: {
-            city: 'Local',
-            country: 'Unknown',
+            city: "Local",
+            country: "Unknown",
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            source: 'browser'
+            source: "browser",
           },
-          error: 'Failed to detect location, using browser timezone',
+          error: "Failed to detect location, using browser timezone",
           loading: false,
         });
       }

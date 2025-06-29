@@ -81,7 +81,7 @@ export const WORKSPACE_ICONS = [
 
 export function getWorkspaceColor(colorValue: string) {
   return (
-    WORKSPACE_COLORS.find((color) => color.value === colorValue) ||
+    WORKSPACE_COLORS.find(color => color.value === colorValue) ||
     WORKSPACE_COLORS[0]
   );
 }
@@ -113,7 +113,7 @@ export function filterTimezonesByWorkspace(
     "workspace.timezones count:",
     workspace.timezones?.length,
     "filtered:",
-    filtered.map((tz) => tz.id)
+    filtered.map(tz => tz.id)
   );
   return filtered;
 }
@@ -122,7 +122,7 @@ export function addTimezoneToWorkspace(
   workspace: Workspace,
   timezone: TimezoneData
 ): Workspace {
-  if (workspace.timezones.some((tz) => tz.id === timezone.id)) {
+  if (workspace.timezones.some(tz => tz.id === timezone.id)) {
     return workspace;
   }
 
@@ -139,7 +139,7 @@ export function removeTimezoneFromWorkspace(
 ): Workspace {
   return {
     ...workspace,
-    timezones: workspace.timezones.filter((tz) => tz.id !== timezoneId),
+    timezones: workspace.timezones.filter(tz => tz.id !== timezoneId),
     updatedAt: new Date(),
   };
 }
