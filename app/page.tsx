@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import {
   DndContext,
@@ -45,7 +45,7 @@ import { toZonedTime } from "date-fns-tz";
 const STORAGE_KEY = "world-clock-timezones";
 const REFERENCE_STORAGE_KEY = "world-clock-reference-timezone";
 
-export default function WorldClock() {
+function WorldClockContent() {
   const {
     location: ipLocation,
     error: ipError,
@@ -807,5 +807,27 @@ export default function WorldClock() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function WorldClockLoading() {
+  return (
+    <div className='min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900'>
+      <div className='container mx-auto px-4 py-8'>
+        <div className='flex min-h-[50vh] flex-col items-center justify-center space-y-4'>
+          <Loader2 className='h-8 w-8 animate-spin text-blue-400' />
+          <p className='text-slate-400'>Loading TimeGrid...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function WorldClock() {
+  return (
+    <Suspense fallback={<WorldClockLoading />}>
+      <WorldClockContent />
+    </Suspense>
   );
 }

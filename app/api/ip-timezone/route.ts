@@ -15,14 +15,12 @@ export async function GET(request: NextRequest) {
       forwarded?.split(",")[0]?.trim() ||
       vercelIp?.split(",")[0]?.trim() ||
       realIp ||
-      request.ip ||
       "127.0.0.1";
 
     console.log("Raw IP headers:", {
       forwarded,
       realIp,
       vercelIp,
-      requestIp: request.ip,
       finalClientIp: clientIp,
     });
 
