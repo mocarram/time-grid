@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useWorkspaces } from '@/hooks/use-workspaces';
 import {
   DndContext,
   closestCenter,
@@ -21,6 +22,7 @@ import {
 } from '@dnd-kit/sortable';
 import { TimezoneCard } from '@/components/timezone-card';
 import { SortableTimezoneCard } from '@/components/sortable-timezone-card';
+import { WorkspaceSelector } from '@/components/workspace-selector';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { TimeSelector } from '@/components/time-selector';
@@ -33,6 +35,7 @@ import {
   convertTime, 
   getTimezoneOffset 
 } from '@/lib/timezone-utils';
+import { filterTimezonesByWorkspace } from '@/lib/workspace-utils';
 import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock, MapPin } from 'lucide-react';
 import { toZonedTime } from 'date-fns-tz';
@@ -43,6 +46,17 @@ const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 export default function WorldClock() {
   const { location: ipLocation, error: ipError, loading: ipLoading } = useIpTimezone();
   const { urlState, updateUrl, generateShareUrl, hasProcessedUrl } = useUrlState();
+  const {
+    workspaces,
+    activeWorkspace,
+    isLoaded: workspacesLoaded,
+    addWorkspace,
+    updateWorkspace,
+    deleteWorkspace,
+    setActiveWorkspace,
+    addTimezoneToWorkspace,
+    removeTimezoneFromWorkspace,
+  } = useWorkspaces();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
@@ -98,7 +112,7 @@ export default function WorldClock() {
 
   // Load timezones from localStorage on mount
   useEffect(() => {
-    if (!isMounted || !hasProcessedUrl) return;
+    if (!isMounted || !hasProcessedUrl || !workspacesLoaded) return;
     
     // Skip localStorage loading if we have URL state to load
     if (urlState.referenceTimezone || urlState.timeState) {
@@ -146,7 +160,7 @@ export default function WorldClock() {
       console.error('Failed to load timezones from localStorage:', error);
       setIsLoaded(true); // Still mark as loaded even if there's an error
     }
-  }, [isMounted, hasProcessedUrl, urlState.referenceTimezone, urlState.timeState]);
+  }, [isMounted, hasProcessedUrl, workspacesLoaded, urlState.referenceTimezone, urlState.timeState]);
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
@@ -253,7 +267,11 @@ export default function WorldClock() {
   const handleAddTimezone = useCallback((timezone: TimezoneData) => {
     // Check for duplicates based on exact city+country combination only
     // This allows multiple cities in the same timezone but prevents exact duplicates
-    const isDuplicate = timeState.timezones.some(existing => 
+    const currentTimezones = activeWorkspace 
+      ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+      : timeState.timezones;
+      
+    const isDuplicate = currentTimezones.some(existing => 
       existing.city.toLowerCase() === timezone.city.toLowerCase() && 
       existing.country.toLowerCase() === timezone.country.toLowerCase()
     );
@@ -281,14 +299,26 @@ export default function WorldClock() {
       ...prev,
       timezones: [...prev.timezones, uniqueTimezone],
     }));
-  }, [referenceTimezone]);
+    
+    // Add to current workspace if one is active
+    if (activeWorkspace) {
+      addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone.id);
+    }
+  }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, timeState.timezones]);
 
   const handleRemoveTimezone = useCallback((timezoneId: string) => {
     setTimeState(prev => ({
       ...prev,
       timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
     }));
-  }, []);
+    
+    // Remove from all workspaces
+    workspaces.forEach(workspace => {
+      if (workspace.timezones.includes(timezoneId)) {
+        removeTimezoneFromWorkspace(workspace.id, timezoneId);
+      }
+    });
+  }, [workspaces, removeTimezoneFromWorkspace]);
 
   const handleSetAsReference = useCallback((timezone: TimezoneData) => {
     // Move current reference to the timezone list
@@ -366,10 +396,13 @@ export default function WorldClock() {
   };
 
   // Get the active timezone for drag overlay
-  const activeTimezone = timeState.timezones.find(tz => tz.id === activeId);
+  const displayedTimezones = activeWorkspace 
+    ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+    : timeState.timezones;
+  const activeTimezone = displayedTimezones.find(tz => tz.id === activeId);
   
   // Don't render until we've loaded from localStorage to prevent flash
-  if (!isLoaded) {
+  if (!isLoaded || !workspacesLoaded) {
     return (
       <div className="min-h-screen relative overflow-hidden">
         {/* Background Effects */}
@@ -520,6 +553,18 @@ export default function WorldClock() {
           </p>
         </div>
 
+        {/* Workspace Selector */}
+        <div className="mb-8">
+          <WorkspaceSelector
+            workspaces={workspaces}
+            activeWorkspace={activeWorkspace}
+            onWorkspaceChange={setActiveWorkspace}
+            onCreateWorkspace={addWorkspace}
+            onUpdateWorkspace={updateWorkspace}
+            onDeleteWorkspace={deleteWorkspace}
+          />
+        </div>
+
         {/* Reference Timezone Card */}
         <div className="mb-8">
           <TimezoneCard
@@ -552,7 +597,7 @@ export default function WorldClock() {
         </div>
 
         {/* Additional Timezone Cards with Drag and Drop */}
-        {isMounted && timeState.timezones.length > 0 && (
+        {isMounted && displayedTimezones.length > 0 && (
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -561,11 +606,11 @@ export default function WorldClock() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={timeState.timezones}
+              items={displayedTimezones}
               strategy={rectSortingStrategy}
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-                {timeState.timezones.map((timezone) => {
+                {displayedTimezones.map((timezone) => {
                   const convertedTime = convertTime(
                     timeState.selectedTime,
                     referenceTimezone.offset,
@@ -629,7 +674,7 @@ export default function WorldClock() {
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}
-            existingTimezones={[referenceTimezone, ...timeState.timezones]}
+            existingTimezones={[referenceTimezone, ...displayedTimezones]}
           />
         </div>
         
@@ -640,7 +685,7 @@ export default function WorldClock() {
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}
-            existingTimezones={[referenceTimezone, ...timeState.timezones]}
+            existingTimezones={[referenceTimezone, ...displayedTimezones]}
           />
         </div>
       </div>
