@@ -427,27 +427,51 @@ function WorldClockContent() {
     setOverId((event.over?.id as string) || null);
   }, []);
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
 
-    if (active.id !== over?.id) {
-      setTimeState(prev => {
-        const oldIndex = prev.timezones.findIndex(tz => tz.id === active.id);
-        const newIndex = prev.timezones.findIndex(tz => tz.id === over?.id);
+      if (active.id !== over?.id) {
+        const oldIndex = timeState.timezones.findIndex(
+          tz => tz.id === active.id
+        );
+        const newIndex = timeState.timezones.findIndex(
+          tz => tz.id === over?.id
+        );
 
-        return {
-          ...prev,
-          timezones: arrayMove(prev.timezones, oldIndex, newIndex),
-        };
-      });
-    }
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const reorderedTimezones = arrayMove(
+            timeState.timezones,
+            oldIndex,
+            newIndex
+          );
 
-    // Add a small delay to ensure smooth animation completion
-    setTimeout(() => {
-      setActiveId(null);
-      setOverId(null);
-    }, 150);
-  }, []);
+          // Update local state immediately for smooth UX
+          setTimeState(prev => ({
+            ...prev,
+            timezones: reorderedTimezones,
+          }));
+
+          // Persist the new order to the workspace if we have an active workspace
+          if (activeWorkspace) {
+            // Update the workspace with the new timezone order
+            const updatedWorkspace = {
+              ...activeWorkspace,
+              timezones: reorderedTimezones,
+            };
+            updateWorkspace(activeWorkspace.id, updatedWorkspace);
+          }
+        }
+      }
+
+      // Add a small delay to ensure smooth animation completion
+      setTimeout(() => {
+        setActiveId(null);
+        setOverId(null);
+      }, 150);
+    },
+    [timeState.timezones, activeWorkspace, updateWorkspace]
+  );
 
   const resetToCurrentTime = () => {
     if (!workspaceReferenceTimezone) return;
@@ -472,126 +496,129 @@ function WorldClockContent() {
   // Don't render until we've loaded workspaces
   if (!workspacesLoaded) {
     return (
-      <div className='relative min-h-screen overflow-hidden'>
+      <div className='flex min-h-screen flex-col overflow-hidden'>
         {/* Background Effects */}
         <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900' />
         <div className='absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]' />
 
-        <div className='container relative z-10 mx-auto max-w-5xl px-6 py-12'>
-          {/* Header */}
-          <div className='mb-16 text-center'>
-            <div className='mb-6 flex items-center justify-center gap-4'>
-              <div className='glass rounded-2xl p-4'>
-                <Clock className='h-8 w-8 text-blue-400' />
+        {/* Main Content */}
+        <div className='relative z-10 flex flex-1 flex-col'>
+          <div className='container mx-auto max-w-5xl flex-1 px-6 py-12'>
+            {/* Header */}
+            <div className='mb-16 text-center'>
+              <div className='mb-6 flex items-center justify-center gap-4'>
+                <div className='glass rounded-2xl p-4'>
+                  <Clock className='h-8 w-8 text-blue-400' />
+                </div>
               </div>
+              <h1 className='text-glow mb-4 text-6xl font-thin tracking-tight text-white'>
+                TimeGrid
+              </h1>
+              <p className='text-lg font-light text-slate-400'>
+                Synchronize time across the globe
+              </p>
             </div>
-            <h1 className='text-glow mb-4 text-6xl font-thin tracking-tight text-white'>
-              TimeGrid
-            </h1>
-            <p className='text-lg font-light text-slate-400'>
-              Synchronize time across the globe
-            </p>
-          </div>
 
-          {/* Skeleton Loading State */}
-          <div className='space-y-8'>
-            {/* Reference Timezone Card Skeleton */}
-            <div className='glass-card glow rounded-3xl p-8 ring-1 ring-blue-400/30'>
-              <div className='space-y-6'>
-                {/* Header Skeleton */}
-                <div className='flex items-start justify-between'>
-                  <div className='space-y-2'>
-                    <div className='flex items-center gap-3'>
-                      <div className='flex items-center gap-2'>
-                        <MapPin className='h-4 w-4 text-slate-400' />
-                        <Skeleton className='h-6 w-24 bg-white/10' />
+            {/* Skeleton Loading State */}
+            <div className='space-y-8'>
+              {/* Reference Timezone Card Skeleton */}
+              <div className='glass-card glow rounded-3xl p-8 ring-1 ring-blue-400/30'>
+                <div className='space-y-6'>
+                  {/* Header Skeleton */}
+                  <div className='flex items-start justify-between'>
+                    <div className='space-y-2'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex items-center gap-2'>
+                          <MapPin className='h-4 w-4 text-slate-400' />
+                          <Skeleton className='h-6 w-24 bg-white/10' />
+                        </div>
+                        <span className='rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300'>
+                          Reference
+                        </span>
                       </div>
-                      <span className='rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300'>
-                        Reference
-                      </span>
-                    </div>
-                    <div className='flex items-center gap-4 text-sm text-slate-400'>
-                      <Skeleton className='h-4 w-16 bg-white/10' />
-                      <Skeleton className='h-4 w-12 bg-white/10' />
-                      <span>•</span>
-                      <Skeleton className='h-4 w-16 bg-white/10' />
-                      <Skeleton className='h-3 w-12 bg-white/10' />
+                      <div className='flex items-center gap-4 text-sm text-slate-400'>
+                        <Skeleton className='h-4 w-16 bg-white/10' />
+                        <Skeleton className='h-4 w-12 bg-white/10' />
+                        <span>•</span>
+                        <Skeleton className='h-4 w-16 bg-white/10' />
+                        <Skeleton className='h-3 w-12 bg-white/10' />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Time Display Skeleton */}
-                <div className='space-y-2'>
-                  <Skeleton className='h-16 w-32 bg-white/10' />
-                </div>
-
-                {/* Time Selector Skeleton */}
-                <div className='mt-6 space-y-4'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-2'>
-                      <Clock className='h-4 w-4 text-blue-400' />
-                      <span className='text-sm font-medium text-slate-300'>
-                        Reference Time
-                      </span>
-                    </div>
-                    <Skeleton className='h-6 w-16 rounded-lg bg-white/10' />
+                  {/* Time Display Skeleton */}
+                  <div className='space-y-2'>
+                    <Skeleton className='h-16 w-32 bg-white/10' />
                   </div>
 
-                  <div className='space-y-3'>
-                    <div className='px-1'>
-                      <Skeleton className='h-6 w-full rounded-full bg-white/10' />
+                  {/* Time Selector Skeleton */}
+                  <div className='mt-6 space-y-4'>
+                    <div className='flex items-center justify-between'>
+                      <div className='flex items-center gap-2'>
+                        <Clock className='h-4 w-4 text-blue-400' />
+                        <span className='text-sm font-medium text-slate-300'>
+                          Reference Time
+                        </span>
+                      </div>
+                      <Skeleton className='h-6 w-16 rounded-lg bg-white/10' />
                     </div>
-                    <div className='flex justify-between px-1 text-xs text-slate-500'>
-                      <span>12:00 AM</span>
-                      <span>12:00 PM</span>
-                      <span>11:59 PM</span>
+
+                    <div className='space-y-3'>
+                      <div className='px-1'>
+                        <Skeleton className='h-6 w-full rounded-full bg-white/10' />
+                      </div>
+                      <div className='flex justify-between px-1 text-xs text-slate-500'>
+                        <span>12:00 AM</span>
+                        <span>12:00 PM</span>
+                        <span>11:59 PM</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Additional Timezone Cards Skeleton */}
-            <div className='mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3'>
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className='glass-card flex min-h-[200px] flex-col rounded-2xl p-6'
-                >
-                  <div className='space-y-6'>
-                    {/* Header Skeleton */}
-                    <div className='flex items-start justify-between'>
-                      <div className='space-y-2'>
-                        <div className='flex items-center gap-3'>
-                          <div className='flex items-center gap-2'>
-                            <MapPin className='h-4 w-4 text-slate-400' />
-                            <Skeleton className='h-6 w-20 bg-white/10' />
+              {/* Additional Timezone Cards Skeleton */}
+              <div className='mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3'>
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className='glass-card flex min-h-[200px] flex-col rounded-2xl p-6'
+                  >
+                    <div className='space-y-6'>
+                      {/* Header Skeleton */}
+                      <div className='flex items-start justify-between'>
+                        <div className='space-y-2'>
+                          <div className='flex items-center gap-3'>
+                            <div className='flex items-center gap-2'>
+                              <MapPin className='h-4 w-4 text-slate-400' />
+                              <Skeleton className='h-6 w-20 bg-white/10' />
+                            </div>
                           </div>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                          <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
+                          <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
+                          <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
                         </div>
                       </div>
 
-                      <div className='flex items-center gap-2'>
-                        <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
-                        <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
-                        <Skeleton className='h-8 w-8 rounded-lg bg-white/10' />
+                      {/* Time Display Skeleton */}
+                      <div className='space-y-2'>
+                        <Skeleton className='h-12 w-28 bg-white/10' />
+                      </div>
+
+                      {/* Badge Skeleton */}
+                      <div className='flex flex-wrap items-center gap-1.5'>
+                        <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
+                        <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
+                        <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
+                        <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
                       </div>
                     </div>
-
-                    {/* Time Display Skeleton */}
-                    <div className='space-y-2'>
-                      <Skeleton className='h-12 w-28 bg-white/10' />
-                    </div>
-
-                    {/* Badge Skeleton */}
-                    <div className='flex flex-wrap items-center gap-1.5'>
-                      <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
-                      <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
-                      <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
-                      <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
-                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -600,171 +627,174 @@ function WorldClockContent() {
   }
 
   return (
-    <div className='relative min-h-screen overflow-hidden'>
+    <div className='flex min-h-screen flex-col overflow-hidden'>
       {/* Background Effects */}
       <div className='absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900' />
       <div className='absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]' />
 
-      <div className='container relative z-10 mx-auto max-w-5xl px-6 py-12'>
-        {/* Header */}
-        <div className='mb-16 text-center'>
-          <div className='mb-6 flex items-center justify-center gap-4'>
-            <div className='glass rounded-xl p-3'>
-              <Clock className='h-6 w-6 text-blue-400' />
+      {/* Main Content */}
+      <div className='relative z-10 flex flex-1 flex-col'>
+        <div className='container mx-auto max-w-5xl flex-1 px-6 py-12'>
+          {/* Header */}
+          <div className='mb-16 text-center'>
+            <div className='mb-6 flex items-center justify-center gap-4'>
+              <div className='glass rounded-xl p-3'>
+                <Clock className='h-6 w-6 text-blue-400' />
+              </div>
+              <h1 className='text-glow text-5xl font-thin tracking-tight text-white'>
+                TimeGrid
+              </h1>
             </div>
-            <h1 className='text-glow text-5xl font-thin tracking-tight text-white'>
-              TimeGrid
-            </h1>
+            <p className='text-lg font-light text-slate-400'>
+              Synchronize time across the globe
+            </p>
           </div>
-          <p className='text-lg font-light text-slate-400'>
-            Synchronize time across the globe
-          </p>
-        </div>
 
-        {/* Workspace Selector and Auth */}
-        <div className='mb-8 flex flex-col gap-4'>
-          <div className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
-            <div className='lg:flex-1'>
-              <WorkspaceSelector
-                workspaces={workspaces}
-                activeWorkspace={activeWorkspace}
-                onWorkspaceChange={setActiveWorkspace}
-                onCreateWorkspace={addWorkspace}
-                onUpdateWorkspace={updateWorkspace}
-                onDeleteWorkspace={deleteWorkspace}
-              />
-            </div>
-            <div className='lg:flex-shrink-0'>
-              {authSync ? (
-                <AuthButton
-                  isSaving={isSaving}
-                  isLoadingData={isLoadingData}
-                  syncError={syncError}
-                  onSaveToServer={saveToServer}
-                  onLoadFromServer={loadFromServer}
-                  lastSyncDisplay={lastSyncDisplay}
-                  hasServerData={hasServerData}
+          {/* Workspace Selector and Auth */}
+          <div className='mb-8 flex flex-col gap-4'>
+            <div className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
+              <div className='lg:flex-1'>
+                <WorkspaceSelector
+                  workspaces={workspaces}
+                  activeWorkspace={activeWorkspace}
+                  onWorkspaceChange={setActiveWorkspace}
+                  onCreateWorkspace={addWorkspace}
+                  onUpdateWorkspace={updateWorkspace}
+                  onDeleteWorkspace={deleteWorkspace}
                 />
-              ) : (
-                <div className='glass-button flex h-12 items-center gap-2 px-4'>
-                  <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
-                  <span className='text-sm text-slate-400'>
-                    Loading auth...
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Reference Timezone Card */}
-        {workspaceReferenceTimezone && (
-          <div className='mb-8'>
-            <TimezoneCard
-              timezone={workspaceReferenceTimezone}
-              displayTime={timeState.selectedTime}
-              isReference={true}
-            >
-              <div className='mt-6 space-y-6'>
-                <TimeSelector
-                  selectedTime={timeState.selectedTime}
-                  onTimeChange={handleTimeChange}
-                />
-                {timeState.isTimeModified && (
-                  <div className='flex justify-center'>
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={resetToCurrentTime}
-                      className='glass-button group h-8 px-4 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20'
-                      title='Reset to current time'
-                    >
-                      <span className='text-sm font-medium text-slate-400 group-hover:text-blue-300'>
-                        Reset to current time
-                      </span>
-                    </Button>
+              </div>
+              <div className='lg:flex-shrink-0'>
+                {authSync ? (
+                  <AuthButton
+                    isSaving={isSaving}
+                    isLoadingData={isLoadingData}
+                    syncError={syncError}
+                    onSaveToServer={saveToServer}
+                    onLoadFromServer={loadFromServer}
+                    lastSyncDisplay={lastSyncDisplay}
+                    hasServerData={hasServerData}
+                  />
+                ) : (
+                  <div className='glass-button flex h-12 items-center gap-2 px-4'>
+                    <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
+                    <span className='text-sm text-slate-400'>
+                      Loading auth...
+                    </span>
                   </div>
                 )}
               </div>
-            </TimezoneCard>
-          </div>
-        )}
-
-        {/* Additional Timezone Cards with Drag and Drop */}
-        {isMounted && displayedTimezones.length > 0 && (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={displayedTimezones}
-              strategy={rectSortingStrategy}
-            >
-              <div className='mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3'>
-                {displayedTimezones.map(timezone => {
-                  const convertedTime = workspaceReferenceTimezone
-                    ? convertTime(
-                        timeState.selectedTime,
-                        workspaceReferenceTimezone.offset,
-                        timezone.offset
-                      )
-                    : timeState.selectedTime;
-
-                  return (
-                    <SortableTimezoneCard
-                      key={timezone.id}
-                      timezone={timezone}
-                      displayTime={convertedTime}
-                      onRemove={() => handleRemoveTimezone(timezone.id)}
-                      onSetAsReference={() => handleSetAsReference(timezone)}
-                    />
-                  );
-                })}
-              </div>
-            </SortableContext>
-
-            <DragOverlay>
-              {activeTimezone ? (
-                <div className='w-80 rotate-2 scale-90 opacity-95 shadow-2xl shadow-blue-500/25 transition-all duration-200 ease-out'>
-                  <TimezoneCard
-                    timezone={activeTimezone}
-                    displayTime={
-                      workspaceReferenceTimezone
-                        ? convertTime(
-                            timeState.selectedTime,
-                            workspaceReferenceTimezone.offset,
-                            activeTimezone.offset
-                          )
-                        : timeState.selectedTime
-                    }
-                    isDragging={true}
-                  />
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
-        )}
-
-        {/* Status Messages */}
-        {ipLoading && (
-          <div className='mt-8 text-center font-light text-slate-400'>
-            <div className='inline-flex items-center gap-2'>
-              <div className='h-2 w-2 animate-pulse rounded-full bg-blue-400' />
-              Detecting your timezone...
             </div>
           </div>
-        )}
 
-        {ipError && (
-          <div className='mt-8 text-center font-light text-slate-500'>
-            {ipLocation?.source === "browser"
-              ? "Using browser timezone as reference"
-              : "Using system timezone as reference"}
-          </div>
-        )}
+          {/* Reference Timezone Card */}
+          {workspaceReferenceTimezone && (
+            <div className='mb-8'>
+              <TimezoneCard
+                timezone={workspaceReferenceTimezone}
+                displayTime={timeState.selectedTime}
+                isReference={true}
+              >
+                <div className='mt-6 space-y-6'>
+                  <TimeSelector
+                    selectedTime={timeState.selectedTime}
+                    onTimeChange={handleTimeChange}
+                  />
+                  {timeState.isTimeModified && (
+                    <div className='flex justify-center'>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        onClick={resetToCurrentTime}
+                        className='glass-button group h-8 px-4 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20'
+                        title='Reset to current time'
+                      >
+                        <span className='text-sm font-medium text-slate-400 group-hover:text-blue-300'>
+                          Reset to current time
+                        </span>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </TimezoneCard>
+            </div>
+          )}
+
+          {/* Additional Timezone Cards with Drag and Drop */}
+          {isMounted && displayedTimezones.length > 0 && (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={displayedTimezones}
+                strategy={rectSortingStrategy}
+              >
+                <div className='mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3'>
+                  {displayedTimezones.map(timezone => {
+                    const convertedTime = workspaceReferenceTimezone
+                      ? convertTime(
+                          timeState.selectedTime,
+                          workspaceReferenceTimezone.offset,
+                          timezone.offset
+                        )
+                      : timeState.selectedTime;
+
+                    return (
+                      <SortableTimezoneCard
+                        key={timezone.id}
+                        timezone={timezone}
+                        displayTime={convertedTime}
+                        onRemove={() => handleRemoveTimezone(timezone.id)}
+                        onSetAsReference={() => handleSetAsReference(timezone)}
+                      />
+                    );
+                  })}
+                </div>
+              </SortableContext>
+
+              <DragOverlay>
+                {activeTimezone ? (
+                  <div className='w-80 rotate-2 scale-90 opacity-95 shadow-2xl shadow-blue-500/25 transition-all duration-200 ease-out'>
+                    <TimezoneCard
+                      timezone={activeTimezone}
+                      displayTime={
+                        workspaceReferenceTimezone
+                          ? convertTime(
+                              timeState.selectedTime,
+                              workspaceReferenceTimezone.offset,
+                              activeTimezone.offset
+                            )
+                          : timeState.selectedTime
+                      }
+                      isDragging={true}
+                    />
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          )}
+
+          {/* Status Messages */}
+          {ipLoading && (
+            <div className='mt-8 text-center font-light text-slate-400'>
+              <div className='inline-flex items-center gap-2'>
+                <div className='h-2 w-2 animate-pulse rounded-full bg-blue-400' />
+                Detecting your timezone...
+              </div>
+            </div>
+          )}
+
+          {ipError && (
+            <div className='mt-8 text-center font-light text-slate-500'>
+              {ipLocation?.source === "browser"
+                ? "Using browser timezone as reference"
+                : "Using system timezone as reference"}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Simple Footer */}
