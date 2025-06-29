@@ -39,7 +39,8 @@ export function filterTimezonesByWorkspace(
   workspace: Workspace | null
 ): TimezoneData[] {
   if (!workspace) return timezones;
-  const filtered = timezones.filter(tz => workspace.timezones.includes(tz.id));
+  const filtered = timezones.filter(tz => workspace.timezones?.includes(tz.id));
+  console.log('Filtering timezones for workspace:', workspace.name, 'workspace.timezones:', workspace.timezones, 'filtered:', filtered.map(tz => tz.id));
   return filtered;
 }
 

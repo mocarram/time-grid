@@ -232,7 +232,7 @@ export function ManageWorkspacesDialog({
                           {workspace.description || 'No description'}
                         </div>
                         <div className="text-xs text-slate-500 mt-1">
-                          {workspace.timezones.length} timezone{workspace.timezones.length !== 1 ? 's' : ''}
+                          {workspace.timezones?.length || 0} timezone{(workspace.timezones?.length || 0) !== 1 ? 's' : ''}
                         </div>
                       </div>
                     </div>
@@ -277,9 +277,9 @@ export function ManageWorkspacesDialog({
                               <AlertDialogTitle>Delete Workspace</AlertDialogTitle>
                               <AlertDialogDescription className="text-slate-300">
                                 Are you sure you want to delete "{workspace.name}"? This action cannot be undone.
-                                {workspace.timezones.length > 0 && (
+                                {(workspace.timezones?.length || 0) > 0 && (
                                   <span className="block mt-2 text-yellow-400">
-                                    This workspace contains {workspace.timezones.length} timezone{workspace.timezones.length !== 1 ? 's' : ''} that will be lost.
+                                    This workspace contains {workspace.timezones?.length || 0} timezone{(workspace.timezones?.length || 0) !== 1 ? 's' : ''} that will be lost.
                                   </span>
                                 )}
                               </AlertDialogDescription>

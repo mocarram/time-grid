@@ -152,7 +152,8 @@ export function useUrlState() {
   const updateUrl = useCallback(async (
     referenceTimezone: TimezoneData,
     timeState: TimeState,
-    activeWorkspace?: Workspace | null
+    activeWorkspace?: Workspace | null,
+    filteredTimezones?: TimezoneData[]
   ) => {
     // Don't update URL if we haven't processed initial URL state yet
     if (!hasProcessedUrl) {
@@ -167,9 +168,10 @@ export function useUrlState() {
     // Add selected time
     params.set('time', encodeURIComponent(timeState.selectedTime.toISOString()));
 
-    // Add timezones
-    if (timeState.timezones.length > 0) {
-      const zonesData = timeState.timezones.map(tz => ({
+    // Add timezones (use filtered timezones if provided, otherwise all timezones)
+    const timezonesToShare = filteredTimezones || timeState.timezones;
+    if (timezonesToShare.length > 0) {
+      const zonesData = timezonesToShare.map(tz => ({
         city: tz.city,
         country: tz.country,
         timezone: tz.timezone
@@ -206,7 +208,8 @@ export function useUrlState() {
   const generateShareUrl = useCallback((
     referenceTimezone: TimezoneData,
     timeState: TimeState,
-    activeWorkspace?: Workspace | null
+    activeWorkspace?: Workspace | null,
+    filteredTimezones?: TimezoneData[]
   ) => {
     const params = new URLSearchParams();
 
@@ -216,9 +219,10 @@ export function useUrlState() {
     // Add selected time
     params.set('time', encodeURIComponent(timeState.selectedTime.toISOString()));
 
-    // Add timezones
-    if (timeState.timezones.length > 0) {
-      const zonesData = timeState.timezones.map(tz => ({
+    // Add timezones (use filtered timezones if provided, otherwise all timezones)
+    const timezonesToShare = filteredTimezones || timeState.timezones;
+    if (timezonesToShare.length > 0) {
+      const zonesData = timezonesToShare.map(tz => ({
         city: tz.city,
         country: tz.country,
         timezone: tz.timezone
@@ -238,7 +242,7 @@ export function useUrlState() {
         description: activeWorkspace.description,
         color: activeWorkspace.color,
         icon: activeWorkspace.icon,
-        timezones: [], // Don't include timezone IDs in URL since they'll be recreated
+        timezoneCount: timezonesToShare.length, // Include count for display purposes
       };
       params.set('workspace', encodeURIComponent(JSON.stringify(workspaceData)));
     }
