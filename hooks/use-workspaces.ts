@@ -176,7 +176,7 @@ export function useWorkspaces() {
         ws.id === workspaceId 
           ? {
               ...ws,
-              timezones: [...ws.timezones, timezone.id],
+             timezones: [...ws.timezones, timezone?.id ?? ''],
               updatedAt: new Date(),
             }
           : ws
