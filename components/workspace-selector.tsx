@@ -22,7 +22,7 @@ interface WorkspaceSelectorProps {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
   onWorkspaceChange: (workspaceId: string) => void;
-  onCreateWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onCreateWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => string;
   onUpdateWorkspace: (id: string, updates: Partial<Workspace>) => void;
   onDeleteWorkspace: (id: string) => void;
 }

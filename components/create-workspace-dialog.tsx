@@ -20,7 +20,7 @@ import type { Workspace } from '@/types/workspace';
 interface CreateWorkspaceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onCreateWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => string;
   onWorkspaceCreated?: (workspaceId: string) => void;
 }
 
