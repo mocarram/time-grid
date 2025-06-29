@@ -59,10 +59,11 @@ export default function WorldClockPage() {
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
     getWorkspaceTimezones,
-    reorderWorkspaceTimezones
+    reorderWorkspaceTimezones,
+    addWorkspaceWithTimezones
   } = useWorkspaces();
 
-  const { updateUrl, getInitialState } = useUrlState();
+  const { urlState, hasProcessedUrl, generateShareUrl } = useUrlState();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -73,36 +74,25 @@ export default function WorldClockPage() {
 
   // Initialize from URL state
   useEffect(() => {
-    const initialState = getInitialState();
-    if (initialState) {
-      if (initialState.selectedTime) {
+    if (hasProcessedUrl && urlState) {
+      if (urlState.timeState?.selectedTime && urlState.timeState.selectedTime instanceof Date && !isNaN(urlState.timeState.selectedTime.getTime())) {
         setTimeState(prev => ({
           ...prev,
-          selectedTime: initialState.selectedTime,
-          referenceTime: initialState.selectedTime,
+          selectedTime: urlState.timeState.selectedTime,
+          referenceTime: urlState.timeState.selectedTime,
         }));
       }
-      if (initialState.referenceTimezone) {
-        setReferenceTimezone(initialState.referenceTimezone);
+      if (urlState.referenceTimezone) {
+        setReferenceTimezone(urlState.referenceTimezone);
         setHasUserSetReference(true);
       }
-      if (initialState.workspaceId) {
-        const workspace = workspaces.find(w => w.id === initialState.workspaceId);
-        if (workspace) {
-          setActiveWorkspace(workspace);
-        }
+      if (urlState.workspace) {
+        // Create workspace from URL data
+        const newWorkspace = addWorkspaceWithTimezones(urlState.workspace);
+        setActiveWorkspace(newWorkspace);
       }
     }
-  }, [getInitialState, workspaces, setActiveWorkspace]);
-
-  // Update URL when state changes
-  useEffect(() => {
-    updateUrl({
-      selectedTime: timeState.selectedTime,
-      referenceTimezone: hasUserSetReference ? referenceTimezone : undefined,
-      workspaceId: activeWorkspace?.id,
-    });
-  }, [timeState.selectedTime, referenceTimezone, hasUserSetReference, activeWorkspace, updateUrl]);
+  }, [hasProcessedUrl, urlState, addWorkspaceWithTimezones, setActiveWorkspace]);
 
   // Auto-detect timezone from geolocation or IP
   useEffect(() => {
@@ -348,9 +338,12 @@ export default function WorldClockPage() {
               
               <div className="flex items-center gap-3">
                 <ShareButton 
-                  selectedTime={timeState.selectedTime}
-                  referenceTimezone={hasUserSetReference ? referenceTimezone : undefined}
-                  workspaceId={activeWorkspace?.id}
+                  onShare={() => generateShareUrl({
+                    referenceTimezone: hasUserSetReference ? referenceTimezone : undefined,
+                    timeState,
+                    activeWorkspace,
+                    timezones: timeState.timezones
+                  })}
                 />
                 <Button
                   onClick={() => setIsAddDialogOpen(true)}
