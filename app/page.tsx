@@ -546,11 +546,6 @@ export default function WorldClock() {
                 </div>
               ))}
             </div>
-
-            {/* Add Button Skeleton */}
-            <div className='flex justify-center'>
-              <Skeleton className='h-16 w-16 rounded-full bg-white/10' />
-            </div>
           </div>
         </div>
       </div>
