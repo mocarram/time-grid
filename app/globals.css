@@ -54,7 +54,7 @@
   }
 
   .glass-button {
-    @apply border border-white/20 bg-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/20;
+    @apply rounded-lg border border-white/20 bg-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/20;
   }
 
   .glass-input {

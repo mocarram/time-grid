@@ -23,6 +23,7 @@ import {
 import { TimezoneCard } from "@/components/timezone-card";
 import { SortableTimezoneCard } from "@/components/sortable-timezone-card";
 import { WorkspaceSelector } from "@/components/workspace-selector";
+import { AuthButton } from "@/components/auth-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { TimeSelector } from "@/components/time-selector";
@@ -30,6 +31,7 @@ import { AddTimezoneDialog } from "@/components/add-timezone-dialog";
 import { ShareButton } from "@/components/share-button";
 import { useIpTimezone } from "@/hooks/use-ip-timezone";
 import { useUrlState } from "@/hooks/use-url-state";
+import { useAuthSync } from "@/hooks/use-auth-sync";
 import {
   getLocalTimezone,
   convertTime,
@@ -37,7 +39,7 @@ import {
 } from "@/lib/timezone-utils";
 import { filterTimezonesByWorkspace } from "@/lib/workspace-utils";
 import type { TimezoneData, TimeState } from "@/types/timezone";
-import { Clock, MapPin } from "lucide-react";
+import { Clock, MapPin, Loader2 } from "lucide-react";
 import { toZonedTime } from "date-fns-tz";
 
 const STORAGE_KEY = "world-clock-timezones";
@@ -61,7 +63,41 @@ export default function WorldClock() {
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
     setWorkspaceReferenceTimezone,
+    loadWorkspacesFromServer,
   } = useWorkspaces();
+
+  // Auth and sync functionality
+  const authSync = useAuthSync({
+    workspaces,
+    activeWorkspaceId: activeWorkspace?.id || null,
+    onDataReceived: data => {
+      // Load server data into local state
+      if (data.workspaces && data.workspaces.length > 0) {
+        loadWorkspacesFromServer(data.workspaces, data.activeWorkspaceId);
+      }
+    },
+    onSyncComplete: success => {
+      if (success) {
+        console.log("Sync completed successfully");
+      } else {
+        console.error("Sync failed");
+      }
+    },
+  });
+
+  const {
+    isAuthenticated,
+    user,
+    isAuthLoading,
+    isSaving,
+    isLoadingData,
+    syncError,
+    saveToServer,
+    loadFromServer,
+    lastSyncDisplay,
+    hasServerData,
+  } = authSync || {};
+
   const [isMounted, setIsMounted] = useState(false);
   const [hasLoadedFromUrl, setHasLoadedFromUrl] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -574,16 +610,40 @@ export default function WorldClock() {
           </p>
         </div>
 
-        {/* Workspace Selector */}
-        <div className='mb-8'>
-          <WorkspaceSelector
-            workspaces={workspaces}
-            activeWorkspace={activeWorkspace}
-            onWorkspaceChange={setActiveWorkspace}
-            onCreateWorkspace={addWorkspace}
-            onUpdateWorkspace={updateWorkspace}
-            onDeleteWorkspace={deleteWorkspace}
-          />
+        {/* Workspace Selector and Auth */}
+        <div className='mb-8 flex flex-col gap-4'>
+          <div className='flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between'>
+            <div className='lg:flex-1'>
+              <WorkspaceSelector
+                workspaces={workspaces}
+                activeWorkspace={activeWorkspace}
+                onWorkspaceChange={setActiveWorkspace}
+                onCreateWorkspace={addWorkspace}
+                onUpdateWorkspace={updateWorkspace}
+                onDeleteWorkspace={deleteWorkspace}
+              />
+            </div>
+            <div className='lg:flex-shrink-0'>
+              {authSync ? (
+                <AuthButton
+                  isSaving={isSaving}
+                  isLoadingData={isLoadingData}
+                  syncError={syncError}
+                  onSaveToServer={saveToServer}
+                  onLoadFromServer={loadFromServer}
+                  lastSyncDisplay={lastSyncDisplay}
+                  hasServerData={hasServerData}
+                />
+              ) : (
+                <div className='glass-button flex h-12 items-center gap-2 px-4'>
+                  <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
+                  <span className='text-sm text-slate-400'>
+                    Loading auth...
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Reference Timezone Card */}
