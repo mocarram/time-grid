@@ -34,7 +34,13 @@ export function useUrlState() {
     const workspace = searchParams.get('workspace');
     const modified = searchParams.get('modified');
 
-    if (ref || time || zones || workspace) {
+    // Only process if we have actual shared data (not just empty params)
+    const hasActualSharedData = (ref && ref.trim()) || 
+                               (time && time.trim()) || 
+                               (zones && zones.trim()) || 
+                               (workspace && workspace.trim());
+
+    if (hasActualSharedData) {
       console.log('Found URL parameters:', { ref, time, zones, workspace, modified });
       
       try {

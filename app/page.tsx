@@ -73,7 +73,10 @@ export default function WorldClock() {
 
   // Handle URL state loading
   useEffect(() => {
-    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && (urlState.referenceTimezone || urlState.timeState || urlState.workspace)) {
+    // Only process URL state if we actually have shared data AND haven't processed it yet
+    const hasSharedData = urlState.referenceTimezone || urlState.timeState || urlState.workspace;
+    
+    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && hasSharedData) {
       console.log('=== Loading URL state ===');
       console.log('URL reference timezone:', urlState.referenceTimezone);
       console.log('URL time state:', urlState.timeState);
@@ -118,6 +121,11 @@ export default function WorldClock() {
         });
       }
       
+      setHasLoadedFromUrl(true);
+    }
+    
+    // If there's no shared data and we haven't processed URL yet, mark as processed
+    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && !hasSharedData) {
       setHasLoadedFromUrl(true);
     }
   }, [urlState, hasLoadedFromUrl, workspacesLoaded, addWorkspace, setActiveWorkspace, addTimezoneToWorkspace]);
