@@ -123,8 +123,9 @@ export function useUrlState() {
 
         // Clean up URL after a short delay to ensure state is loaded
         setTimeout(() => {
+          console.log('Cleaning up URL after shared state loaded');
           router.replace(window.location.pathname, { scroll: false });
-        }, 100);
+        }, 500); // Increased delay to ensure everything is saved
         
       } catch (error) {
         console.error('Failed to parse URL state:', error);
@@ -148,61 +149,7 @@ export function useUrlState() {
     }
   }, [searchParams, router]);
 
-  // Function to update URL with current state
-  const updateUrl = useCallback(async (
-    referenceTimezone: TimezoneData,
-    timeState: TimeState,
-    activeWorkspace?: Workspace | null,
-    filteredTimezones?: TimezoneData[]
-  ) => {
-    // Don't update URL if we haven't processed initial URL state yet
-    if (!hasProcessedUrl) {
-      return '';
-    }
-
-    const params = new URLSearchParams();
-
-    // Add reference timezone
-    params.set('ref', `${encodeURIComponent(referenceTimezone.city)},${encodeURIComponent(referenceTimezone.country)},${encodeURIComponent(referenceTimezone.timezone)}`);
-
-    // Add selected time
-    params.set('time', encodeURIComponent(timeState.selectedTime.toISOString()));
-
-    // Add timezones (use filtered timezones if provided, otherwise all timezones)
-    const timezonesToShare = filteredTimezones || timeState.timezones;
-    if (timezonesToShare.length > 0) {
-      const zonesData = timezonesToShare.map(tz => ({
-        city: tz.city,
-        country: tz.country,
-        timezone: tz.timezone
-      }));
-      params.set('zones', encodeURIComponent(JSON.stringify(zonesData)));
-    }
-
-    // Add modified flag
-    if (timeState.isTimeModified) {
-      params.set('modified', 'true');
-    }
-
-    // Add workspace data if available
-    if (activeWorkspace) {
-      const workspaceData = {
-        name: activeWorkspace.name,
-        description: activeWorkspace.description,
-        color: activeWorkspace.color,
-        icon: activeWorkspace.icon,
-        timezones: [], // Don't include timezone IDs in URL since they'll be recreated
-      };
-      params.set('workspace', encodeURIComponent(JSON.stringify(workspaceData)));
-    }
-
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    
-    // Update URL without triggering navigation
-    window.history.replaceState({}, '', newUrl);
-    
-    return newUrl;
-  }, [hasProcessedUrl]);
+  // Removed updateUrl function since we don't need automatic URL updates
 
   // Function to generate shareable URL
   const generateShareUrl = useCallback((
@@ -252,7 +199,6 @@ export function useUrlState() {
 
   return {
     urlState,
-    updateUrl,
     generateShareUrl,
     hasProcessedUrl,
   };

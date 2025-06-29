@@ -200,25 +200,25 @@ export default function WorldClock() {
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
-    if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
+    if (!isMounted || !isLoaded) return;
     
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
     } catch (error) {
       console.error('Failed to save timezones to localStorage:', error);
     }
-  }, [timeState.timezones, isMounted, isLoaded, hasLoadedFromUrl]);
+  }, [timeState.timezones, isMounted, isLoaded]);
 
   // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (!isMounted || !isLoaded || hasUserSetReference !== true || hasLoadedFromUrl) return;
+    if (!isMounted || !isLoaded || hasUserSetReference !== true) return;
     
     try {
       localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
     } catch (error) {
       console.error('Failed to save reference timezone to localStorage:', error);
     }
-  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference, hasLoadedFromUrl]);
+  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference]);
 
   // Update reference timezone with geolocation data
   useEffect(() => {
@@ -260,15 +260,34 @@ export default function WorldClock() {
 
   // Update URL when state changes (debounced)
   useEffect(() => {
-    if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
+    // Don't automatically update URL - only when explicitly sharing
+    return;
     
-    const timer = setTimeout(() => {
-      // Don't update URL automatically - only when sharing
-      // updateUrl(referenceTimezone, timeState, activeWorkspace);
-    }, 1000); // Debounce URL updates
-
-    return () => clearTimeout(timer);
+    // const timer = setTimeout(() => {
+    //   updateUrl(referenceTimezone, timeState, activeWorkspace);
+    // }, 1000);
+    // return () => clearTimeout(timer);
   }, [referenceTimezone, timeState, activeWorkspace, updateUrl, isMounted, isLoaded, hasLoadedFromUrl]);
+
+  // Force save shared data to localStorage after URL cleanup
+  useEffect(() => {
+    if (hasLoadedFromUrl && isLoaded && isMounted) {
+      // Small delay to ensure everything is processed
+      const timer = setTimeout(() => {
+        console.log('Force saving shared data to localStorage');
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
+          if (hasUserSetReference === true) {
+            localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
+          }
+        } catch (error) {
+          console.error('Failed to force save to localStorage:', error);
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hasLoadedFromUrl, isLoaded, isMounted, timeState.timezones, referenceTimezone, hasUserSetReference]);
 
   useEffect(() => {
     const updateTime = () => {
