@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import type { Workspace, WorkspaceState } from '@/types/workspace';
-import { createDefaultWorkspace } from '@/lib/workspace-utils';
+import { useState, useEffect, useCallback } from "react";
+import type { Workspace, WorkspaceState } from "@/types/workspace";
+import type { TimezoneData } from "@/types/timezone";
+import { createDefaultWorkspace } from "@/lib/workspace-utils";
 
-const WORKSPACES_STORAGE_KEY = 'world-clock-workspaces';
-const ACTIVE_WORKSPACE_STORAGE_KEY = 'world-clock-active-workspace';
+const WORKSPACES_STORAGE_KEY = "world-clock-workspaces";
+const ACTIVE_WORKSPACE_STORAGE_KEY = "world-clock-active-workspace";
 
 export function useWorkspaces() {
   const [workspaceState, setWorkspaceState] = useState<WorkspaceState>({
@@ -19,36 +20,50 @@ export function useWorkspaces() {
     try {
       const savedWorkspaces = localStorage.getItem(WORKSPACES_STORAGE_KEY);
       const savedActiveId = localStorage.getItem(ACTIVE_WORKSPACE_STORAGE_KEY);
-      
+
       let workspaces: Workspace[] = [];
-      
+
       if (savedWorkspaces) {
-        workspaces = JSON.parse(savedWorkspaces).map((ws: any) => ({
-          ...ws,
-          createdAt: new Date(ws.createdAt),
-          updatedAt: new Date(ws.updatedAt),
-        }));
+        const parsed = JSON.parse(savedWorkspaces);
+        workspaces = parsed.map((ws: any) => {
+          // Migrate old workspace structure (string[] timezones) to new structure (TimezoneData[] timezones)
+          const migratedWorkspace: Workspace = {
+            ...ws,
+            createdAt: new Date(ws.createdAt),
+            updatedAt: new Date(ws.updatedAt),
+            timezones: Array.isArray(ws.timezones)
+              ? typeof ws.timezones[0] === "string"
+                ? []
+                : ws.timezones // Reset if old format
+              : [],
+            referenceTimezone: ws.referenceTimezone || undefined,
+          };
+          return migratedWorkspace;
+        });
       }
-      
+
       // Ensure there's always a default workspace
       if (workspaces.length === 0) {
         const defaultWorkspace = createDefaultWorkspace();
         workspaces = [defaultWorkspace];
       }
-      
+
       // Ensure active workspace exists
       let activeWorkspaceId = savedActiveId;
-      if (!activeWorkspaceId || !workspaces.find(ws => ws.id === activeWorkspaceId)) {
+      if (
+        !activeWorkspaceId ||
+        !workspaces.find((ws) => ws.id === activeWorkspaceId)
+      ) {
         activeWorkspaceId = workspaces[0].id;
       }
-      
+
       setWorkspaceState({
         workspaces,
         activeWorkspaceId,
       });
       setIsLoaded(true);
     } catch (error) {
-      console.error('Failed to load workspaces:', error);
+      console.error("Failed to load workspaces:", error);
       const defaultWorkspace = createDefaultWorkspace();
       setWorkspaceState({
         workspaces: [defaultWorkspace],
@@ -61,54 +76,66 @@ export function useWorkspaces() {
   // Save workspaces to localStorage whenever they change
   useEffect(() => {
     if (!isLoaded) return;
-    
+
     try {
-      localStorage.setItem(WORKSPACES_STORAGE_KEY, JSON.stringify(workspaceState.workspaces));
+      localStorage.setItem(
+        WORKSPACES_STORAGE_KEY,
+        JSON.stringify(workspaceState.workspaces)
+      );
       if (workspaceState.activeWorkspaceId) {
-        localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, workspaceState.activeWorkspaceId);
+        localStorage.setItem(
+          ACTIVE_WORKSPACE_STORAGE_KEY,
+          workspaceState.activeWorkspaceId
+        );
       }
     } catch (error) {
-      console.error('Failed to save workspaces:', error);
+      console.error("Failed to save workspaces:", error);
     }
   }, [workspaceState, isLoaded]);
 
-  const addWorkspace = useCallback((workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newWorkspace: Workspace = {
-      ...workspace,
-      id: `workspace-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    setWorkspaceState(prev => ({
-      ...prev,
-      workspaces: [...prev.workspaces, newWorkspace],
-    }));
-    
-    return newWorkspace.id;
-  }, []);
+  const addWorkspace = useCallback(
+    (workspace: Omit<Workspace, "id" | "createdAt" | "updatedAt">) => {
+      const newWorkspace: Workspace = {
+        ...workspace,
+        id: `workspace-${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}`,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-  const updateWorkspace = useCallback((id: string, updates: Partial<Workspace>) => {
-    setWorkspaceState(prev => ({
-      ...prev,
-      workspaces: prev.workspaces.map(ws => 
-        ws.id === id 
-          ? { ...ws, ...updates, updatedAt: new Date() }
-          : ws
-      ),
-    }));
-  }, []);
+      setWorkspaceState((prev) => ({
+        ...prev,
+        workspaces: [...prev.workspaces, newWorkspace],
+      }));
+
+      return newWorkspace.id;
+    },
+    []
+  );
+
+  const updateWorkspace = useCallback(
+    (id: string, updates: Partial<Workspace>) => {
+      setWorkspaceState((prev) => ({
+        ...prev,
+        workspaces: prev.workspaces.map((ws) =>
+          ws.id === id ? { ...ws, ...updates, updatedAt: new Date() } : ws
+        ),
+      }));
+    },
+    []
+  );
 
   const deleteWorkspace = useCallback((id: string) => {
-    setWorkspaceState(prev => {
-      const newWorkspaces = prev.workspaces.filter(ws => ws.id !== id);
-      
+    setWorkspaceState((prev) => {
+      const newWorkspaces = prev.workspaces.filter((ws) => ws.id !== id);
+
       // If we're deleting the active workspace, switch to the first available one
       let newActiveId = prev.activeWorkspaceId;
       if (prev.activeWorkspaceId === id) {
         newActiveId = newWorkspaces.length > 0 ? newWorkspaces[0].id : null;
       }
-      
+
       return {
         workspaces: newWorkspaces,
         activeWorkspaceId: newActiveId,
@@ -117,46 +144,73 @@ export function useWorkspaces() {
   }, []);
 
   const setActiveWorkspace = useCallback((id: string) => {
-    setWorkspaceState(prev => ({
+    setWorkspaceState((prev) => ({
       ...prev,
       activeWorkspaceId: id,
     }));
   }, []);
 
-  const addTimezoneToWorkspace = useCallback((workspaceId: string, timezoneId: string) => {
-    console.log('Adding timezone to workspace:', workspaceId, timezoneId);
-    setWorkspaceState(prev => ({
-      ...prev,
-      workspaces: prev.workspaces.map(ws => 
-        ws.id === workspaceId 
-          ? {
-              ...ws,
-              timezones: ws.timezones.includes(timezoneId) 
-                ? ws.timezones 
-                : [...ws.timezones, timezoneId],
-              updatedAt: new Date(),
-            }
-          : ws
-      ),
-    }));
-  }, []);
+  const addTimezoneToWorkspace = useCallback(
+    (workspaceId: string, timezone: TimezoneData) => {
+      console.log("Adding timezone to workspace:", workspaceId, timezone);
+      setWorkspaceState((prev) => ({
+        ...prev,
+        workspaces: prev.workspaces.map((ws) =>
+          ws.id === workspaceId
+            ? {
+                ...ws,
+                timezones: ws.timezones.some((tz) => tz.id === timezone.id)
+                  ? ws.timezones
+                  : [...ws.timezones, timezone],
+                updatedAt: new Date(),
+              }
+            : ws
+        ),
+      }));
+    },
+    []
+  );
 
-  const removeTimezoneFromWorkspace = useCallback((workspaceId: string, timezoneId: string) => {
-    setWorkspaceState(prev => ({
-      ...prev,
-      workspaces: prev.workspaces.map(ws => 
-        ws.id === workspaceId 
-          ? {
-              ...ws,
-              timezones: ws.timezones.filter(id => id !== timezoneId),
-              updatedAt: new Date(),
-            }
-          : ws
-      ),
-    }));
-  }, []);
+  const removeTimezoneFromWorkspace = useCallback(
+    (workspaceId: string, timezoneId: string) => {
+      setWorkspaceState((prev) => ({
+        ...prev,
+        workspaces: prev.workspaces.map((ws) =>
+          ws.id === workspaceId
+            ? {
+                ...ws,
+                timezones: ws.timezones.filter((tz) => tz.id !== timezoneId),
+                updatedAt: new Date(),
+              }
+            : ws
+        ),
+      }));
+    },
+    []
+  );
 
-  const activeWorkspace = workspaceState.workspaces.find(ws => ws.id === workspaceState.activeWorkspaceId) || null;
+  const setWorkspaceReferenceTimezone = useCallback(
+    (workspaceId: string, referenceTimezone: TimezoneData | null) => {
+      setWorkspaceState((prev) => ({
+        ...prev,
+        workspaces: prev.workspaces.map((ws) =>
+          ws.id === workspaceId
+            ? {
+                ...ws,
+                referenceTimezone: referenceTimezone || undefined,
+                updatedAt: new Date(),
+              }
+            : ws
+        ),
+      }));
+    },
+    []
+  );
+
+  const activeWorkspace =
+    workspaceState.workspaces.find(
+      (ws) => ws.id === workspaceState.activeWorkspaceId
+    ) || null;
 
   return {
     workspaces: workspaceState.workspaces,
@@ -168,5 +222,6 @@ export function useWorkspaces() {
     setActiveWorkspace,
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
+    setWorkspaceReferenceTimezone,
   };
 }

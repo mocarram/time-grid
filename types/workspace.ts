@@ -1,10 +1,13 @@
+import type { TimezoneData } from "./timezone";
+
 export interface Workspace {
   id: string;
   name: string;
   description?: string;
   color: string;
   icon: string;
-  timezones: string[]; // Array of timezone IDs
+  timezones: TimezoneData[]; // Array of actual timezone data
+  referenceTimezone?: TimezoneData; // Each workspace can have its own reference timezone
   createdAt: Date;
   updatedAt: Date;
 }
