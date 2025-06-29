@@ -107,10 +107,11 @@ export default function WorldClock() {
           };
           
           // If we have timezones and a new workspace, add them to the workspace
-          if (newWorkspaceId && newState.timezones) {
+          if (newWorkspaceId && newState.timezones && newState.timezones.length > 0) {
             newState.timezones.forEach(timezone => {
-              addTimezoneToWorkspace(newWorkspaceId, timezone.id);
+              addTimezoneToWorkspace(newWorkspaceId!, timezone.id);
             });
+            console.log('Added timezones to shared workspace:', newWorkspaceId, newState.timezones.map(tz => tz.id));
           }
           
           return newState;
