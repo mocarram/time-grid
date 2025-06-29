@@ -31,95 +31,97 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground;
-    background: linear-gradient(135deg, 
-      hsl(222.2 84% 4.9%) 0%, 
-      hsl(217.2 32.6% 8%) 50%, 
-      hsl(222.2 84% 4.9%) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(222.2 84% 4.9%) 0%,
+      hsl(217.2 32.6% 8%) 50%,
+      hsl(222.2 84% 4.9%) 100%
+    );
     min-height: 100vh;
   }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply border border-white/10 bg-white/5 backdrop-blur-xl;
   }
-  
+
   .glass-card {
-    @apply bg-white/[0.02] backdrop-blur-2xl border border-white/[0.08] shadow-2xl;
+    @apply border border-white/[0.08] bg-white/[0.02] shadow-2xl backdrop-blur-2xl;
   }
-  
+
   .glass-button {
-    @apply bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all duration-300;
+    @apply border border-white/20 bg-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/20;
   }
-  
+
   .glass-input {
-    @apply bg-white/5 backdrop-blur-md border border-white/10 focus:border-white/30 transition-all duration-300;
+    @apply border border-white/10 bg-white/5 backdrop-blur-md transition-all duration-300 focus:border-white/30;
   }
-  
+
   .glow {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
   }
-  
+
   .text-glow {
     text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
   }
-  
+
   /* Custom Scrollbar */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
     border-radius: 10px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-corner {
     background: transparent;
   }
-  
+
   /* Global scrollbar for the entire page */
   ::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: rgba(15, 23, 42, 0.5);
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
   }
-  
+
   /* Calendar styling */
   .rdp {
     --rdp-cell-size: 40px;
@@ -130,25 +132,25 @@
     --rdp-outline: 2px solid var(--rdp-accent-color);
     --rdp-outline-selected: 2px solid rgba(59, 130, 246, 0.75);
   }
-  
+
   .rdp-months {
     display: flex;
   }
-  
+
   .rdp-month {
     margin: 0 1em;
   }
-  
+
   .rdp-table {
     width: 100%;
     max-width: none;
     border-collapse: collapse;
   }
-  
+
   .rdp-with_weeknumber .rdp-table {
     border-collapse: collapse;
   }
-  
+
   .rdp-caption {
     display: flex;
     align-items: center;
@@ -156,38 +158,38 @@
     padding: 0;
     text-align: left;
   }
-  
+
   .rdp-multiple_months .rdp-caption {
     position: relative;
     display: block;
     text-align: center;
   }
-  
+
   .rdp-caption_label {
     font-size: 1rem;
     font-weight: 500;
     color: white;
   }
-  
+
   .rdp-nav {
     display: flex;
     align-items: center;
   }
-  
+
   .rdp-multiple_months .rdp-caption_start .rdp-nav {
     position: absolute;
     top: 50%;
     left: 0;
     transform: translateY(-50%);
   }
-  
+
   .rdp-multiple_months .rdp-caption_end .rdp-nav {
     position: absolute;
     top: 50%;
     right: 0;
     transform: translateY(-50%);
   }
-  
+
   .rdp-nav_button {
     display: inline-flex;
     align-items: center;
@@ -202,35 +204,35 @@
     cursor: pointer;
     transition: all 0.2s;
   }
-  
+
   .rdp-nav_button:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
   }
-  
+
   .rdp-nav_button:focus {
     outline: 2px solid rgb(59 130 246);
     outline-offset: 2px;
   }
-  
+
   .rdp-nav_button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
+
   .rdp-nav_button:disabled:hover {
     background-color: transparent;
   }
-  
+
   .rdp-multiple_months .rdp-caption_between .rdp-nav {
     display: none;
   }
-  
+
   .rdp-head_row,
   .rdp-row {
     height: 2.5rem;
   }
-  
+
   .rdp-head_cell {
     vertical-align: middle;
     font-size: 0.875rem;
@@ -239,15 +241,15 @@
     color: rgba(255, 255, 255, 0.6);
     padding: 0;
   }
-  
+
   .rdp-tbody {
     border: 0;
   }
-  
+
   .rdp-tfoot {
     margin: 0.5rem;
   }
-  
+
   .rdp-cell {
     width: var(--rdp-cell-size);
     height: var(--rdp-cell-size);
@@ -256,7 +258,7 @@
     padding: 0;
     position: relative;
   }
-  
+
   .rdp-button {
     display: inline-flex;
     align-items: center;
@@ -272,48 +274,48 @@
     transition: all 0.2s;
     font-size: 0.875rem;
   }
-  
+
   .rdp-button:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
-  
+
   .rdp-button:focus {
     outline: 2px solid rgb(59 130 246);
     outline-offset: 2px;
   }
-  
+
   .rdp-day_today {
     font-weight: 600;
     color: rgb(59 130 246);
   }
-  
+
   .rdp-day_selected {
     background-color: rgb(59 130 246);
     color: white;
     font-weight: 500;
   }
-  
+
   .rdp-day_selected:hover {
     background-color: rgb(37 99 235);
   }
-  
+
   .rdp-day_outside {
     color: rgba(255, 255, 255, 0.3);
   }
-  
+
   .rdp-day_outside:hover {
     background-color: rgba(255, 255, 255, 0.05);
   }
-  
+
   .rdp-day_disabled {
     color: rgba(255, 255, 255, 0.3);
     cursor: not-allowed;
   }
-  
+
   .rdp-day_disabled:hover {
     background-color: transparent;
   }
-  
+
   .rdp-day_hidden {
     visibility: hidden;
   }
