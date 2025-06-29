@@ -331,7 +331,7 @@ export default function WorldClock() {
     // Check for duplicates based on exact city+country combination only
     // This allows multiple cities in the same timezone but prevents exact duplicates
     const currentTimezones = activeWorkspace 
-      ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+      ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace, getWorkspaceTimezones)
       : timeState.timezones;
       
     const isDuplicate = currentTimezones.some(existing => 
@@ -358,14 +358,26 @@ export default function WorldClock() {
       id: timezone.id.includes('custom-') ? timezone.id : `${timezone.id}-${Date.now()}`
     };
     
-    setTimeState(prev => ({
-      ...prev,
-      timezones: [...prev.timezones, uniqueTimezone],
-    }));
-    
-    // Add to current workspace if one is active
     if (activeWorkspace) {
+      // For workspaces, add to workspace-specific storage
+      const currentWorkspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
+      const updatedWorkspaceTimezones = [...currentWorkspaceTimezones, uniqueTimezone];
+      
+      // Update workspace-specific storage
+      const workspaceTimezones = JSON.parse(localStorage.getItem('world-clock-workspace-timezones') || '{}');
+      workspaceTimezones[activeWorkspace.id] = updatedWorkspaceTimezones;
+      localStorage.setItem('world-clock-workspace-timezones', JSON.stringify(workspaceTimezones));
+      
+      // Also add to workspace's timezone ID list for backward compatibility
       addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone.id);
+      
+      console.log('Added timezone to workspace:', activeWorkspace.id, uniqueTimezone.city);
+    } else {
+      // For no workspace (global), add to global timezone list
+      setTimeState(prev => ({
+        ...prev,
+        timezones: [...prev.timezones, uniqueTimezone],
+      }));
     }
   }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, timeState.timezones]);
 
