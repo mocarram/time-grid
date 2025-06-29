@@ -263,7 +263,8 @@ export default function WorldClock() {
     if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
     
     const timer = setTimeout(() => {
-      updateUrl(referenceTimezone, timeState, activeWorkspace);
+      // Don't update URL automatically - only when sharing
+      // updateUrl(referenceTimezone, timeState, activeWorkspace);
     }, 1000); // Debounce URL updates
 
     return () => clearTimeout(timer);
@@ -706,7 +707,7 @@ export default function WorldClock() {
         {/* Mobile: Horizontal layout */}
         <div className="flex flex-row gap-4 sm:hidden">
           <ShareButton 
-            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace)}
+            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace, displayedTimezones)}
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}
@@ -717,7 +718,7 @@ export default function WorldClock() {
         {/* Desktop: Vertical layout */}
         <div className="hidden sm:flex sm:flex-col sm:gap-4">
           <ShareButton 
-            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace)}
+            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace, displayedTimezones)}
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}
