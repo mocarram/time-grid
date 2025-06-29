@@ -1,245 +1,403 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Clock, Globe, Plus, Settings, Share2, MapPin, Calendar, Users } from 'lucide-react';
-import { TimezoneCard } from '@/components/timezone-card';
-import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
-import { TimeSelector } from '@/components/time-selector';
-import { ShareButton } from '@/components/share-button';
-import { WorkspaceSelector } from '@/components/workspace-selector';
-import { CreateWorkspaceDialog } from '@/components/create-workspace-dialog';
-import { ManageWorkspacesDialog } from '@/components/manage-workspaces-dialog';
-import { SortableTimezoneCard } from '@/components/sortable-timezone-card';
-import { TimezoneData, TimeState } from '@/types/timezone';
-import { Workspace } from '@/types/workspace';
-import { convertTime, formatTime, getTimezoneOffset } from '@/lib/timezone-utils';
+import { useState, useEffect, useCallback } from 'react';
 import { useWorkspaces } from '@/hooks/use-workspaces';
-import { useGeolocation } from '@/hooks/use-geolocation';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { TimezoneCard } from '@/components/timezone-card';
+import { SortableTimezoneCard } from '@/components/sortable-timezone-card';
+import { WorkspaceSelector } from '@/components/workspace-selector';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { TimeSelector } from '@/components/time-selector';
+import { AddTimezoneDialog } from '@/components/add-timezone-dialog';
+import { ShareButton } from '@/components/share-button';
 import { useIpTimezone } from '@/hooks/use-ip-timezone';
 import { useUrlState } from '@/hooks/use-url-state';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { 
+  getLocalTimezone, 
+  convertTime, 
+  getTimezoneOffset 
+} from '@/lib/timezone-utils';
+import { filterTimezonesByWorkspace } from '@/lib/workspace-utils';
+import type { TimezoneData, TimeState } from '@/types/timezone';
+import { Clock, MapPin } from 'lucide-react';
+import { toZonedTime } from 'date-fns-tz';
 
-export default function WorldClockPage() {
-  const [timeState, setTimeState] = useState<TimeState>({
-    selectedTime: new Date(),
-    referenceTime: new Date(),
-    timezones: [],
-  });
+const STORAGE_KEY = 'world-clock-timezones';
+const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
-  const [referenceTimezone, setReferenceTimezone] = useState<TimezoneData>({
-    id: 'local',
-    name: 'Local Time',
-    city: 'Your Location',
-    country: '',
-    offset: 0,
-  });
-
-  const [hasUserSetReference, setHasUserSetReference] = useState(false);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
-  const [isManageWorkspacesOpen, setIsManageWorkspacesOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('clock');
-
-  const { location } = useGeolocation();
-  const { timezone: ipTimezone } = useIpTimezone();
-  
+export default function WorldClock() {
+  const { location: ipLocation, error: ipError, loading: ipLoading } = useIpTimezone();
+  const { urlState, generateShareUrl, hasProcessedUrl } = useUrlState();
   const {
     workspaces,
     activeWorkspace,
-    setActiveWorkspace,
-    createWorkspace,
-    deleteWorkspace,
+    isLoaded: workspacesLoaded,
+    addWorkspace,
     updateWorkspace,
+    deleteWorkspace,
+    setActiveWorkspace,
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
-    getWorkspaceTimezones,
-    reorderWorkspaceTimezones,
-    addWorkspaceWithTimezones
   } = useWorkspaces();
+  const [isMounted, setIsMounted] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasUserSetReference, setHasUserSetReference] = useState<boolean | null>(null);
+  const [hasLoadedFromUrl, setHasLoadedFromUrl] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [timeState, setTimeState] = useState<TimeState>({
+    referenceTime: new Date(),
+    selectedTime: new Date(),
+    timezones: [],
+    isTimeModified: false,
+  });
+  const [referenceTimezone, setReferenceTimezone] = useState<TimezoneData>(getLocalTimezone());
 
-  const { urlState, hasProcessedUrl, generateShareUrl } = useUrlState();
+  // Handle URL state loading
+  useEffect(() => {
+    // Only process URL state if we actually have shared data AND haven't processed it yet
+    const hasSharedData = urlState.referenceTimezone || urlState.timeState || urlState.workspace;
+    
+    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && hasSharedData) {
+      console.log('=== Loading URL state ===');
+      console.log('URL reference timezone:', urlState.referenceTimezone);
+      console.log('URL time state:', urlState.timeState);
+      console.log('URL workspace:', urlState.workspace);
+      
+      let newWorkspaceId: string | null = null;
+      
+      // Handle workspace creation from URL FIRST
+      if (urlState.workspace) {
+        // Create a temporary workspace from the shared data
+        const sharedWorkspace = {
+          ...urlState.workspace,
+          name: `${urlState.workspace.name} (Shared)`,
+        };
+        
+        newWorkspaceId = addWorkspace(sharedWorkspace);
+        setActiveWorkspace(newWorkspaceId);
+        console.log('Created shared workspace:', newWorkspaceId);
+      }
+      
+      if (urlState.referenceTimezone) {
+        setReferenceTimezone(urlState.referenceTimezone);
+        setHasUserSetReference(true); // Mark as user-set to prevent override
+      }
+      
+      if (urlState.timeState) {
+        setTimeState(prev => {
+          // Don't replace existing timezones, add the new ones to the existing list
+          const existingTimezones = prev.timezones || [];
+          const newTimezones = urlState.timeState?.timezones || [];
+          
+          const newState = {
+            ...prev,
+            ...urlState.timeState,
+            // Combine existing timezones with new ones (avoid duplicates by ID)
+            timezones: [
+              ...existingTimezones,
+              ...newTimezones.filter(newTz => 
+                !existingTimezones.some(existingTz => existingTz.id === newTz.id)
+              )
+            ]
+          };
+          
+          // If we have timezones and a new workspace, add them to the workspace
+          if (newWorkspaceId && newTimezones && newTimezones.length > 0) {
+            newTimezones.forEach(timezone => {
+              addTimezoneToWorkspace(newWorkspaceId!, timezone.id);
+            });
+            console.log('Added timezones to shared workspace:', newWorkspaceId, newTimezones.map(tz => tz.id));
+          }
+          
+          return newState;
+        });
+      }
+      
+      setHasLoadedFromUrl(true);
+    }
+    
+    // If there's no shared data and we haven't processed URL yet, mark as processed
+    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && !hasSharedData) {
+      setHasLoadedFromUrl(true);
+    }
+  }, [urlState, hasLoadedFromUrl, workspacesLoaded, addWorkspace, setActiveWorkspace, addTimezoneToWorkspace]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  // Initialize from URL state
+  // Set client flag after component mounts
   useEffect(() => {
-    if (hasProcessedUrl && urlState) {
-      if (urlState.timeState?.selectedTime && urlState.timeState.selectedTime instanceof Date && !isNaN(urlState.timeState.selectedTime.getTime())) {
+    setIsMounted(true);
+  }, []);
+
+  // Load timezones from localStorage on mount
+  useEffect(() => {
+    if (!isMounted || !hasProcessedUrl || !workspacesLoaded) return;
+    
+    // Skip localStorage loading if we have URL state to load
+    if (urlState.referenceTimezone || urlState.timeState || urlState.workspace) {
+      console.log('Skipping localStorage load - URL state takes precedence');
+      setIsLoaded(true);
+      return;
+    }
+    
+    try {
+      // Load saved reference timezone first
+      const savedReference = localStorage.getItem(REFERENCE_STORAGE_KEY);
+      if (savedReference) {
+        const parsedReference: TimezoneData = JSON.parse(savedReference);
+        // Update offset to current time (in case of DST changes)
+        const updatedReference = {
+          ...parsedReference,
+          offset: getTimezoneOffset(parsedReference.timezone)
+        };
+        setReferenceTimezone(updatedReference);
+        setHasUserSetReference(true);
+      } else {
+        // No saved reference, allow geolocation to set it
+        setHasUserSetReference(false);
+      }
+      
+      // Load other timezones
+      const savedTimezones = localStorage.getItem(STORAGE_KEY);
+      if (savedTimezones) {
+        const parsedTimezones: TimezoneData[] = JSON.parse(savedTimezones);
+        // Update offsets to current time (in case of DST changes)
+        const updatedTimezones = parsedTimezones.map(tz => ({
+          ...tz,
+          offset: getTimezoneOffset(tz.timezone)
+        }));
+        
         setTimeState(prev => ({
           ...prev,
-          selectedTime: urlState.timeState.selectedTime,
-          referenceTime: urlState.timeState.selectedTime,
+          timezones: updatedTimezones,
         }));
       }
-      if (urlState.referenceTimezone) {
-        setReferenceTimezone(urlState.referenceTimezone);
-        setHasUserSetReference(true);
-      }
-      if (urlState.workspace) {
-        // Create workspace from URL data
-        const newWorkspace = addWorkspaceWithTimezones(urlState.workspace);
-        setActiveWorkspace(newWorkspace);
-      }
+      
+      // Mark as loaded after all localStorage operations are complete
+      setIsLoaded(true);
+    } catch (error) {
+      console.error('Failed to load timezones from localStorage:', error);
+      setIsLoaded(true); // Still mark as loaded even if there's an error
     }
-  }, [hasProcessedUrl, urlState, addWorkspaceWithTimezones, setActiveWorkspace]);
+  }, [isMounted, hasProcessedUrl, workspacesLoaded, urlState.referenceTimezone, urlState.timeState, urlState.workspace]);
 
-  // Auto-detect timezone from geolocation or IP
+  // Save timezones to localStorage whenever they change
   useEffect(() => {
-    if (!hasUserSetReference) {
-      if (location?.timezone) {
-        const geoTimezone: TimezoneData = {
-          id: location.timezone,
-          name: location.timezone.replace('_', ' '),
-          city: location.city || 'Your Location',
-          country: location.country || '',
-          offset: getTimezoneOffset(location.timezone),
-        };
-        setReferenceTimezone(geoTimezone);
-      } else if (ipTimezone) {
-        const ipTimezoneData: TimezoneData = {
-          id: ipTimezone.timezone,
-          name: ipTimezone.timezone.replace('_', ' '),
-          city: ipTimezone.city || 'Your Location',
-          country: ipTimezone.country || '',
-          offset: getTimezoneOffset(ipTimezone.timezone),
-        };
-        setReferenceTimezone(ipTimezoneData);
-      }
+    if (!isMounted || !isLoaded) return;
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
+    } catch (error) {
+      console.error('Failed to save timezones to localStorage:', error);
     }
-  }, [location, ipTimezone, hasUserSetReference]);
+  }, [timeState.timezones, isMounted, isLoaded]);
 
-  // Load timezones based on active workspace
+  // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (activeWorkspace) {
-      const workspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
-      setTimeState(prev => ({
-        ...prev,
-        timezones: workspaceTimezones,
-      }));
+    if (!isMounted || !isLoaded || hasUserSetReference !== true) return;
+    
+    try {
+      localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
+    } catch (error) {
+      console.error('Failed to save reference timezone to localStorage:', error);
+    }
+  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference]);
+
+  // Update reference timezone with geolocation data
+  useEffect(() => {
+    console.log('=== Reference timezone update effect ===');
+    console.log('hasUserSetReference:', hasUserSetReference);
+    console.log('ipLocation:', ipLocation);
+    console.log('ipError:', ipError);
+    
+    // Only update from geolocation if:
+    // 1. We've finished loading from localStorage (hasUserSetReference is not null)
+    // 2. User hasn't set a custom reference (hasUserSetReference is false)
+    // 3. No URL state has been loaded (which would set hasUserSetReference to true)
+    if (hasUserSetReference !== false || urlState.referenceTimezone) {
+      console.log('Skipping auto-detection - hasUserSetReference:', hasUserSetReference, 'hasUrlState:', !!urlState.referenceTimezone);
+      return;
+    }
+    
+    if (ipLocation && !ipError && ipLocation.timezone !== 'UTC') {
+      const detectedTimezone = {
+        id: 'detected-ip',
+        city: ipLocation.city,
+        timezone: ipLocation.timezone,
+        country: ipLocation.country,
+        offset: getTimezoneOffset(ipLocation.timezone)
+      };
+      setReferenceTimezone(detectedTimezone);
+      console.log('Set detected timezone as reference:', detectedTimezone);
+      // Don't mark as user-set since this is auto-detection
+      // setHasUserSetReference(true);
     } else {
-      // Load global timezones from localStorage
-      const savedTimezones = localStorage.getItem('world-clock-timezones');
-      if (savedTimezones) {
+      // IP detection failed or returned UTC, use browser timezone
+      const localTz = getLocalTimezone();
+      setReferenceTimezone(localTz);
+      // Don't mark as user-set since this is auto-detection
+      // setHasUserSetReference(true);
+      console.log('Set local timezone as reference:', localTz);
+    }
+  }, [ipLocation, ipError, hasUserSetReference, urlState.referenceTimezone]);
+
+  // Update URL when state changes (debounced)
+  useEffect(() => {
+    // Don't automatically update URL - only when explicitly sharing
+    return;
+    
+    // const timer = setTimeout(() => {
+    //   updateUrl(referenceTimezone, timeState, activeWorkspace);
+    // }, 1000);
+    // return () => clearTimeout(timer);
+  }, [referenceTimezone, timeState, activeWorkspace, isMounted, isLoaded, hasLoadedFromUrl]);
+
+  // Force save shared data to localStorage after URL cleanup
+  useEffect(() => {
+    if (hasLoadedFromUrl && isLoaded && isMounted) {
+      // Small delay to ensure everything is processed
+      const timer = setTimeout(() => {
+        console.log('Force saving shared data to localStorage');
+        console.log('Current workspaces:', workspaces.map(ws => ({ id: ws.id, name: ws.name, timezones: ws.timezones })));
+        console.log('Current timeState.timezones:', timeState.timezones.map(tz => ({ id: tz.id, city: tz.city })));
         try {
-          const parsedTimezones = JSON.parse(savedTimezones);
-          setTimeState(prev => ({
-            ...prev,
-            timezones: parsedTimezones,
-          }));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
+          if (hasUserSetReference === true) {
+            localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
+          }
         } catch (error) {
-          console.error('Error parsing saved timezones:', error);
+          console.error('Failed to force save to localStorage:', error);
         }
+      }, 1500); // Increased delay to ensure workspace operations complete
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hasLoadedFromUrl, isLoaded, isMounted, timeState.timezones, referenceTimezone, hasUserSetReference, workspaces]);
+
+  useEffect(() => {
+    const updateTime = () => {
+      if (!timeState.isTimeModified) {
+        // grab the current instant…
+        const now = new Date();
+  
+        // …and re-interpret it in your reference zone
+        const referenceTime = toZonedTime(now, referenceTimezone.timezone);
+  
+        setTimeState(prev => ({
+          ...prev,
+          referenceTime,
+          selectedTime: referenceTime,
+        }));
       }
-    }
-  }, [activeWorkspace, getWorkspaceTimezones]);
-
-  // Save timezones to localStorage when they change (only for global)
-  useEffect(() => {
-    if (!activeWorkspace) {
-      localStorage.setItem('world-clock-timezones', JSON.stringify(timeState.timezones));
-    }
-  }, [timeState.timezones, activeWorkspace]);
-
-  // Update time every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      setTimeState(prev => ({
-        ...prev,
-        selectedTime: now,
-        referenceTime: now,
-      }));
-    }, 1000);
-
+    };
+  
+    updateTime();
+    const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
-  }, []);
+    // add `referenceTimezone` so it re-runs when you switch zones
+  }, [timeState.isTimeModified, referenceTimezone]);
 
   const handleTimeChange = useCallback((newTime: Date) => {
     setTimeState(prev => ({
       ...prev,
       selectedTime: newTime,
-      referenceTime: newTime,
+      isTimeModified: true,
     }));
   }, []);
 
   const handleAddTimezone = useCallback((timezone: TimezoneData) => {
-    if (activeWorkspace) {
-      addTimezoneToWorkspace(activeWorkspace.id, timezone.id);
-      const workspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
-      setTimeState(prev => ({
-        ...prev,
-        timezones: [...workspaceTimezones, timezone],
-      }));
-    } else {
-      setTimeState(prev => ({
-        ...prev,
-        timezones: [...prev.timezones, timezone],
-      }));
+    // Check for duplicates based on exact city+country combination only
+    // This allows multiple cities in the same timezone but prevents exact duplicates
+    const currentTimezones = activeWorkspace 
+      ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+      : timeState.timezones;
+      
+    const isDuplicate = currentTimezones.some(existing => 
+      existing.city.toLowerCase() === timezone.city.toLowerCase() && 
+      existing.country.toLowerCase() === timezone.country.toLowerCase()
+    );
+    
+    // Only check against reference timezone if it's not the same as what we're trying to add
+    // This prevents blocking when reference timezone is auto-detected as the same city
+    const isDuplicateOfReference = (
+      referenceTimezone.city.toLowerCase() === timezone.city.toLowerCase() && 
+      referenceTimezone.country.toLowerCase() === timezone.country.toLowerCase() &&
+      referenceTimezone.id !== 'local' // Allow adding if reference is just auto-detected local
+    );
+    
+    if (isDuplicate || isDuplicateOfReference) {
+      console.log('Duplicate timezone detected, not adding:', timezone.city, timezone.country, 'isDuplicate:', isDuplicate, 'isDuplicateOfReference:', isDuplicateOfReference);
+      return;
     }
-    setIsAddDialogOpen(false);
-  }, [activeWorkspace, addTimezoneToWorkspace, getWorkspaceTimezones]);
+    
+    // Ensure unique ID
+    const uniqueTimezone = {
+      ...timezone,
+      id: timezone.id.includes('custom-') ? timezone.id : `${timezone.id}-${Date.now()}`
+    };
+    
+    setTimeState(prev => ({
+      ...prev,
+      timezones: [...prev.timezones, uniqueTimezone],
+    }));
+    
+    // Add to current workspace if one is active
+    if (activeWorkspace) {
+      addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone.id);
+    }
+  }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, timeState.timezones]);
 
   const handleRemoveTimezone = useCallback((timezoneId: string) => {
-    if (activeWorkspace) {
-      // Remove from workspace's timezone ID list
-      removeTimezoneFromWorkspace(activeWorkspace.id, timezoneId);
-      
-      // Force a re-render
-      setTimeState(prev => ({
-        ...prev,
-        timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
-      }));
-    } else {
-      setTimeState(prev => ({
-        ...prev,
-        timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
-      }));
-    }
-  }, [activeWorkspace, removeTimezoneFromWorkspace]);
+    setTimeState(prev => ({
+      ...prev,
+      timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
+    }));
+    
+    // Remove from all workspaces
+    workspaces.forEach(workspace => {
+      if (workspace.timezones.includes(timezoneId)) {
+        removeTimezoneFromWorkspace(workspace.id, timezoneId);
+      }
+    });
+  }, [workspaces, removeTimezoneFromWorkspace]);
 
   const handleSetAsReference = useCallback((timezone: TimezoneData) => {
     // Move current reference to the timezone list
     const currentReference = referenceTimezone;
     
-    if (activeWorkspace) {
-      // For workspaces, remove from workspace-specific storage and add current reference
-      const currentWorkspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
-      const updatedWorkspaceTimezones = [
-        ...currentWorkspaceTimezones.filter(tz => tz.id !== timezone.id),
-        currentReference
-      ];
-      
-      // Update workspace-specific storage
-      const workspaceTimezones = JSON.parse(localStorage.getItem('world-clock-workspace-timezones') || '{}');
-      workspaceTimezones[activeWorkspace.id] = updatedWorkspaceTimezones;
-      localStorage.setItem('world-clock-workspace-timezones', JSON.stringify(workspaceTimezones));
-      
-      // Update workspace timezone ID list
-      removeTimezoneFromWorkspace(activeWorkspace.id, timezone.id);
-      if (currentReference.id !== 'local') {
-        addTimezoneToWorkspace(activeWorkspace.id, currentReference.id);
-      }
-    } else {
-      // For no workspace (global), use global timezone list
-      setTimeState(prev => ({
-        ...prev,
-        timezones: [
-          ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
-          currentReference
-        ],
-      }));
-    }
+    // Remove the selected timezone from the list
+    setTimeState(prev => ({
+      ...prev,
+      timezones: prev.timezones.filter(tz => tz.id !== timezone.id),
+    }));
     
     // Convert the current selected time to the new reference timezone
     const convertedTime = convertTime(
@@ -257,325 +415,349 @@ export default function WorldClockPage() {
       ...prev,
       selectedTime: convertedTime,
       referenceTime: convertedTime,
+      timezones: [
+        ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
+        currentReference
+      ],
     }));
-  }, [referenceTimezone, timeState.selectedTime, activeWorkspace, getWorkspaceTimezones, removeTimezoneFromWorkspace, addTimezoneToWorkspace]);
+  }, [referenceTimezone, timeState.selectedTime]);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  }, []);
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    setOverId(event.over?.id as string || null);
+  }, []);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (over && active.id !== over.id) {
-      const oldIndex = timeState.timezones.findIndex(tz => tz.id === active.id);
-      const newIndex = timeState.timezones.findIndex(tz => tz.id === over.id);
-      
-      const newTimezones = arrayMove(timeState.timezones, oldIndex, newIndex);
-      
-      setTimeState(prev => ({
-        ...prev,
-        timezones: newTimezones,
-      }));
+    if (active.id !== over?.id) {
+      setTimeState(prev => {
+        const oldIndex = prev.timezones.findIndex(tz => tz.id === active.id);
+        const newIndex = prev.timezones.findIndex(tz => tz.id === over?.id);
 
-      if (activeWorkspace) {
-        reorderWorkspaceTimezones(activeWorkspace.id, newTimezones.map(tz => tz.id));
-      }
+        return {
+          ...prev,
+          timezones: arrayMove(prev.timezones, oldIndex, newIndex),
+        };
+      });
     }
-  }, [timeState.timezones, activeWorkspace, reorderWorkspaceTimezones]);
 
-  const handleCreateWorkspace = useCallback((name: string, description?: string) => {
-    createWorkspace(name, description);
-    setIsCreateWorkspaceOpen(false);
-  }, [createWorkspace]);
+    // Add a small delay to ensure smooth animation completion
+    setTimeout(() => {
+      setActiveId(null);
+      setOverId(null);
+    }, 150);
+  }, []);
 
-  const timezoneCards = useMemo(() => {
-    return timeState.timezones.map((timezone) => {
-      const convertedTime = convertTime(
-        timeState.selectedTime,
-        referenceTimezone.offset,
-        timezone.offset
-      );
+  const resetToCurrentTime = () => {
+    const now = new Date();
+    const referenceTime = toZonedTime(now, referenceTimezone.timezone);
+  
+    setTimeState(prev => ({
+      ...prev,
+      referenceTime,
+      selectedTime: referenceTime,
+      isTimeModified: false,
+    }));
+  };
 
-      return (
-        <SortableTimezoneCard
-          key={timezone.id}
-          timezone={timezone}
-          time={convertedTime}
-          onRemove={handleRemoveTimezone}
-          onSetAsReference={handleSetAsReference}
-          isReference={false}
-        />
-      );
-    });
-  }, [timeState.timezones, timeState.selectedTime, referenceTimezone.offset, handleRemoveTimezone, handleSetAsReference]);
-
-  const referenceCard = useMemo(() => {
+  // Get the active timezone for drag overlay
+  const displayedTimezones = activeWorkspace 
+    ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+    : timeState.timezones;
+  const activeTimezone = displayedTimezones.find(tz => tz.id === activeId);
+  
+  // Don't render until we've loaded from localStorage to prevent flash
+  if (!isLoaded || !workspacesLoaded) {
     return (
-      <TimezoneCard
-        timezone={referenceTimezone}
-        time={timeState.selectedTime}
-        onRemove={() => {}}
-        onSetAsReference={() => {}}
-        isReference={true}
-        showActions={false}
-      />
-    );
-  }, [referenceTimezone, timeState.selectedTime]);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main Content */}
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                  <Globe className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">World Clock</h1>
-                  <p className="text-gray-600">Track time across different timezones</p>
-                </div>
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+        
+        <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className="p-4 glass rounded-2xl">
+                <Clock className="h-8 w-8 text-blue-400" />
               </div>
-              
-              <div className="flex items-center gap-3">
-                <ShareButton 
-                  onShare={() => generateShareUrl({
-                    referenceTimezone: hasUserSetReference ? referenceTimezone : undefined,
-                    timeState,
-                    activeWorkspace,
-                    timezones: timeState.timezones
-                  })}
-                />
-                <Button
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Timezone
-                </Button>
+            </div>
+            <h1 className="text-6xl font-thin tracking-tight text-white mb-4 text-glow">
+              TimeGrid
+            </h1>
+            <p className="text-slate-400 text-lg font-light">
+              Synchronize time across the globe
+            </p>
+          </div>
+          
+          {/* Skeleton Loading State */}
+          <div className="space-y-8">
+            {/* Reference Timezone Card Skeleton */}
+            <div className="glass-card rounded-3xl p-8 ring-1 ring-blue-400/30 glow">
+              <div className="space-y-6">
+                {/* Header Skeleton */}
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-slate-400" />
+                        <Skeleton className="h-6 w-24 bg-white/10" />
+                      </div>
+                      <span className="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-full border border-blue-400/30">
+                        Reference
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-slate-400">
+                      <Skeleton className="h-4 w-16 bg-white/10" />
+                      <Skeleton className="h-4 w-12 bg-white/10" />
+                      <span>•</span>
+                      <Skeleton className="h-4 w-16 bg-white/10" />
+                      <Skeleton className="h-3 w-12 bg-white/10" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time Display Skeleton */}
+                <div className="space-y-2">
+                  <Skeleton className="h-16 w-32 bg-white/10" />
+                </div>
+
+                {/* Time Selector Skeleton */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-400" />
+                      <span className="text-sm font-medium text-slate-300">Reference Time</span>
+                    </div>
+                    <Skeleton className="h-6 w-16 bg-white/10 rounded-lg" />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="px-1">
+                      <Skeleton className="h-6 w-full bg-white/10 rounded-full" />
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500 px-1">
+                      <span>12:00 AM</span>
+                      <span>12:00 PM</span>
+                      <span>11:59 PM</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
-                <TabsTrigger value="clock" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Clock
-                </TabsTrigger>
-                <TabsTrigger value="workspaces" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Workspaces
-                </TabsTrigger>
-                <TabsTrigger value="settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="clock" className="space-y-6">
-                {/* Reference Timezone */}
-                <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2 text-blue-900">
-                        <MapPin className="h-5 w-5" />
-                        Reference Time
-                      </CardTitle>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                        Primary
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {referenceCard}
-                  </CardContent>
-                </Card>
-
-                {/* Time Selector */}
-                <Card className="shadow-lg border-gray-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Time Control
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <TimeSelector
-                      selectedTime={timeState.selectedTime}
-                      onTimeChange={handleTimeChange}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Timezone List */}
-                {timeState.timezones.length > 0 && (
-                  <Card className="shadow-lg border-gray-200">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Globe className="h-5 w-5" />
-                        Other Timezones
-                        <Badge variant="outline" className="ml-2">
-                          {timeState.timezones.length}
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
-                        modifiers={[restrictToVerticalAxis]}
-                      >
-                        <SortableContext
-                          items={timeState.timezones.map(tz => tz.id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div className="space-y-4">
-                            {timezoneCards}
+            {/* Additional Timezone Cards Skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="glass-card rounded-2xl p-6 min-h-[200px] flex flex-col">
+                  <div className="space-y-6">
+                    {/* Header Skeleton */}
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-slate-400" />
+                            <Skeleton className="h-6 w-20 bg-white/10" />
                           </div>
-                        </SortableContext>
-                      </DndContext>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {timeState.timezones.length === 0 && (
-                  <Card className="shadow-lg border-gray-200">
-                    <CardContent className="text-center py-12">
-                      <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No timezones added yet</h3>
-                      <p className="text-gray-600 mb-6">Add your first timezone to start tracking time across different regions.</p>
-                      <Button
-                        onClick={() => setIsAddDialogOpen(true)}
-                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Your First Timezone
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="workspaces" className="space-y-6">
-                <Card className="shadow-lg border-gray-200">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        Workspace Management
-                      </CardTitle>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => setIsCreateWorkspaceOpen(true)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create
-                        </Button>
-                        <Button
-                          onClick={() => setIsManageWorkspacesOpen(true)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Settings className="h-4 w-4 mr-2" />
-                          Manage
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <WorkspaceSelector
-                      workspaces={workspaces}
-                      activeWorkspace={activeWorkspace}
-                      onWorkspaceChange={setActiveWorkspace}
-                    />
-                  </CardContent>
-                </Card>
-
-                {activeWorkspace && (
-                  <Card className="shadow-lg border-gray-200">
-                    <CardHeader>
-                      <CardTitle>Workspace Details</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="font-semibold text-lg">{activeWorkspace.name}</h3>
-                          {activeWorkspace.description && (
-                            <p className="text-gray-600">{activeWorkspace.description}</p>
-                          )}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <span>Created: {new Date(activeWorkspace.createdAt).toLocaleDateString()}</span>
-                          <span>Timezones: {timeState.timezones.length}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="settings" className="space-y-6">
-                <Card className="shadow-lg border-gray-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      Application Settings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-semibold mb-2">Current Reference Timezone</h3>
-                        <p className="text-gray-600 mb-4">
-                          {referenceTimezone.city}, {referenceTimezone.country || referenceTimezone.name}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {hasUserSetReference 
-                            ? 'You have manually set this timezone as reference.'
-                            : 'This timezone was automatically detected based on your location.'
-                          }
-                        </p>
                       </div>
                       
-                      <div>
-                        <h3 className="font-semibold mb-2">Data Storage</h3>
-                        <p className="text-sm text-gray-500">
-                          Your timezone preferences and workspaces are stored locally in your browser.
-                          No data is sent to external servers.
-                        </p>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
+                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
+                        <Skeleton className="h-8 w-8 bg-white/10 rounded-lg" />
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+
+                    {/* Time Display Skeleton */}
+                    <div className="space-y-2">
+                      <Skeleton className="h-12 w-28 bg-white/10" />
+                    </div>
+
+                    {/* Badge Skeleton */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
+                      <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+                      <Skeleton className="h-6 w-16 bg-white/10 rounded-full" />
+                      <Skeleton className="h-6 w-12 bg-white/10 rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Button Skeleton */}
+            <div className="flex justify-center">
+              <Skeleton className="h-16 w-16 bg-white/10 rounded-full" />
+            </div>
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Dialogs */}
-      <AddTimezoneDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onAddTimezone={handleAddTimezone}
-        existingTimezones={[...timeState.timezones, referenceTimezone]}
-      />
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-900" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_50%)]" />
+      
+      <div className="relative z-10 container mx-auto px-6 py-12 max-w-5xl">
+        {/* Header */}
+        <div className="text-center mb-16">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="p-3 glass rounded-xl">
+              <Clock className="h-6 w-6 text-blue-400" />
+            </div>
+            <h1 className="text-5xl font-thin tracking-tight text-white text-glow">
+              TimeGrid
+            </h1>
+          </div>
+          <p className="text-slate-400 text-lg font-light">
+            Synchronize time across the globe
+          </p>
+        </div>
 
-      <CreateWorkspaceDialog
-        open={isCreateWorkspaceOpen}
-        onOpenChange={setIsCreateWorkspaceOpen}
-        onCreateWorkspace={handleCreateWorkspace}
-      />
+        {/* Workspace Selector */}
+        <div className="mb-8">
+          <WorkspaceSelector
+            workspaces={workspaces}
+            activeWorkspace={activeWorkspace}
+            onWorkspaceChange={setActiveWorkspace}
+            onCreateWorkspace={addWorkspace}
+            onUpdateWorkspace={updateWorkspace}
+            onDeleteWorkspace={deleteWorkspace}
+          />
+        </div>
 
-      <ManageWorkspacesDialog
-        open={isManageWorkspacesOpen}
-        onOpenChange={setIsManageWorkspacesOpen}
-        workspaces={workspaces}
-        onDeleteWorkspace={deleteWorkspace}
-        onUpdateWorkspace={updateWorkspace}
-      />
+        {/* Reference Timezone Card */}
+        <div className="mb-8">
+          <TimezoneCard
+            timezone={referenceTimezone}
+            displayTime={timeState.selectedTime}
+            isReference={true}
+          >
+            <div className="space-y-6 mt-6">
+              <TimeSelector
+                selectedTime={timeState.selectedTime}
+                onTimeChange={handleTimeChange}
+              />
+              {timeState.isTimeModified && (
+                <div className="flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetToCurrentTime}
+                    className="h-8 px-4 glass-button hover:bg-blue-500/20 hover:border-blue-400/30 transition-all duration-300 group"
+                    title="Reset to current time"
+                  >
+                    <span className="text-sm text-slate-400 group-hover:text-blue-300 font-medium">
+                      Reset to current time
+                    </span>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </TimezoneCard>
+        </div>
+
+        {/* Additional Timezone Cards with Drag and Drop */}
+        {isMounted && displayedTimezones.length > 0 && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={displayedTimezones}
+              strategy={rectSortingStrategy}
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+                {displayedTimezones.map((timezone) => {
+                  const convertedTime = convertTime(
+                    timeState.selectedTime,
+                    referenceTimezone.offset,
+                    timezone.offset
+                  );
+
+                  return (
+                    <SortableTimezoneCard
+                      key={timezone.id}
+                      timezone={timezone}
+                      displayTime={convertedTime}
+                      onRemove={() => handleRemoveTimezone(timezone.id)}
+                      onSetAsReference={() => handleSetAsReference(timezone)}
+                    />
+                  );
+                })}
+              </div>
+            </SortableContext>
+
+            <DragOverlay>
+              {activeTimezone ? (
+                <div className="rotate-2 scale-90 shadow-2xl shadow-blue-500/25 opacity-95 transition-all duration-200 ease-out w-80">
+                  <TimezoneCard
+                    timezone={activeTimezone}
+                    displayTime={convertTime(
+                      timeState.selectedTime,
+                      referenceTimezone.offset,
+                      activeTimezone.offset
+                    )}
+                    isDragging={true}
+                  />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        )}
+
+        {/* Status Messages */}
+        {ipLoading && (
+          <div className="text-center text-slate-400 mt-8 font-light">
+            <div className="inline-flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              Detecting your timezone...
+            </div>
+          </div>
+        )}
+        
+        {ipError && (
+          <div className="text-center text-slate-500 mt-8 font-light">
+            {ipLocation?.source === 'browser' ? 'Using browser timezone as reference' : 'Using system timezone as reference'}
+          </div>
+        )}
+      </div>
+
+      {/* Floating Add Timezone Button */}
+      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4 sm:flex-col md:flex-col lg:flex-col">
+        {/* Mobile: Horizontal layout */}
+        <div className="flex flex-row gap-4 sm:hidden">
+          <ShareButton 
+            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace, displayedTimezones)}
+          />
+          <AddTimezoneDialog
+            onAddTimezone={handleAddTimezone}
+            existingTimezones={[referenceTimezone, ...displayedTimezones]}
+          />
+        </div>
+        
+        {/* Desktop: Vertical layout */}
+        <div className="hidden sm:flex sm:flex-col sm:gap-4">
+          <ShareButton 
+            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace, displayedTimezones)}
+          />
+          <AddTimezoneDialog
+            onAddTimezone={handleAddTimezone}
+            existingTimezones={[referenceTimezone, ...displayedTimezones]}
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -14,5 +14,4 @@ export interface TimeState {
   selectedTime: Date;
   timezones: TimezoneData[];
   isTimeModified: boolean;
-  lastUpdate?: number; // Optional field to force re-renders
 }

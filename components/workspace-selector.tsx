@@ -25,7 +25,6 @@ interface WorkspaceSelectorProps {
   onCreateWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => string;
   onUpdateWorkspace: (id: string, updates: Partial<Workspace>) => void;
   onDeleteWorkspace: (id: string) => void;
-  getWorkspaceTimezones?: (workspaceId: string) => any[];
 }
 
 export function WorkspaceSelector({
@@ -35,7 +34,6 @@ export function WorkspaceSelector({
   onCreateWorkspace,
   onUpdateWorkspace,
   onDeleteWorkspace,
-  getWorkspaceTimezones,
 }: WorkspaceSelectorProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
@@ -78,7 +76,7 @@ export function WorkspaceSelector({
                 {activeWorkspace.name}
               </div>
               <div className="text-xs text-slate-400">
-                {getWorkspaceTimezones ? getWorkspaceTimezones(activeWorkspace.id).length : (activeWorkspace.timezones?.length || 0)} timezone{(getWorkspaceTimezones ? getWorkspaceTimezones(activeWorkspace.id).length : (activeWorkspace.timezones?.length || 0)) !== 1 ? 's' : ''}
+                {activeWorkspace.timezones?.length || 0} timezone{(activeWorkspace.timezones?.length || 0) !== 1 ? 's' : ''}
               </div>
             </div>
             <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-blue-300 transition-colors" />
@@ -114,7 +112,7 @@ export function WorkspaceSelector({
                     {workspace.name}
                   </div>
                   <div className="text-xs text-slate-400">
-                    {getWorkspaceTimezones ? getWorkspaceTimezones(workspace.id).length : (workspace.timezones?.length || 0)} timezone{(getWorkspaceTimezones ? getWorkspaceTimezones(workspace.id).length : (workspace.timezones?.length || 0)) !== 1 ? 's' : ''}
+                    {workspace.timezones?.length || 0} timezone{(workspace.timezones?.length || 0) !== 1 ? 's' : ''}
                   </div>
                 </div>
                 {isActive && (
