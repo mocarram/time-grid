@@ -45,7 +45,7 @@ const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
 export default function WorldClock() {
   const { location: ipLocation, error: ipError, loading: ipLoading } = useIpTimezone();
-  const { urlState, updateUrl, generateShareUrl, hasProcessedUrl } = useUrlState();
+  const { urlState, generateShareUrl, hasProcessedUrl } = useUrlState();
   const {
     workspaces,
     activeWorkspace,
@@ -267,7 +267,7 @@ export default function WorldClock() {
     //   updateUrl(referenceTimezone, timeState, activeWorkspace);
     // }, 1000);
     // return () => clearTimeout(timer);
-  }, [referenceTimezone, timeState, activeWorkspace, updateUrl, isMounted, isLoaded, hasLoadedFromUrl]);
+  }, [referenceTimezone, timeState, activeWorkspace, isMounted, isLoaded, hasLoadedFromUrl]);
 
   // Force save shared data to localStorage after URL cleanup
   useEffect(() => {
