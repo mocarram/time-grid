@@ -344,7 +344,34 @@ const createPopularTimezones = (): TimezoneData[] => [
 ];
 
 // Export popular timezones - will be calculated when first accessed
-export const POPULAR_TIMEZONES: TimezoneData[] = createPopularTimezones();
+let _popularTimezones: TimezoneData[] | null = null;
+
+export function getPopularTimezones(): TimezoneData[] {
+  if (_popularTimezones === null) {
+    _popularTimezones = createPopularTimezones();
+  }
+  return _popularTimezones;
+}
+
+// Keep the old export for backward compatibility, but make it lazy
+export const POPULAR_TIMEZONES: TimezoneData[] = new Proxy([], {
+  get(target, prop) {
+    const timezones = getPopularTimezones();
+    return timezones[prop as keyof TimezoneData[]];
+  },
+  has(target, prop) {
+    const timezones = getPopularTimezones();
+    return prop in timezones;
+  },
+  ownKeys(target) {
+    const timezones = getPopularTimezones();
+    return Reflect.ownKeys(timezones);
+  },
+  getOwnPropertyDescriptor(target, prop) {
+    const timezones = getPopularTimezones();
+    return Reflect.getOwnPropertyDescriptor(timezones, prop);
+  },
+});
 
 export function getTimezoneOffset(timezone: string): number {
   try {
@@ -357,12 +384,7 @@ export function getTimezoneOffset(timezone: string): number {
     );
     const offsetMs = localTime.getTime() - utcTime.getTime();
     const offsetMinutes = Math.round(offsetMs / 60000);
-    console.log(`Timezone ${timezone} offset calculation:`, {
-      utcTime: utcTime.toISOString(),
-      localTime: localTime.toISOString(),
-      offsetMs,
-      offsetMinutes,
-    });
+
     return offsetMinutes;
   } catch {
     return 0;
@@ -370,16 +392,10 @@ export function getTimezoneOffset(timezone: string): number {
 }
 
 export function getLocalTimezone(): TimezoneData {
-  console.log("=== getLocalTimezone() called ===");
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  console.log("Raw browser timezone:", timezone);
-  console.log("Timezone offset:", new Date().getTimezoneOffset());
 
   // If browser returns UTC, try to detect actual timezone from offset
   if (timezone === "UTC" || !timezone) {
-    console.log(
-      "Browser timezone is UTC or invalid, using offset detection..."
-    );
     const offsetMinutes = new Date().getTimezoneOffset();
 
     // Map common offsets to likely timezones (negative offset means ahead of UTC)
@@ -430,7 +446,6 @@ export function getLocalTimezone(): TimezoneData {
 
     const fallbackData = offsetToTimezone[offsetMinutes.toString()];
     if (fallbackData) {
-      console.log("Using offset-based timezone detection:", fallbackData);
       return {
         id: "local",
         city: fallbackData.city,
@@ -449,8 +464,6 @@ export function getLocalTimezone(): TimezoneData {
     // Handle cases like "UTC" or other non-standard formats
     city = timezone;
   }
-
-  console.log("Extracted city:", city);
 
   // Try to get country from timezone
   let country = "Unknown";
@@ -544,11 +557,8 @@ export function getLocalTimezone(): TimezoneData {
       timezoneToCountry[timezone] ||
       (timezone.includes("/") ? timezone.split("/")[0] : "Local");
   } catch (error) {
-    console.log("Could not determine country from timezone:", error);
     country = "Local";
   }
-
-  console.log("Extracted country:", country);
 
   const result = {
     id: "local",
@@ -558,7 +568,6 @@ export function getLocalTimezone(): TimezoneData {
     offset: getTimezoneOffset(timezone),
   };
 
-  console.log("getLocalTimezone() result:", result);
   return result;
 }
 
