@@ -73,10 +73,11 @@ export default function WorldClock() {
 
   // Handle URL state loading
   useEffect(() => {
-    if (!urlState.isLoading && !hasLoadedFromUrl && (urlState.referenceTimezone || urlState.timeState)) {
+    if (!urlState.isLoading && !hasLoadedFromUrl && (urlState.referenceTimezone || urlState.timeState || urlState.workspace)) {
       console.log('=== Loading URL state ===');
       console.log('URL reference timezone:', urlState.referenceTimezone);
       console.log('URL time state:', urlState.timeState);
+      console.log('URL workspace:', urlState.workspace);
       
       if (urlState.referenceTimezone) {
         setReferenceTimezone(urlState.referenceTimezone);
@@ -90,9 +91,21 @@ export default function WorldClock() {
         }));
       }
       
+      // Handle workspace creation from URL
+      if (urlState.workspace && workspacesLoaded) {
+        // Create a temporary workspace from the shared data
+        const sharedWorkspace = {
+          ...urlState.workspace,
+          name: `${urlState.workspace.name} (Shared)`,
+        };
+        
+        const newWorkspaceId = addWorkspace(sharedWorkspace);
+        setActiveWorkspace(newWorkspaceId);
+      }
+      
       setHasLoadedFromUrl(true);
     }
-  }, [urlState, hasLoadedFromUrl]);
+  }, [urlState, hasLoadedFromUrl, workspacesLoaded, addWorkspace, setActiveWorkspace]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -115,7 +128,7 @@ export default function WorldClock() {
     if (!isMounted || !hasProcessedUrl || !workspacesLoaded) return;
     
     // Skip localStorage loading if we have URL state to load
-    if (urlState.referenceTimezone || urlState.timeState) {
+    if (urlState.referenceTimezone || urlState.timeState || urlState.workspace) {
       console.log('Skipping localStorage load - URL state takes precedence');
       setIsLoaded(true);
       return;
@@ -160,7 +173,7 @@ export default function WorldClock() {
       console.error('Failed to load timezones from localStorage:', error);
       setIsLoaded(true); // Still mark as loaded even if there's an error
     }
-  }, [isMounted, hasProcessedUrl, workspacesLoaded, urlState.referenceTimezone, urlState.timeState]);
+  }, [isMounted, hasProcessedUrl, workspacesLoaded, urlState.referenceTimezone, urlState.timeState, urlState.workspace]);
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
@@ -227,11 +240,11 @@ export default function WorldClock() {
     if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
     
     const timer = setTimeout(() => {
-      updateUrl(referenceTimezone, timeState);
+      updateUrl(referenceTimezone, timeState, activeWorkspace);
     }, 1000); // Debounce URL updates
 
     return () => clearTimeout(timer);
-  }, [referenceTimezone, timeState, updateUrl, isMounted, isLoaded, hasLoadedFromUrl]);
+  }, [referenceTimezone, timeState, activeWorkspace, updateUrl, isMounted, isLoaded, hasLoadedFromUrl]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -670,7 +683,7 @@ export default function WorldClock() {
         {/* Mobile: Horizontal layout */}
         <div className="flex flex-row gap-4 sm:hidden">
           <ShareButton 
-            onShare={() => generateShareUrl(referenceTimezone, timeState)}
+            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace)}
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}
@@ -681,7 +694,7 @@ export default function WorldClock() {
         {/* Desktop: Vertical layout */}
         <div className="hidden sm:flex sm:flex-col sm:gap-4">
           <ShareButton 
-            onShare={() => generateShareUrl(referenceTimezone, timeState)}
+            onShare={() => generateShareUrl(referenceTimezone, timeState, activeWorkspace)}
           />
           <AddTimezoneDialog
             onAddTimezone={handleAddTimezone}
