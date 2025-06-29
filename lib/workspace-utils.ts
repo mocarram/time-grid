@@ -1,5 +1,5 @@
 import type { Workspace } from '@/types/workspace';
-import type { TimezoneData } from '@/types/timezone';
+import type { TimezoneData, WorkspaceTimezoneCollection } from '@/types/timezone';
 
 export const WORKSPACE_COLORS = [
   { name: 'Blue', value: 'blue', bg: 'bg-blue-500/20', border: 'border-blue-400/30', text: 'text-blue-300' },
@@ -34,38 +34,47 @@ export function createDefaultWorkspace(): Workspace {
   };
 }
 
-export function filterTimezonesByWorkspace(
-  timezones: TimezoneData[],
-  workspace: Workspace | null
+// Updated to use workspace timezone collection
+export function getWorkspaceTimezones(
+  workspaceTimezones: WorkspaceTimezoneCollection,
+  workspaceId: string | null
 ): TimezoneData[] {
-  if (!workspace) return timezones;
-  const filtered = timezones.filter(tz => workspace.timezones?.includes(tz.id));
-  console.log('Filtering timezones for workspace:', workspace.name, 'workspace.timezones:', workspace.timezones, 'filtered:', filtered.map(tz => tz.id));
-  return filtered;
+  if (!workspaceId) return [];
+  const timezones = workspaceTimezones[workspaceId] || [];
+  console.log('Getting timezones for workspace:', workspaceId, 'timezones:', timezones.map(tz => ({ id: tz.id, city: tz.city })));
+  return timezones;
 }
 
-export function addTimezoneToWorkspace(
+export function addTimezoneToWorkspaceCollection(
+  workspaceTimezones: WorkspaceTimezoneCollection,
   workspace: Workspace,
-  timezoneId: string
-): Workspace {
-  if (workspace.timezones.includes(timezoneId)) {
-    return workspace;
+  timezone: TimezoneData
+): WorkspaceTimezoneCollection {
+  const currentTimezones = workspaceTimezones[workspace.id] || [];
+  
+  // Check for duplicates
+  const isDuplicate = currentTimezones.some(existing => 
+    existing.city.toLowerCase() === timezone.city.toLowerCase() && 
+    existing.country.toLowerCase() === timezone.country.toLowerCase()
+  );
+  
+  if (isDuplicate) {
+    return workspaceTimezones;
   }
   
   return {
-    ...workspace,
-    timezones: [...workspace.timezones, timezoneId],
-    updatedAt: new Date(),
+    ...workspaceTimezones,
+    [workspace.id]: [...currentTimezones, { ...timezone, workspaceId: workspace.id }],
   };
 }
 
-export function removeTimezoneFromWorkspace(
+export function removeTimezoneFromWorkspaceCollection(
+  workspaceTimezones: WorkspaceTimezoneCollection,
   workspace: Workspace,
   timezoneId: string
-): Workspace {
+): WorkspaceTimezoneCollection {
   return {
-    ...workspace,
-    timezones: workspace.timezones.filter(id => id !== timezoneId),
-    updatedAt: new Date(),
+    ...workspaceTimezones,
+    [workspace.id]: (workspaceTimezones[workspace.id] || []).filter(tz => tz.id !== timezoneId),
   };
 }
