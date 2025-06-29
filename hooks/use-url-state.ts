@@ -94,7 +94,12 @@ export function useUrlState() {
         // Parse workspace data
         if (workspace) {
           try {
-            workspaceData = JSON.parse(decodeURIComponent(workspace));
+            const parsedWorkspace = JSON.parse(decodeURIComponent(workspace));
+            // Don't include the original timezone IDs since we'll be creating new ones
+            workspaceData = {
+              ...parsedWorkspace,
+              timezones: [], // Start with empty array, will be populated when timezones are added
+            };
           } catch (error) {
             console.error('Failed to parse workspace:', error);
           }
@@ -178,7 +183,7 @@ export function useUrlState() {
         description: activeWorkspace.description,
         color: activeWorkspace.color,
         icon: activeWorkspace.icon,
-        timezones: activeWorkspace.timezones,
+        timezones: [], // Don't include timezone IDs in URL since they'll be recreated
       };
       params.set('workspace', encodeURIComponent(JSON.stringify(workspaceData)));
     }
@@ -227,7 +232,7 @@ export function useUrlState() {
         description: activeWorkspace.description,
         color: activeWorkspace.color,
         icon: activeWorkspace.icon,
-        timezones: activeWorkspace.timezones,
+        timezones: [], // Don't include timezone IDs in URL since they'll be recreated
       };
       params.set('workspace', encodeURIComponent(JSON.stringify(workspaceData)));
     }

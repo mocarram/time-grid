@@ -331,7 +331,6 @@ export default function WorldClock() {
     // Add to current workspace if one is active
     if (activeWorkspace) {
       addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone.id);
-      console.log('Added timezone to workspace:', activeWorkspace.id, uniqueTimezone.id);
     }
   }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, timeState.timezones]);
 

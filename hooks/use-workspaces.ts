@@ -124,7 +124,6 @@ export function useWorkspaces() {
   }, []);
 
   const addTimezoneToWorkspace = useCallback((workspaceId: string, timezoneId: string) => {
-    console.log('Adding timezone to workspace:', workspaceId, timezoneId);
     setWorkspaceState(prev => ({
       ...prev,
       workspaces: prev.workspaces.map(ws => 
