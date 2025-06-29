@@ -35,10 +35,12 @@ import {
   convertTime, 
   getTimezoneOffset 
 } from '@/lib/timezone-utils';
+import { filterTimezonesByWorkspace } from '@/lib/workspace-utils';
 import type { TimezoneData, TimeState } from '@/types/timezone';
 import { Clock, MapPin } from 'lucide-react';
 import { toZonedTime } from 'date-fns-tz';
 
+const STORAGE_KEY = 'world-clock-timezones';
 const REFERENCE_STORAGE_KEY = 'world-clock-reference-timezone';
 
 export default function WorldClock() {
@@ -54,7 +56,6 @@ export default function WorldClock() {
     setActiveWorkspace,
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
-    getWorkspaceTimezones,
   } = useWorkspaces();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -72,10 +73,29 @@ export default function WorldClock() {
 
   // Handle URL state loading
   useEffect(() => {
-    if (!urlState.isLoading && !hasLoadedFromUrl && (urlState.referenceTimezone || urlState.timeState)) {
+    // Only process URL state if we actually have shared data AND haven't processed it yet
+    const hasSharedData = urlState.referenceTimezone || urlState.timeState || urlState.workspace;
+    
+    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && hasSharedData) {
       console.log('=== Loading URL state ===');
       console.log('URL reference timezone:', urlState.referenceTimezone);
       console.log('URL time state:', urlState.timeState);
+      console.log('URL workspace:', urlState.workspace);
+      
+      let newWorkspaceId: string | null = null;
+      
+      // Handle workspace creation from URL FIRST
+      if (urlState.workspace) {
+        // Create a temporary workspace from the shared data
+        const sharedWorkspace = {
+          ...urlState.workspace,
+          name: `${urlState.workspace.name} (Shared)`,
+        };
+        
+        newWorkspaceId = addWorkspace(sharedWorkspace);
+        setActiveWorkspace(newWorkspaceId);
+        console.log('Created shared workspace:', newWorkspaceId);
+      }
       
       if (urlState.referenceTimezone) {
         setReferenceTimezone(urlState.referenceTimezone);
@@ -83,15 +103,43 @@ export default function WorldClock() {
       }
       
       if (urlState.timeState) {
-        setTimeState(prev => ({
-          ...prev,
-          ...urlState.timeState,
-        }));
+        setTimeState(prev => {
+          // Don't replace existing timezones, add the new ones to the existing list
+          const existingTimezones = prev.timezones || [];
+          const newTimezones = urlState.timeState?.timezones || [];
+          
+          const newState = {
+            ...prev,
+            ...urlState.timeState,
+            // Combine existing timezones with new ones (avoid duplicates by ID)
+            timezones: [
+              ...existingTimezones,
+              ...newTimezones.filter(newTz => 
+                !existingTimezones.some(existingTz => existingTz.id === newTz.id)
+              )
+            ]
+          };
+          
+          // If we have timezones and a new workspace, add them to the workspace
+          if (newWorkspaceId && newTimezones && newTimezones.length > 0) {
+            newTimezones.forEach(timezone => {
+              addTimezoneToWorkspace(newWorkspaceId!, timezone.id);
+            });
+            console.log('Added timezones to shared workspace:', newWorkspaceId, newTimezones.map(tz => tz.id));
+          }
+          
+          return newState;
+        });
       }
       
       setHasLoadedFromUrl(true);
     }
-  }, [urlState, hasLoadedFromUrl]);
+    
+    // If there's no shared data and we haven't processed URL yet, mark as processed
+    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && !hasSharedData) {
+      setHasLoadedFromUrl(true);
+    }
+  }, [urlState, hasLoadedFromUrl, workspacesLoaded, addWorkspace, setActiveWorkspace, addTimezoneToWorkspace]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -114,7 +162,7 @@ export default function WorldClock() {
     if (!isMounted || !hasProcessedUrl || !workspacesLoaded) return;
     
     // Skip localStorage loading if we have URL state to load
-    if (urlState.referenceTimezone || urlState.timeState) {
+    if (urlState.referenceTimezone || urlState.timeState || urlState.workspace) {
       console.log('Skipping localStorage load - URL state takes precedence');
       setIsLoaded(true);
       return;
@@ -137,24 +185,51 @@ export default function WorldClock() {
         setHasUserSetReference(false);
       }
       
+      // Load other timezones
+      const savedTimezones = localStorage.getItem(STORAGE_KEY);
+      if (savedTimezones) {
+        const parsedTimezones: TimezoneData[] = JSON.parse(savedTimezones);
+        // Update offsets to current time (in case of DST changes)
+        const updatedTimezones = parsedTimezones.map(tz => ({
+          ...tz,
+          offset: getTimezoneOffset(tz.timezone)
+        }));
+        
+        setTimeState(prev => ({
+          ...prev,
+          timezones: updatedTimezones,
+        }));
+      }
+      
       // Mark as loaded after all localStorage operations are complete
       setIsLoaded(true);
     } catch (error) {
       console.error('Failed to load timezones from localStorage:', error);
       setIsLoaded(true); // Still mark as loaded even if there's an error
     }
-  }, [isMounted, hasProcessedUrl, workspacesLoaded, urlState.referenceTimezone, urlState.timeState]);
+  }, [isMounted, hasProcessedUrl, workspacesLoaded, urlState.referenceTimezone, urlState.timeState, urlState.workspace]);
+
+  // Save timezones to localStorage whenever they change
+  useEffect(() => {
+    if (!isMounted || !isLoaded) return;
+    
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
+    } catch (error) {
+      console.error('Failed to save timezones to localStorage:', error);
+    }
+  }, [timeState.timezones, isMounted, isLoaded]);
 
   // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (!isMounted || !isLoaded || hasUserSetReference !== true || hasLoadedFromUrl) return;
+    if (!isMounted || !isLoaded || hasUserSetReference !== true) return;
     
     try {
       localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
     } catch (error) {
       console.error('Failed to save reference timezone to localStorage:', error);
     }
-  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference, hasLoadedFromUrl]);
+  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference]);
 
   // Update reference timezone with geolocation data
   useEffect(() => {
@@ -194,6 +269,39 @@ export default function WorldClock() {
     }
   }, [ipLocation, ipError, hasUserSetReference, urlState.referenceTimezone]);
 
+  // Update URL when state changes (debounced)
+  useEffect(() => {
+    // Don't automatically update URL - only when explicitly sharing
+    return;
+    
+    // const timer = setTimeout(() => {
+    //   updateUrl(referenceTimezone, timeState, activeWorkspace);
+    // }, 1000);
+    // return () => clearTimeout(timer);
+  }, [referenceTimezone, timeState, activeWorkspace, isMounted, isLoaded, hasLoadedFromUrl]);
+
+  // Force save shared data to localStorage after URL cleanup
+  useEffect(() => {
+    if (hasLoadedFromUrl && isLoaded && isMounted) {
+      // Small delay to ensure everything is processed
+      const timer = setTimeout(() => {
+        console.log('Force saving shared data to localStorage');
+        console.log('Current workspaces:', workspaces.map(ws => ({ id: ws.id, name: ws.name, timezones: ws.timezones })));
+        console.log('Current timeState.timezones:', timeState.timezones.map(tz => ({ id: tz.id, city: tz.city })));
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
+          if (hasUserSetReference === true) {
+            localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
+          }
+        } catch (error) {
+          console.error('Failed to force save to localStorage:', error);
+        }
+      }, 1500); // Increased delay to ensure workspace operations complete
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hasLoadedFromUrl, isLoaded, isMounted, timeState.timezones, referenceTimezone, hasUserSetReference, workspaces]);
+
   useEffect(() => {
     const updateTime = () => {
       if (!timeState.isTimeModified) {
@@ -226,16 +334,19 @@ export default function WorldClock() {
   }, []);
 
   const handleAddTimezone = useCallback((timezone: TimezoneData) => {
-    if (!activeWorkspace) return;
-    
-    // Check for duplicates in the current workspace
-    const workspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
-    const isDuplicate = workspaceTimezones.some(existing => 
+    // Check for duplicates based on exact city+country combination only
+    // This allows multiple cities in the same timezone but prevents exact duplicates
+    const currentTimezones = activeWorkspace 
+      ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+      : timeState.timezones;
+      
+    const isDuplicate = currentTimezones.some(existing => 
       existing.city.toLowerCase() === timezone.city.toLowerCase() && 
       existing.country.toLowerCase() === timezone.country.toLowerCase()
     );
     
     // Only check against reference timezone if it's not the same as what we're trying to add
+    // This prevents blocking when reference timezone is auto-detected as the same city
     const isDuplicateOfReference = (
       referenceTimezone.city.toLowerCase() === timezone.city.toLowerCase() && 
       referenceTimezone.country.toLowerCase() === timezone.country.toLowerCase() &&
@@ -243,7 +354,7 @@ export default function WorldClock() {
     );
     
     if (isDuplicate || isDuplicateOfReference) {
-      console.log('Duplicate timezone detected, not adding:', timezone.city, timezone.country);
+      console.log('Duplicate timezone detected, not adding:', timezone.city, timezone.country, 'isDuplicate:', isDuplicate, 'isDuplicateOfReference:', isDuplicateOfReference);
       return;
     }
     
@@ -253,22 +364,40 @@ export default function WorldClock() {
       id: timezone.id.includes('custom-') ? timezone.id : `${timezone.id}-${Date.now()}`
     };
     
-    addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone);
-  }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, getWorkspaceTimezones]);
+    setTimeState(prev => ({
+      ...prev,
+      timezones: [...prev.timezones, uniqueTimezone],
+    }));
+    
+    // Add to current workspace if one is active
+    if (activeWorkspace) {
+      addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone.id);
+    }
+  }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, timeState.timezones]);
 
   const handleRemoveTimezone = useCallback((timezoneId: string) => {
-    if (!activeWorkspace) return;
-    removeTimezoneFromWorkspace(activeWorkspace.id, timezoneId);
-  }, [activeWorkspace, removeTimezoneFromWorkspace]);
+    setTimeState(prev => ({
+      ...prev,
+      timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
+    }));
+    
+    // Remove from all workspaces
+    workspaces.forEach(workspace => {
+      if (workspace.timezones.includes(timezoneId)) {
+        removeTimezoneFromWorkspace(workspace.id, timezoneId);
+      }
+    });
+  }, [workspaces, removeTimezoneFromWorkspace]);
 
   const handleSetAsReference = useCallback((timezone: TimezoneData) => {
-    if (!activeWorkspace) return;
-    
-    // Move current reference to the workspace timezone list
+    // Move current reference to the timezone list
     const currentReference = referenceTimezone;
     
-    // Remove the selected timezone from the workspace
-    removeTimezoneFromWorkspace(activeWorkspace.id, timezone.id);
+    // Remove the selected timezone from the list
+    setTimeState(prev => ({
+      ...prev,
+      timezones: prev.timezones.filter(tz => tz.id !== timezone.id),
+    }));
     
     // Convert the current selected time to the new reference timezone
     const convertedTime = convertTime(
@@ -286,11 +415,12 @@ export default function WorldClock() {
       ...prev,
       selectedTime: convertedTime,
       referenceTime: convertedTime,
+      timezones: [
+        ...prev.timezones.filter(tz => tz.id !== timezone.id && tz.id !== currentReference.id), 
+        currentReference
+      ],
     }));
-    
-    // Add the old reference to the workspace
-    addTimezoneToWorkspace(activeWorkspace.id, currentReference);
-  }, [referenceTimezone, timeState.selectedTime, activeWorkspace, removeTimezoneFromWorkspace, addTimezoneToWorkspace]);
+  }, [referenceTimezone, timeState.selectedTime]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -303,16 +433,16 @@ export default function WorldClock() {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (active.id !== over?.id && activeWorkspace) {
-      const workspaceTimezones = getWorkspaceTimezones(activeWorkspace.id);
-      const oldIndex = workspaceTimezones.findIndex(tz => tz.id === active.id);
-      const newIndex = workspaceTimezones.findIndex(tz => tz.id === over?.id);
+    if (active.id !== over?.id) {
+      setTimeState(prev => {
+        const oldIndex = prev.timezones.findIndex(tz => tz.id === active.id);
+        const newIndex = prev.timezones.findIndex(tz => tz.id === over?.id);
 
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedTimezones = arrayMove(workspaceTimezones, oldIndex, newIndex);
-        // Update the workspace with reordered timezones
-        // This would require a new method in useWorkspaces to reorder timezones
-      }
+        return {
+          ...prev,
+          timezones: arrayMove(prev.timezones, oldIndex, newIndex),
+        };
+      });
     }
 
     // Add a small delay to ensure smooth animation completion
@@ -320,7 +450,7 @@ export default function WorldClock() {
       setActiveId(null);
       setOverId(null);
     }, 150);
-  }, [activeWorkspace, getWorkspaceTimezones]);
+  }, []);
 
   const resetToCurrentTime = () => {
     const now = new Date();
@@ -334,8 +464,10 @@ export default function WorldClock() {
     }));
   };
 
-  // Get the active timezone for drag overlay and displayed timezones
-  const displayedTimezones = activeWorkspace ? getWorkspaceTimezones(activeWorkspace.id) : [];
+  // Get the active timezone for drag overlay
+  const displayedTimezones = activeWorkspace 
+    ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+    : timeState.timezones;
   const activeTimezone = displayedTimezones.find(tz => tz.id === activeId);
   
   // Don't render until we've loaded from localStorage to prevent flash
