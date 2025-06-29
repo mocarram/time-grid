@@ -6,6 +6,7 @@ import { createDefaultWorkspace } from '@/lib/workspace-utils';
 
 const WORKSPACES_STORAGE_KEY = 'world-clock-workspaces';
 const ACTIVE_WORKSPACE_STORAGE_KEY = 'world-clock-active-workspace';
+const WORKSPACE_TIMEZONES_STORAGE_KEY = 'world-clock-workspace-timezones';
 
 export function useWorkspaces() {
   const [workspaceState, setWorkspaceState] = useState<WorkspaceState>({
@@ -13,6 +14,26 @@ export function useWorkspaces() {
     activeWorkspaceId: null,
   });
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load workspace-specific timezones from localStorage
+  const loadWorkspaceTimezones = useCallback(() => {
+    try {
+      const saved = localStorage.getItem(WORKSPACE_TIMEZONES_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('Failed to load workspace timezones:', error);
+      return {};
+    }
+  }, []);
+
+  // Save workspace-specific timezones to localStorage
+  const saveWorkspaceTimezones = useCallback((workspaceTimezones: Record<string, any[]>) => {
+    try {
+      localStorage.setItem(WORKSPACE_TIMEZONES_STORAGE_KEY, JSON.stringify(workspaceTimezones));
+    } catch (error) {
+      console.error('Failed to save workspace timezones:', error);
+    }
+  }, []);
 
   // Load workspaces from localStorage on mount
   useEffect(() => {
@@ -72,6 +93,20 @@ export function useWorkspaces() {
     }
   }, [workspaceState, isLoaded]);
 
+  // Function to add timezones to a specific workspace's storage
+  const addTimezonesToWorkspaceStorage = useCallback((workspaceId: string, timezones: any[]) => {
+    const workspaceTimezones = loadWorkspaceTimezones();
+    workspaceTimezones[workspaceId] = timezones;
+    saveWorkspaceTimezones(workspaceTimezones);
+    console.log('Saved timezones for workspace:', workspaceId, timezones.map(tz => ({ id: tz.id, city: tz.city })));
+  }, [loadWorkspaceTimezones, saveWorkspaceTimezones]);
+
+  // Function to get timezones for a specific workspace
+  const getWorkspaceTimezones = useCallback((workspaceId: string) => {
+    const workspaceTimezones = loadWorkspaceTimezones();
+    return workspaceTimezones[workspaceId] || [];
+  }, [loadWorkspaceTimezones]);
+
   const addWorkspace = useCallback((workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newWorkspace: Workspace = {
       ...workspace,
@@ -87,6 +122,30 @@ export function useWorkspaces() {
     
     return newWorkspace.id;
   }, []);
+
+  const addWorkspaceWithTimezones = useCallback((
+    workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>, 
+    timezones: any[] = []
+  ) => {
+    const newWorkspace: Workspace = {
+      ...workspace,
+      id: `workspace-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    setWorkspaceState(prev => ({
+      ...prev,
+      workspaces: [...prev.workspaces, newWorkspace],
+    }));
+    
+    // Store timezones separately for this workspace
+    if (timezones.length > 0) {
+      addTimezonesToWorkspaceStorage(newWorkspace.id, timezones);
+    }
+    
+    return newWorkspace.id;
+  }, [addTimezonesToWorkspaceStorage]);
 
   const updateWorkspace = useCallback((id: string, updates: Partial<Workspace>) => {
     setWorkspaceState(prev => ({
@@ -114,6 +173,11 @@ export function useWorkspaces() {
         activeWorkspaceId: newActiveId,
       };
     });
+    
+    // Clean up workspace-specific timezones
+    const workspaceTimezones = loadWorkspaceTimezones();
+    delete workspaceTimezones[id];
+    saveWorkspaceTimezones(workspaceTimezones);
   }, []);
 
   const setActiveWorkspace = useCallback((id: string) => {
@@ -163,10 +227,13 @@ export function useWorkspaces() {
     activeWorkspace,
     isLoaded,
     addWorkspace,
+    addWorkspaceWithTimezones,
     updateWorkspace,
     deleteWorkspace,
     setActiveWorkspace,
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
+    getWorkspaceTimezones,
+    addTimezonesToWorkspaceStorage,
   };
 }

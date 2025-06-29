@@ -51,11 +51,13 @@ export default function WorldClock() {
     activeWorkspace,
     isLoaded: workspacesLoaded,
     addWorkspace,
+    addWorkspaceWithTimezones,
     updateWorkspace,
     deleteWorkspace,
     setActiveWorkspace,
     addTimezoneToWorkspace,
     removeTimezoneFromWorkspace,
+    getWorkspaceTimezones,
   } = useWorkspaces();
   const [isMounted, setIsMounted] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -92,7 +94,9 @@ export default function WorldClock() {
           name: `${urlState.workspace.name} (Shared)`,
         };
         
-        newWorkspaceId = addWorkspace(sharedWorkspace);
+        // Create workspace with its timezones
+        const timezonesToAdd = urlState.timeState?.timezones || [];
+        newWorkspaceId = addWorkspaceWithTimezones(sharedWorkspace, timezonesToAdd);
         setActiveWorkspace(newWorkspaceId);
         console.log('Created shared workspace:', newWorkspaceId);
       }
@@ -104,31 +108,21 @@ export default function WorldClock() {
       
       if (urlState.timeState) {
         setTimeState(prev => {
-          // Don't replace existing timezones, add the new ones to the existing list
+          // For shared workspaces, don't add to global timezone list
+          // The timezones are stored separately per workspace
           const existingTimezones = prev.timezones || [];
           const newTimezones = urlState.timeState?.timezones || [];
           
-          const newState = {
+          // Only add to global list if no workspace was created (backward compatibility)
+          const timezonesToAdd = newWorkspaceId ? [] : newTimezones.filter(newTz => 
+            !existingTimezones.some(existingTz => existingTz.id === newTz.id)
+          );
+          
+          return {
             ...prev,
             ...urlState.timeState,
-            // Combine existing timezones with new ones (avoid duplicates by ID)
-            timezones: [
-              ...existingTimezones,
-              ...newTimezones.filter(newTz => 
-                !existingTimezones.some(existingTz => existingTz.id === newTz.id)
-              )
-            ]
+            timezones: [...existingTimezones, ...timezonesToAdd]
           };
-          
-          // If we have timezones and a new workspace, add them to the workspace
-          if (newWorkspaceId && newTimezones && newTimezones.length > 0) {
-            newTimezones.forEach(timezone => {
-              addTimezoneToWorkspace(newWorkspaceId!, timezone.id);
-            });
-            console.log('Added timezones to shared workspace:', newWorkspaceId, newTimezones.map(tz => tz.id));
-          }
-          
-          return newState;
         });
       }
       
@@ -211,25 +205,25 @@ export default function WorldClock() {
 
   // Save timezones to localStorage whenever they change
   useEffect(() => {
-    if (!isMounted || !isLoaded) return;
+    if (!isMounted || !isLoaded || hasLoadedFromUrl) return;
     
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
     } catch (error) {
       console.error('Failed to save timezones to localStorage:', error);
     }
-  }, [timeState.timezones, isMounted, isLoaded]);
+  }, [timeState.timezones, isMounted, isLoaded, hasLoadedFromUrl]);
 
   // Save reference timezone to localStorage whenever it changes (only if user-set)
   useEffect(() => {
-    if (!isMounted || !isLoaded || hasUserSetReference !== true) return;
+    if (!isMounted || !isLoaded || hasUserSetReference !== true || hasLoadedFromUrl) return;
     
     try {
       localStorage.setItem(REFERENCE_STORAGE_KEY, JSON.stringify(referenceTimezone));
     } catch (error) {
       console.error('Failed to save reference timezone to localStorage:', error);
     }
-  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference]);
+  }, [referenceTimezone, isMounted, isLoaded, hasUserSetReference, hasLoadedFromUrl]);
 
   // Update reference timezone with geolocation data
   useEffect(() => {
@@ -465,8 +459,8 @@ export default function WorldClock() {
   };
 
   // Get the active timezone for drag overlay
-  const displayedTimezones = activeWorkspace 
-    ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace)
+  const displayedTimezones = activeWorkspace
+    ? filterTimezonesByWorkspace(timeState.timezones, activeWorkspace, getWorkspaceTimezones)
     : timeState.timezones;
   const activeTimezone = displayedTimezones.find(tz => tz.id === activeId);
   
@@ -631,6 +625,7 @@ export default function WorldClock() {
             onCreateWorkspace={addWorkspace}
             onUpdateWorkspace={updateWorkspace}
             onDeleteWorkspace={deleteWorkspace}
+            getWorkspaceTimezones={getWorkspaceTimezones}
           />
         </div>
 

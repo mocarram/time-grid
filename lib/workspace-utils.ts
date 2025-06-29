@@ -36,11 +36,21 @@ export function createDefaultWorkspace(): Workspace {
 
 export function filterTimezonesByWorkspace(
   timezones: TimezoneData[],
-  workspace: Workspace | null
+  workspace: Workspace | null,
+  getWorkspaceTimezones?: (workspaceId: string) => TimezoneData[]
 ): TimezoneData[] {
   if (!workspace) return timezones;
+  
+  // If we have a function to get workspace-specific timezones, use that
+  if (getWorkspaceTimezones) {
+    const workspaceTimezones = getWorkspaceTimezones(workspace.id);
+    console.log('Using workspace-specific timezones for:', workspace.name, workspaceTimezones.map(tz => ({ id: tz.id, city: tz.city })));
+    return workspaceTimezones;
+  }
+  
+  // Fallback to the old method
   const filtered = timezones.filter(tz => workspace.timezones?.includes(tz.id));
-  console.log('Filtering timezones for workspace:', workspace.name, 'workspace.timezones:', workspace.timezones, 'filtered:', filtered.map(tz => tz.id));
+  console.log('Using filtered timezones for workspace:', workspace.name, 'workspace.timezones:', workspace.timezones, 'filtered:', filtered.map(tz => tz.id));
   return filtered;
 }
 
