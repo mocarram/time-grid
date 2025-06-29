@@ -132,7 +132,17 @@ function WorldClockContent() {
         isTimeModified: false, // Reset to current time
       }));
     }
-  }, [activeWorkspace]);
+  }, [activeWorkspace?.id, activeWorkspace?.referenceTimezone?.timezone]);
+
+  // Sync timezone list when workspace timezones change (but not when switching workspaces)
+  useEffect(() => {
+    if (activeWorkspace) {
+      setTimeState(prev => ({
+        ...prev,
+        timezones: activeWorkspace.timezones || [],
+      }));
+    }
+  }, [activeWorkspace?.timezones]);
 
   // Handle URL state loading
   useEffect(() => {
@@ -203,7 +213,7 @@ function WorldClockContent() {
     setActiveWorkspace,
     addTimezoneToWorkspace,
     setWorkspaceReferenceTimezone,
-    activeWorkspace,
+    activeWorkspace?.id,
   ]);
 
   const sensors = useSensors(
@@ -244,7 +254,7 @@ function WorldClockContent() {
         detectedTimezone
       );
     }
-  }, [activeWorkspace, ipLocation, ipError, setWorkspaceReferenceTimezone]);
+  }, [activeWorkspace?.id, activeWorkspace?.referenceTimezone, ipLocation, ipError, setWorkspaceReferenceTimezone]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -270,7 +280,7 @@ function WorldClockContent() {
     const interval = setInterval(updateTime, 60000);
     return () => clearInterval(interval);
     // add `referenceTimezone` so it re-runs when you switch zones
-  }, [timeState.isTimeModified, workspaceReferenceTimezone]);
+  }, [timeState.isTimeModified, workspaceReferenceTimezone?.timezone]);
 
   const handleTimeChange = useCallback((newTime: Date) => {
     setTimeState(prev => ({
@@ -325,37 +335,38 @@ function WorldClockContent() {
           : `${timezone.id}-${Date.now()}`,
       };
 
-      setTimeState(prev => ({
-        ...prev,
-        timezones: [...prev.timezones, uniqueTimezone],
-      }));
-
-      // Add to current workspace if one is active
+      // Only add to workspace - the useEffect will sync timeState automatically
       if (activeWorkspace) {
         addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone);
+      } else {
+        // Fallback for when no workspace is active
+        setTimeState(prev => ({
+          ...prev,
+          timezones: [...prev.timezones, uniqueTimezone],
+        }));
       }
     },
     [
-      workspaceReferenceTimezone,
-      activeWorkspace,
+      workspaceReferenceTimezone?.id,
+      activeWorkspace?.id,
       addTimezoneToWorkspace,
-      timeState.timezones,
     ]
   );
 
   const handleRemoveTimezone = useCallback(
     (timezoneId: string) => {
-      setTimeState(prev => ({
-        ...prev,
-        timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
-      }));
-
-      // Remove from current workspace
+      // Only remove from workspace - the useEffect will sync timeState automatically
       if (activeWorkspace) {
         removeTimezoneFromWorkspace(activeWorkspace.id, timezoneId);
+      } else {
+        // Fallback for when no workspace is active
+        setTimeState(prev => ({
+          ...prev,
+          timezones: prev.timezones.filter(tz => tz.id !== timezoneId),
+        }));
       }
     },
-    [activeWorkspace, removeTimezoneFromWorkspace]
+    [activeWorkspace?.id, removeTimezoneFromWorkspace]
   );
 
   const handleSetAsReference = useCallback(
@@ -365,13 +376,7 @@ function WorldClockContent() {
       // Move current reference to the timezone list if it exists
       const currentReference = workspaceReferenceTimezone;
 
-      // Remove the selected timezone from the list
-      setTimeState(prev => ({
-        ...prev,
-        timezones: prev.timezones.filter(tz => tz.id !== timezone.id),
-      }));
-
-      // Remove from workspace timezones
+      // Remove from workspace timezones first
       removeTimezoneFromWorkspace(activeWorkspace.id, timezone.id);
 
       // Convert the current selected time to the new reference timezone
