@@ -73,12 +73,13 @@ export function useUrlState() {
               const zonesData = JSON.parse(decodeURIComponent(zones));
               if (Array.isArray(zonesData)) {
                 timeState.timezones = zonesData.map((zone: any, index: number) => ({
-                  id: `shared-zone-${index}-${Date.now()}`,
+                  id: `shared-zone-${index}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                   city: zone.city,
                   country: zone.country,
                   timezone: zone.timezone,
                   offset: getTimezoneOffset(zone.timezone)
                 }));
+                console.log('Parsed timezones from URL:', timeState.timezones);
               }
             } catch (error) {
               console.error('Failed to parse zones:', error);

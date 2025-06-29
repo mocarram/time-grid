@@ -73,11 +73,26 @@ export default function WorldClock() {
 
   // Handle URL state loading
   useEffect(() => {
-    if (!urlState.isLoading && !hasLoadedFromUrl && (urlState.referenceTimezone || urlState.timeState || urlState.workspace)) {
+    if (!urlState.isLoading && !hasLoadedFromUrl && workspacesLoaded && (urlState.referenceTimezone || urlState.timeState || urlState.workspace)) {
       console.log('=== Loading URL state ===');
       console.log('URL reference timezone:', urlState.referenceTimezone);
       console.log('URL time state:', urlState.timeState);
       console.log('URL workspace:', urlState.workspace);
+      
+      let newWorkspaceId: string | null = null;
+      
+      // Handle workspace creation from URL FIRST
+      if (urlState.workspace) {
+        // Create a temporary workspace from the shared data
+        const sharedWorkspace = {
+          ...urlState.workspace,
+          name: `${urlState.workspace.name} (Shared)`,
+        };
+        
+        newWorkspaceId = addWorkspace(sharedWorkspace);
+        setActiveWorkspace(newWorkspaceId);
+        console.log('Created shared workspace:', newWorkspaceId);
+      }
       
       if (urlState.referenceTimezone) {
         setReferenceTimezone(urlState.referenceTimezone);
@@ -85,27 +100,26 @@ export default function WorldClock() {
       }
       
       if (urlState.timeState) {
-        setTimeState(prev => ({
-          ...prev,
-          ...urlState.timeState,
-        }));
-      }
-      
-      // Handle workspace creation from URL
-      if (urlState.workspace && workspacesLoaded) {
-        // Create a temporary workspace from the shared data
-        const sharedWorkspace = {
-          ...urlState.workspace,
-          name: `${urlState.workspace.name} (Shared)`,
-        };
-        
-        const newWorkspaceId = addWorkspace(sharedWorkspace);
-        setActiveWorkspace(newWorkspaceId);
+        setTimeState(prev => {
+          const newState = {
+            ...prev,
+            ...urlState.timeState,
+          };
+          
+          // If we have timezones and a new workspace, add them to the workspace
+          if (newWorkspaceId && newState.timezones) {
+            newState.timezones.forEach(timezone => {
+              addTimezoneToWorkspace(newWorkspaceId, timezone.id);
+            });
+          }
+          
+          return newState;
+        });
       }
       
       setHasLoadedFromUrl(true);
     }
-  }, [urlState, hasLoadedFromUrl, workspacesLoaded, addWorkspace, setActiveWorkspace]);
+  }, [urlState, hasLoadedFromUrl, workspacesLoaded, addWorkspace, setActiveWorkspace, addTimezoneToWorkspace]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -316,6 +330,7 @@ export default function WorldClock() {
     // Add to current workspace if one is active
     if (activeWorkspace) {
       addTimezoneToWorkspace(activeWorkspace.id, uniqueTimezone.id);
+      console.log('Added timezone to workspace:', activeWorkspace.id, uniqueTimezone.id);
     }
   }, [referenceTimezone, activeWorkspace, addTimezoneToWorkspace, timeState.timezones]);
 
