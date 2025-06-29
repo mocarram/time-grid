@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,6 +48,8 @@ export function AddTimezoneDialog({
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [activeTab, setActiveTab] = useState("cities");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const timezoneInputRef = useRef<HTMLInputElement>(null);
 
   const filteredTimezones = POPULAR_TIMEZONES.filter(
     tz =>
@@ -111,6 +113,37 @@ export function AddTimezoneDialog({
 
     return () => clearTimeout(timer);
   }, [searchQuery, searchCities, activeTab]);
+
+  // Focus the search input when the dialog opens
+  useEffect(() => {
+    if (open && searchInputRef.current) {
+      // Longer delay to ensure the dialog is fully rendered and accessible
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  // Additional focus attempt when the active tab changes to cities
+  useEffect(() => {
+    if (open && activeTab === "cities" && searchInputRef.current) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [open, activeTab]);
+
+  // Focus the timezone input when switching to abbreviations tab
+  useEffect(() => {
+    if (open && activeTab === "abbreviations" && timezoneInputRef.current) {
+      const timer = setTimeout(() => {
+        timezoneInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [open, activeTab]);
 
   const handleAddTimezone = (timezone: TimezoneData) => {
     const updatedTimezone = {
@@ -225,7 +258,9 @@ export function AddTimezoneDialog({
             </div>
 
             <Input
+              ref={activeTab === "cities" ? searchInputRef : timezoneInputRef}
               id='search'
+              autoFocus
               placeholder={
                 activeTab === "cities"
                   ? "Search for a city..."
