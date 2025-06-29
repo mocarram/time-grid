@@ -39,7 +39,12 @@ export function WorkspaceSelector({
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
 
   const handleCreateWorkspace = (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => {
-    onCreateWorkspace(workspace);
+    return onCreateWorkspace(workspace);
+  };
+  
+  const handleWorkspaceCreated = (workspaceId: string) => {
+    // Automatically switch to the newly created workspace
+    onWorkspaceChange(workspaceId);
     setCreateDialogOpen(false);
   };
 
@@ -147,6 +152,7 @@ export function WorkspaceSelector({
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onCreateWorkspace={handleCreateWorkspace}
+        onWorkspaceCreated={handleWorkspaceCreated}
       />
 
       <ManageWorkspacesDialog

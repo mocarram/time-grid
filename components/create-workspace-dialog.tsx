@@ -21,12 +21,14 @@ interface CreateWorkspaceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateWorkspace: (workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onWorkspaceCreated?: (workspaceId: string) => void;
 }
 
 export function CreateWorkspaceDialog({
   open,
   onOpenChange,
   onCreateWorkspace,
+  onWorkspaceCreated,
 }: CreateWorkspaceDialogProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -38,19 +40,29 @@ export function CreateWorkspaceDialog({
     
     if (!name.trim()) return;
     
-    onCreateWorkspace({
+    const newWorkspace = {
       name: name.trim(),
       description: description.trim() || undefined,
       color: selectedColor,
       icon: selectedIcon,
       timezones: [],
-    });
+    };
+    
+    const workspaceId = onCreateWorkspace(newWorkspace);
+    
+    // Notify parent that workspace was created so it can be selected
+    if (onWorkspaceCreated && workspaceId) {
+      onWorkspaceCreated(workspaceId);
+    }
     
     // Reset form
     setName('');
     setDescription('');
     setSelectedColor('blue');
     setSelectedIcon('Users');
+    
+    // Close dialog
+    onOpenChange(false);
   };
 
   const getIcon = (iconName: string) => {
