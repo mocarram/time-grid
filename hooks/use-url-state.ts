@@ -106,6 +106,7 @@ export function useUrlState() {
               ...parsedWorkspace,
               timezones: [], // Start with empty array, will be populated when timezones are added
             };
+            console.log('Parsed workspace data:', workspaceData);
           } catch (error) {
             console.error('Failed to parse workspace:', error);
           }
@@ -125,7 +126,7 @@ export function useUrlState() {
         setTimeout(() => {
           console.log('Cleaning up URL after shared state loaded');
           router.replace(window.location.pathname, { scroll: false });
-        }, 500); // Increased delay to ensure everything is saved
+        }, 1000); // Increased delay to ensure everything is saved
         
       } catch (error) {
         console.error('Failed to parse URL state:', error);

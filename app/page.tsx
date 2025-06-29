@@ -104,17 +104,28 @@ export default function WorldClock() {
       
       if (urlState.timeState) {
         setTimeState(prev => {
+          // Don't replace existing timezones, add the new ones to the existing list
+          const existingTimezones = prev.timezones || [];
+          const newTimezones = urlState.timeState?.timezones || [];
+          
           const newState = {
             ...prev,
             ...urlState.timeState,
+            // Combine existing timezones with new ones (avoid duplicates by ID)
+            timezones: [
+              ...existingTimezones,
+              ...newTimezones.filter(newTz => 
+                !existingTimezones.some(existingTz => existingTz.id === newTz.id)
+              )
+            ]
           };
           
           // If we have timezones and a new workspace, add them to the workspace
-          if (newWorkspaceId && newState.timezones && newState.timezones.length > 0) {
-            newState.timezones.forEach(timezone => {
+          if (newWorkspaceId && newTimezones && newTimezones.length > 0) {
+            newTimezones.forEach(timezone => {
               addTimezoneToWorkspace(newWorkspaceId!, timezone.id);
             });
-            console.log('Added timezones to shared workspace:', newWorkspaceId, newState.timezones.map(tz => tz.id));
+            console.log('Added timezones to shared workspace:', newWorkspaceId, newTimezones.map(tz => tz.id));
           }
           
           return newState;
@@ -275,6 +286,8 @@ export default function WorldClock() {
       // Small delay to ensure everything is processed
       const timer = setTimeout(() => {
         console.log('Force saving shared data to localStorage');
+        console.log('Current workspaces:', workspaces.map(ws => ({ id: ws.id, name: ws.name, timezones: ws.timezones })));
+        console.log('Current timeState.timezones:', timeState.timezones.map(tz => ({ id: tz.id, city: tz.city })));
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(timeState.timezones));
           if (hasUserSetReference === true) {
@@ -283,11 +296,11 @@ export default function WorldClock() {
         } catch (error) {
           console.error('Failed to force save to localStorage:', error);
         }
-      }, 1000);
+      }, 1500); // Increased delay to ensure workspace operations complete
       
       return () => clearTimeout(timer);
     }
-  }, [hasLoadedFromUrl, isLoaded, isMounted, timeState.timezones, referenceTimezone, hasUserSetReference]);
+  }, [hasLoadedFromUrl, isLoaded, isMounted, timeState.timezones, referenceTimezone, hasUserSetReference, workspaces]);
 
   useEffect(() => {
     const updateTime = () => {
