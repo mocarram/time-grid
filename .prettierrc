@@ -8,7 +8,6 @@
   "arrowParens": "avoid",
   "endOfLine": "lf",
   "quoteProps": "as-needed",
-  "jsxSingleQuote": true,
   "proseWrap": "preserve",
   "plugins": ["prettier-plugin-tailwindcss"]
 }
