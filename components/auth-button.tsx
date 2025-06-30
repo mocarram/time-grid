@@ -41,12 +41,12 @@ export function AuthButton({
   if (isLoading) {
     return (
       <Button
-        variant='ghost'
+        variant="ghost"
         disabled
-        className='glass-button h-12 gap-3 px-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10'
+        className="glass-button h-12 gap-3 px-4 transition-all duration-300 hover:border-white/20 hover:bg-white/10"
       >
-        <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
-        <span className='text-sm font-medium text-slate-400'>Loading...</span>
+        <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+        <span className="text-sm font-medium text-slate-400">Loading...</span>
       </Button>
     );
   }
@@ -60,45 +60,45 @@ export function AuthButton({
       syncStatus.length > 12 ? `${syncStatus.slice(0, 12)}...` : syncStatus;
 
     return (
-      <div className='flex items-center justify-between gap-2'>
-        <div className='glass-button flex h-12 min-w-0 items-center gap-3 px-4'>
-          <div className='flex-shrink-0 rounded-lg border border-green-500/30 bg-green-500/20 p-2'>
-            <UserCheck className='h-4 w-4 text-green-400' />
+      <div className="flex items-center justify-between gap-2">
+        <div className="glass-button flex h-12 min-w-0 items-center gap-3 px-4">
+          <div className="flex-shrink-0 rounded-lg border border-green-500/30 bg-green-500/20 p-2">
+            <UserCheck className="h-4 w-4 text-green-400" />
           </div>
-          <div className='flex min-w-0 flex-1 flex-col'>
-            <div className='truncate text-sm font-medium text-white'>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="truncate text-sm font-medium text-white">
               {displayName}
             </div>
-            <div className='truncate text-xs text-slate-400'>
+            <div className="truncate text-xs text-slate-400">
               {displaySyncStatus}
             </div>
           </div>
         </div>
 
-        <div className='flex gap-2'>
+        <div className="flex gap-2">
           {/* Save to Server Button */}
           <Button
-            variant='ghost'
-            size='sm'
+            variant="ghost"
+            size="sm"
             onClick={onSaveToServer}
             disabled={isAnySyncing}
-            className='glass-button h-12 gap-2 px-3 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20'
-            title='Save to cloud'
+            className="glass-button h-12 gap-2 px-3 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20"
+            title="Save to cloud"
           >
             {isSaving ? (
-              <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
+              <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
             ) : (
-              <Save className='h-4 w-4 text-blue-400' />
+              <Save className="h-4 w-4 text-blue-400" />
             )}
-            <span className='hidden text-sm font-medium text-white sm:inline'>
+            <span className="hidden text-sm font-medium text-white sm:inline">
               Save
             </span>
           </Button>
 
           {/* Load from Server Button */}
           <Button
-            variant='ghost'
-            size='sm'
+            variant="ghost"
+            size="sm"
             onClick={onLoadFromServer}
             disabled={isAnySyncing}
             className={`glass-button relative h-12 gap-2 px-3 transition-all duration-300 ${
@@ -114,30 +114,30 @@ export function AuthButton({
           >
             {/* Data indicator dot */}
             {hasServerData && (
-              <div className='absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full border-2 border-gray-900 bg-green-500'></div>
+              <div className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-gray-900 bg-green-700"></div>
             )}
             {isLoadingData ? (
-              <Loader2 className='h-4 w-4 animate-spin text-slate-400' />
+              <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
             ) : (
               <Download
                 className={`h-4 w-4 ${hasServerData ? "text-green-400" : "text-amber-400"}`}
               />
             )}
-            <span className='hidden text-sm font-medium text-white sm:inline'>
+            <span className="hidden text-sm font-medium text-white sm:inline">
               Load
             </span>
           </Button>
 
           {/* Logout Button */}
           <Button
-            variant='ghost'
-            size='sm'
+            variant="ghost"
+            size="sm"
             asChild
-            className='glass-button h-12 w-12 p-0 transition-all duration-300 hover:border-red-400/30 hover:bg-red-500/20'
-            title='Sign out'
+            className="glass-button h-12 w-12 p-0 transition-all duration-300 hover:border-red-400/30 hover:bg-red-500/20"
+            title="Sign out"
           >
             <LogoutLink>
-              <LogOut className='h-4 w-4 text-slate-400 group-hover:text-red-300' />
+              <LogOut className="h-4 w-4 text-slate-400 group-hover:text-red-300" />
             </LogoutLink>
           </Button>
         </div>
@@ -147,15 +147,15 @@ export function AuthButton({
 
   return (
     <>
-      <LoginLink className='glass-button group flex h-12 items-center gap-3 px-4 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20'>
-        <div className='rounded-lg border border-blue-500/30 bg-blue-500/20 p-2'>
-          <User className='h-4 w-4 text-blue-400' />
+      <LoginLink className="glass-button group flex h-12 items-center gap-3 px-4 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20">
+        <div className="rounded-lg border border-blue-500/30 bg-blue-500/20 p-2">
+          <User className="h-4 w-4 text-blue-400" />
         </div>
-        <div className='flex flex-col text-left'>
-          <div className='text-sm font-medium text-white transition-colors group-hover:text-blue-300'>
+        <div className="flex flex-col text-left">
+          <div className="text-sm font-medium text-white transition-colors group-hover:text-blue-300">
             Sign In
           </div>
-          <div className='text-xs text-slate-400'>Sync across devices</div>
+          <div className="text-xs text-slate-400">Sync across devices</div>
         </div>
       </LoginLink>
     </>

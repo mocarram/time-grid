@@ -72,57 +72,57 @@ export function TimeSelector({
   };
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          <Clock className='h-4 w-4 text-blue-400' />
-          <span className='text-sm font-medium text-slate-300'>Set Time</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-blue-400" />
+          <span className="text-sm font-medium text-slate-300">Set Time</span>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className="flex items-center gap-2">
           <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
-                variant='ghost'
-                size='sm'
-                className='glass-button group h-7 px-3 text-xs font-medium transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20'
-                title='Change date'
+                variant="ghost"
+                size="sm"
+                className="glass-button group h-7 px-3 text-xs font-medium transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20"
+                title="Change date"
               >
-                <CalendarIcon className='mr-1.5 h-3 w-3 text-blue-400 group-hover:text-blue-300' />
-                <span className='text-blue-300 group-hover:text-white'>
+                <CalendarIcon className="mr-1.5 h-3 w-3 text-blue-400 group-hover:text-blue-300" />
+                <span className="text-blue-300 group-hover:text-white">
                   {clientDateString || (
-                    <DynamicSkeleton className='h-3 w-16 bg-white/10' />
+                    <DynamicSkeleton className="h-3 w-16 bg-white/10" />
                   )}
                 </span>
-                <ChevronDown className='ml-1.5 h-3 w-3 text-blue-400 group-hover:text-blue-300' />
+                <ChevronDown className="ml-1.5 h-3 w-3 text-blue-400 group-hover:text-blue-300" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className='glass-card w-auto border-white/10 p-0'
-              align='end'
+              className="glass-card w-auto border-white/10 p-0"
+              align="end"
             >
               <Calendar
-                mode='single'
+                mode="single"
                 selected={selectedTime}
                 onSelect={handleDateChange}
                 initialFocus
-                className='text-white'
+                className="text-white"
               />
             </PopoverContent>
           </Popover>
         </div>
       </div>
 
-      <div className='space-y-3'>
-        <div className='px-1'>
+      <div className="space-y-3">
+        <div className="px-1">
           <Slider
             value={minutes}
             onValueChange={handleSliderChange}
             max={1439}
             min={0}
             step={15}
-            className='w-full [&_[role=slider]]:border-blue-400 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-blue-500/25'
+            className="w-full [&_[role=slider]]:border-blue-400 [&_[role=slider]]:bg-blue-500 [&_[role=slider]]:shadow-lg [&_[role=slider]]:shadow-blue-500/25"
           />
         </div>
-        <div className='flex justify-between px-1 text-xs text-slate-500'>
+        <div className="flex justify-between px-1 text-xs text-slate-500">
           <span>12:00 AM</span>
           <span>12:00 PM</span>
           <span>11:59 PM</span>

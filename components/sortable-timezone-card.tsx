@@ -44,9 +44,9 @@ export function SortableTimezoneCard({
     >
       {/* Show dashed placeholder when this item is being dragged */}
       {isDragging ? (
-        <div className='flex min-h-[200px] items-center justify-center rounded-2xl border-2 border-dashed border-blue-400/60 bg-blue-400/5 backdrop-blur-sm transition-all duration-200 ease-out'>
-          <div className='flex items-center gap-2 text-sm font-medium text-blue-400/60'>
-            <div className='h-2 w-2 animate-pulse rounded-full bg-blue-400/60' />
+        <div className="flex min-h-[200px] items-center justify-center rounded-2xl border-2 border-dashed border-blue-400/60 bg-blue-400/5 backdrop-blur-sm transition-all duration-200 ease-out">
+          <div className="flex items-center gap-2 text-sm font-medium text-blue-400/60">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-blue-400/60" />
             Moving {timezone.city}...
           </div>
         </div>

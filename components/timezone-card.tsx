@@ -80,16 +80,16 @@ export function TimezoneCard({
           : ""
       }`}
     >
-      <div className='flex flex-1 flex-col space-y-3'>
+      <div className="flex flex-1 flex-col space-y-3">
         {/* Header */}
-        <div className='flex items-start justify-between'>
-          <div className='space-y-2'>
-            <div className='flex items-center gap-2'>
-              <div className='flex items-center gap-2'>
+        <div className="flex items-start justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 {timezone.isAbbreviation ? (
-                  <Clock className='h-4 w-4 text-orange-400' />
+                  <Clock className="h-4 w-4 text-orange-400" />
                 ) : (
-                  <MapPin className='h-4 w-4 text-slate-400' />
+                  <MapPin className="h-4 w-4 text-slate-400" />
                 )}
                 <span
                   className={`text-base font-medium transition-colors duration-300 ${
@@ -104,14 +104,14 @@ export function TimezoneCard({
                       : timezone.city}
                 </span>
                 {timezone.isAbbreviation && !isReference && (
-                  <span className='rounded-full border border-orange-400/30 bg-orange-500/20 px-2 py-0.5 text-xs font-medium text-orange-300'>
+                  <span className="rounded-full border border-orange-400/30 bg-orange-500/20 px-2 py-0.5 text-xs font-medium text-orange-300">
                     TZ
                   </span>
                 )}
               </div>
             </div>
             {isReference && (
-              <div className='flex flex-wrap items-center gap-1.5'>
+              <div className="flex flex-wrap items-center gap-1.5">
                 <span
                   className={`rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium backdrop-blur-sm ${
                     timezone.isAbbreviation
@@ -123,27 +123,27 @@ export function TimezoneCard({
                 </span>
                 {clientTime ? (
                   <span
-                    className='cursor-help rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 font-mono text-xs font-medium text-blue-400/70 backdrop-blur-sm'
+                    className="cursor-help rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 font-mono text-xs font-medium text-blue-400/70 backdrop-blur-sm"
                     title={`${clientTime.timezoneInfo.description} (${offsetString})`}
                   >
                     {clientTime.timezoneInfo.abbreviation}
                   </span>
                 ) : (
-                  <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
+                  <Skeleton className="h-6 w-12 rounded-full bg-white/10" />
                 )}
                 {clientTime ? (
                   <>
-                    <span className='rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm'>
+                    <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm">
                       {clientTime.date}
                     </span>
-                    <span className='rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm'>
+                    <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm">
                       {clientTime.day}
                     </span>
                   </>
                 ) : (
                   <>
-                    <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
-                    <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
+                    <Skeleton className="h-6 w-16 rounded-full bg-white/10" />
+                    <Skeleton className="h-6 w-12 rounded-full bg-white/10" />
                   </>
                 )}
               </div>
@@ -151,10 +151,10 @@ export function TimezoneCard({
           </div>
 
           {/* Reference Badge and Action Buttons */}
-          <div className='flex items-center gap-2'>
+          <div className="flex items-center gap-2">
             {isReference && (
-              <div className='flex h-8 w-8 items-center justify-center rounded-full border border-blue-400/30 bg-blue-500/20 text-blue-300 transition-all duration-300 group-hover:bg-blue-500/30'>
-                <Home className='h-4 w-4' />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-blue-400/30 bg-blue-500/20 text-blue-300 transition-all duration-300 group-hover:bg-blue-500/30">
+                <Home className="h-4 w-4" />
               </div>
             )}
 
@@ -162,60 +162,60 @@ export function TimezoneCard({
               <>
                 {dragHandleProps && (
                   <Button
-                    variant='ghost'
-                    size='sm'
-                    className='glass-button h-8 w-8 cursor-grab touch-none select-none p-0 transition-all duration-300 hover:border-white/30 hover:bg-white/20 active:cursor-grabbing'
-                    title='Drag to reorder'
+                    variant="ghost"
+                    size="sm"
+                    className="glass-button h-8 w-8 cursor-grab touch-none select-none p-0 transition-all duration-300 hover:border-white/30 hover:bg-white/20 active:cursor-grabbing"
+                    title="Drag to reorder"
                     {...dragHandleProps}
                     onMouseDown={e => e.preventDefault()}
                     onTouchStart={e => e.preventDefault()}
                   >
-                    <GripVertical className='pointer-events-none h-3.5 w-3.5 select-none text-slate-400 group-hover:text-white' />
+                    <GripVertical className="pointer-events-none h-3.5 w-3.5 select-none text-slate-400 group-hover:text-white" />
                   </Button>
                 )}
                 {onSetAsReference && (
                   <Button
-                    variant='ghost'
-                    size='sm'
+                    variant="ghost"
+                    size="sm"
                     onClick={onSetAsReference}
-                    className='glass-button group h-8 w-8 p-0 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20'
-                    title='Set as reference timezone'
+                    className="glass-button group h-8 w-8 p-0 transition-all duration-300 hover:border-blue-400/30 hover:bg-blue-500/20"
+                    title="Set as reference timezone"
                   >
-                    <Home className='h-3.5 w-3.5 text-slate-400 group-hover:text-blue-300' />
+                    <Home className="h-3.5 w-3.5 text-slate-400 group-hover:text-blue-300" />
                   </Button>
                 )}
                 {onRemove && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
-                        variant='ghost'
-                        size='sm'
-                        className='glass-button group h-8 w-8 p-0 transition-all duration-300 hover:border-red-400/30 hover:bg-red-500/20'
-                        title='Remove timezone'
+                        variant="ghost"
+                        size="sm"
+                        className="glass-button group h-8 w-8 p-0 transition-all duration-300 hover:border-red-400/30 hover:bg-red-500/20"
+                        title="Remove timezone"
                       >
-                        <X className='h-3.5 w-3.5 text-slate-400 group-hover:text-red-300' />
+                        <X className="h-3.5 w-3.5 text-slate-400 group-hover:text-red-300" />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className='glass-card border-white/10 text-white'>
+                    <AlertDialogContent className="glass-card border-white/10 text-white">
                       <AlertDialogHeader>
-                        <AlertDialogTitle className='text-white'>
+                        <AlertDialogTitle className="text-white">
                           Remove Timezone
                         </AlertDialogTitle>
-                        <AlertDialogDescription className='text-slate-300'>
+                        <AlertDialogDescription className="text-slate-300">
                           Are you sure you want to remove{" "}
-                          <span className='font-medium text-white'>
+                          <span className="font-medium text-white">
                             {timezone.city}, {timezone.country}
                           </span>{" "}
                           from your world clock?
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className='glass-button border-white/20 text-slate-300 hover:bg-white/10 hover:text-white'>
+                        <AlertDialogCancel className="glass-button border-white/20 text-slate-300 hover:bg-white/10 hover:text-white">
                           Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
                           onClick={onRemove}
-                          className='border-red-400/30 bg-red-500/20 text-red-300 hover:border-red-400/50 hover:bg-red-500/30 hover:text-red-200'
+                          className="border-red-400/30 bg-red-500/20 text-red-300 hover:border-red-400/50 hover:bg-red-500/30 hover:text-red-200"
                         >
                           Remove
                         </AlertDialogAction>
@@ -235,7 +235,7 @@ export function TimezoneCard({
               isDragging ? "text-blue-200" : ""
             }`}
           >
-            {clientTime?.time || <Skeleton className='h-12 w-28 bg-white/10' />}
+            {clientTime?.time || <Skeleton className="h-12 w-28 bg-white/10" />}
           </div>
         </div>
 
@@ -255,27 +255,27 @@ export function TimezoneCard({
             </span>
             {clientTime ? (
               <span
-                className='cursor-help rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 font-mono text-xs font-medium text-blue-400/70 backdrop-blur-sm'
+                className="cursor-help rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 font-mono text-xs font-medium text-blue-400/70 backdrop-blur-sm"
                 title={`${clientTime.timezoneInfo.description} (${offsetString})`}
               >
                 {clientTime.timezoneInfo.abbreviation}
               </span>
             ) : (
-              <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
+              <Skeleton className="h-6 w-12 rounded-full bg-white/10" />
             )}
             {clientTime ? (
               <>
-                <span className='rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm'>
+                <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm">
                   {clientTime.date}
                 </span>
-                <span className='rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm'>
+                <span className="rounded-full border border-white/[0.06] bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400 backdrop-blur-sm">
                   {clientTime.day}
                 </span>
               </>
             ) : (
               <>
-                <Skeleton className='h-6 w-16 rounded-full bg-white/10' />
-                <Skeleton className='h-6 w-12 rounded-full bg-white/10' />
+                <Skeleton className="h-6 w-16 rounded-full bg-white/10" />
+                <Skeleton className="h-6 w-12 rounded-full bg-white/10" />
               </>
             )}
           </div>

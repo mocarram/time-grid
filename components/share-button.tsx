@@ -37,21 +37,21 @@ export function ShareButton({ onShare }: ShareButtonProps) {
         <TooltipTrigger asChild>
           <Button
             onClick={handleShare}
-            className='glass-button hover:glow group h-14 w-14 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-green-500/25'
-            title='Share current view'
+            className="glass-button hover:glow group h-14 w-14 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-green-500/25"
+            title="Share current view"
           >
             {copied ? (
-              <Check className='h-6 w-6 text-green-300 transition-colors duration-300 group-hover:text-white' />
+              <Check className="h-6 w-6 text-green-300 transition-colors duration-300 group-hover:text-white" />
             ) : (
-              <Share2 className='h-6 w-6 text-green-300 transition-colors duration-300 group-hover:rotate-12 group-hover:text-white' />
+              <Share2 className="h-6 w-6 text-green-300 transition-colors duration-300 group-hover:rotate-12 group-hover:text-white" />
             )}
           </Button>
         </TooltipTrigger>
         <TooltipContent
-          side='left'
-          className='glass-card border-white/10 bg-slate-900/90 text-white backdrop-blur-xl'
+          side="left"
+          className="glass-card border-white/10 bg-slate-900/90 text-white backdrop-blur-xl"
         >
-          <p className='text-sm font-medium'>
+          <p className="text-sm font-medium">
             {copied ? "Link copied!" : "Share current view"}
           </p>
         </TooltipContent>

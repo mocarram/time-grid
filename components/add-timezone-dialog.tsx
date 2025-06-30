@@ -218,48 +218,48 @@ export function AddTimezoneDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className='glass-button hover:glow group h-14 w-14 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-blue-500/25'>
-          <Plus className='h-6 w-6 text-blue-300 transition-colors duration-300 group-hover:rotate-90 group-hover:text-white' />
+        <Button className="glass-button hover:glow group h-14 w-14 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-blue-500/25">
+          <Plus className="h-6 w-6 text-blue-300 transition-colors duration-300 group-hover:rotate-90 group-hover:text-white" />
         </Button>
       </DialogTrigger>
-      <DialogContent className='glass-card border-white/10 text-white sm:max-w-lg'>
+      <DialogContent className="glass-card border-white/10 text-white sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2 text-xl font-light'>
-            <Globe className='h-5 w-5 text-blue-400' />
+          <DialogTitle className="flex items-center gap-2 text-xl font-light">
+            <Globe className="h-5 w-5 text-blue-400" />
             Add Timezone
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-          <TabsList className='glass grid w-full grid-cols-2 border border-white/10 bg-white/5'>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="glass grid w-full grid-cols-2 border border-white/10 bg-white/5">
             <TabsTrigger
-              value='cities'
-              className='text-slate-400 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300'
+              value="cities"
+              className="text-slate-400 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300"
             >
-              <MapPin className='mr-2 h-4 w-4' />
+              <MapPin className="mr-2 h-4 w-4" />
               Cities
             </TabsTrigger>
             <TabsTrigger
-              value='abbreviations'
-              className='text-slate-400 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300'
+              value="abbreviations"
+              className="text-slate-400 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300"
             >
-              <Clock className='mr-2 h-4 w-4' />
+              <Clock className="mr-2 h-4 w-4" />
               Time Zones
             </TabsTrigger>
           </TabsList>
 
-          <div className='relative mt-4'>
-            <div className='absolute left-4 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center'>
+          <div className="relative mt-4">
+            <div className="absolute left-4 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center">
               {isSearching && activeTab === "cities" ? (
-                <Loader2 className='h-4 w-4 origin-center animate-spin text-blue-400' />
+                <Loader2 className="h-4 w-4 origin-center animate-spin text-blue-400" />
               ) : (
-                <Search className='h-4 w-4 text-slate-400' />
+                <Search className="h-4 w-4 text-slate-400" />
               )}
             </div>
 
             <Input
               ref={activeTab === "cities" ? searchInputRef : timezoneInputRef}
-              id='search'
+              id="search"
               autoFocus
               placeholder={
                 activeTab === "cities"
@@ -268,17 +268,17 @@ export function AddTimezoneDialog({
               }
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className='glass-input h-12 rounded-xl pl-12 text-white placeholder:text-slate-500'
+              className="glass-input h-12 rounded-xl pl-12 text-white placeholder:text-slate-500"
             />
           </div>
 
-          <TabsContent value='cities' className='mt-4'>
-            <div className='scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent h-60 space-y-3 overflow-y-auto sm:h-80'>
+          <TabsContent value="cities" className="mt-4">
+            <div className="scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent h-60 space-y-3 overflow-y-auto sm:h-80">
               {/* Search Results */}
               {showResults && searchResults.length > 0 && (
                 <>
-                  <div className='mb-3 flex items-center gap-2 text-sm text-slate-400'>
-                    <MapPin className='h-4 w-4' />
+                  <div className="mb-3 flex items-center gap-2 text-sm text-slate-400">
+                    <MapPin className="h-4 w-4" />
                     <span>Search Results</span>
                   </div>
                   {searchResults.map(city => (
@@ -298,8 +298,8 @@ export function AddTimezoneDialog({
                       }`}
                       onClick={() => handleAddSearchResult(city)}
                     >
-                      <div className='flex items-center justify-between'>
-                        <div className='space-y-1'>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
                           <div
                             className={`font-medium transition-colors ${
                               existingTimezones.some(
@@ -353,9 +353,9 @@ export function AddTimezoneDialog({
                     </div>
                   ))}
                   {filteredTimezones.length > 0 && (
-                    <div className='mt-6 border-t border-white/10 pt-4'>
-                      <div className='mb-3 flex items-center gap-2 text-sm text-slate-400'>
-                        <Globe className='h-4 w-4' />
+                    <div className="mt-6 border-t border-white/10 pt-4">
+                      <div className="mb-3 flex items-center gap-2 text-sm text-slate-400">
+                        <Globe className="h-4 w-4" />
                         Popular Cities
                       </div>
                     </div>
@@ -367,23 +367,23 @@ export function AddTimezoneDialog({
               {(!showResults || searchResults.length === 0) &&
               filteredTimezones.length === 0 ? (
                 searchQuery && isSearching ? (
-                  <div className='space-y-3'>
+                  <div className="space-y-3">
                     {[...Array(3)].map((_, i) => (
-                      <div key={i} className='glass rounded-xl p-4'>
-                        <div className='flex items-center justify-between'>
-                          <div className='flex-1 space-y-2'>
-                            <Skeleton className='h-4 w-24 bg-white/10' />
-                            <Skeleton className='h-3 w-16 bg-white/10' />
+                      <div key={i} className="glass rounded-xl p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 space-y-2">
+                            <Skeleton className="h-4 w-24 bg-white/10" />
+                            <Skeleton className="h-3 w-16 bg-white/10" />
                           </div>
-                          <Skeleton className='h-6 w-12 bg-white/10' />
+                          <Skeleton className="h-6 w-12 bg-white/10" />
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className='py-8 text-center'>
-                    <Globe className='mx-auto mb-3 h-12 w-12 text-slate-600' />
-                    <p className='font-light text-slate-400'>
+                  <div className="py-8 text-center">
+                    <Globe className="mx-auto mb-3 h-12 w-12 text-slate-600" />
+                    <p className="font-light text-slate-400">
                       {searchQuery
                         ? "No cities found. Try a different search term."
                         : "All popular cities added"}
@@ -395,19 +395,19 @@ export function AddTimezoneDialog({
                 filteredTimezones.map(timezone => (
                   <div
                     key={timezone.id}
-                    className='glass group cursor-pointer rounded-xl p-4 transition-all duration-300 hover:bg-white/10'
+                    className="glass group cursor-pointer rounded-xl p-4 transition-all duration-300 hover:bg-white/10"
                     onClick={() => handleAddTimezone(timezone)}
                   >
-                    <div className='flex items-center justify-between'>
-                      <div className='space-y-1'>
-                        <div className='font-medium text-white transition-colors group-hover:text-blue-300'>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="font-medium text-white transition-colors group-hover:text-blue-300">
                           {timezone.city}
                         </div>
-                        <div className='text-sm text-slate-400'>
+                        <div className="text-sm text-slate-400">
                           {timezone.country}
                         </div>
                       </div>
-                      <div className='rounded-lg bg-white/5 px-2 py-1 font-mono text-xs text-slate-500'>
+                      <div className="rounded-lg bg-white/5 px-2 py-1 font-mono text-xs text-slate-500">
                         GMT{timezone.offset >= 0 ? "+" : ""}
                         {Math.floor(timezone.offset / 60)}
                         {timezone.offset % 60 !== 0
@@ -422,20 +422,20 @@ export function AddTimezoneDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value='abbreviations' className='mt-4'>
-            <div className='scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent h-60 space-y-3 overflow-y-auto sm:h-80'>
+          <TabsContent value="abbreviations" className="mt-4">
+            <div className="scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent h-60 space-y-3 overflow-y-auto sm:h-80">
               {filteredAbbreviations.length === 0 ? (
                 searchQuery ? (
-                  <div className='py-8 text-center'>
-                    <Clock className='mx-auto mb-3 h-12 w-12 text-slate-600' />
-                    <p className='font-light text-slate-400'>
+                  <div className="py-8 text-center">
+                    <Clock className="mx-auto mb-3 h-12 w-12 text-slate-600" />
+                    <p className="font-light text-slate-400">
                       No time zones found. Try searching for PST, EST, GMT, etc.
                     </p>
                   </div>
                 ) : (
-                  <div className='py-8 text-center'>
-                    <Clock className='mx-auto mb-3 h-12 w-12 text-slate-600' />
-                    <p className='font-light text-slate-400'>
+                  <div className="py-8 text-center">
+                    <Clock className="mx-auto mb-3 h-12 w-12 text-slate-600" />
+                    <p className="font-light text-slate-400">
                       All common time zones added
                     </p>
                   </div>
@@ -444,29 +444,29 @@ export function AddTimezoneDialog({
                 filteredAbbreviations.map(abbr => (
                   <div
                     key={abbr.id}
-                    className='glass group cursor-pointer rounded-xl border-l-4 border-l-orange-400/50 p-4 transition-all duration-300 hover:bg-white/10'
+                    className="glass group cursor-pointer rounded-xl border-l-4 border-l-orange-400/50 p-4 transition-all duration-300 hover:bg-white/10"
                     onClick={() => handleAddAbbreviation(abbr)}
                   >
-                    <div className='flex items-center justify-between'>
-                      <div className='space-y-1'>
-                        <div className='flex items-center gap-3'>
-                          <div className='font-mono text-lg font-bold text-orange-300 transition-colors group-hover:text-orange-200'>
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                          <div className="font-mono text-lg font-bold text-orange-300 transition-colors group-hover:text-orange-200">
                             {abbr.abbreviation}
                           </div>
                           {abbr.isDST && (
-                            <span className='rounded-full border border-yellow-400/30 bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-300'>
+                            <span className="rounded-full border border-yellow-400/30 bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-300">
                               DST
                             </span>
                           )}
                         </div>
-                        <div className='text-sm font-medium text-white transition-colors group-hover:text-blue-300'>
+                        <div className="text-sm font-medium text-white transition-colors group-hover:text-blue-300">
                           {abbr.name}
                         </div>
-                        <div className='text-sm text-slate-400'>
+                        <div className="text-sm text-slate-400">
                           {abbr.region}
                         </div>
                       </div>
-                      <div className='rounded-lg bg-white/5 px-2 py-1 font-mono text-xs text-slate-500'>
+                      <div className="rounded-lg bg-white/5 px-2 py-1 font-mono text-xs text-slate-500">
                         GMT{getTimezoneOffset(abbr.timezone) >= 0 ? "+" : ""}
                         {Math.floor(getTimezoneOffset(abbr.timezone) / 60)}
                         {getTimezoneOffset(abbr.timezone) % 60 !== 0

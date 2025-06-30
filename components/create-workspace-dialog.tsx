@@ -74,58 +74,58 @@ export function CreateWorkspaceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='glass-card border-white/10 text-white sm:max-w-md'>
+      <DialogContent className="glass-card border-white/10 text-white sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2 text-xl font-light'>
-            <Plus className='h-5 w-5 text-green-400' />
+          <DialogTitle className="flex items-center gap-2 text-xl font-light">
+            <Plus className="h-5 w-5 text-green-400" />
             Create Workspace
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='space-y-6'>
-          <div className='space-y-2'>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
             <Label
-              htmlFor='name'
-              className='text-sm font-medium text-slate-300'
+              htmlFor="name"
+              className="text-sm font-medium text-slate-300"
             >
               Workspace Name
             </Label>
             <Input
-              id='name'
+              id="name"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder='e.g., Company Team, Family, Travel'
-              className='glass-input text-white placeholder:text-slate-500'
+              placeholder="e.g., Company Team, Family, Travel"
+              className="glass-input text-white placeholder:text-slate-500"
               required
             />
           </div>
 
-          <div className='space-y-2'>
+          <div className="space-y-2">
             <Label
-              htmlFor='description'
-              className='text-sm font-medium text-slate-300'
+              htmlFor="description"
+              className="text-sm font-medium text-slate-300"
             >
               Description (Optional)
             </Label>
             <Textarea
-              id='description'
+              id="description"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              placeholder='Brief description of this workspace...'
-              className='glass-input resize-none text-white placeholder:text-slate-500'
+              placeholder="Brief description of this workspace..."
+              className="glass-input resize-none text-white placeholder:text-slate-500"
               rows={2}
             />
           </div>
 
-          <div className='space-y-3'>
-            <Label className='text-sm font-medium text-slate-300'>
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-slate-300">
               Color Theme
             </Label>
-            <div className='grid grid-cols-4 gap-2'>
+            <div className="grid grid-cols-4 gap-2">
               {WORKSPACE_COLORS.map(color => (
                 <button
                   key={color.value}
-                  type='button'
+                  type="button"
                   onClick={() => setSelectedColor(color.value)}
                   className={`rounded-lg border p-3 transition-all duration-200 ${color.bg} ${color.border} ${
                     selectedColor === color.value
@@ -133,7 +133,7 @@ export function CreateWorkspaceDialog({
                       : "hover:scale-105"
                   }`}
                 >
-                  <div className='flex items-center justify-center'>
+                  <div className="flex items-center justify-center">
                     {selectedColor === color.value && (
                       <Check className={`h-4 w-4 ${color.text}`} />
                     )}
@@ -143,9 +143,9 @@ export function CreateWorkspaceDialog({
             </div>
           </div>
 
-          <div className='space-y-3'>
-            <Label className='text-sm font-medium text-slate-300'>Icon</Label>
-            <div className='scrollbar-thin grid max-h-32 grid-cols-8 gap-2 overflow-y-auto p-2'>
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-slate-300">Icon</Label>
+            <div className="scrollbar-thin grid max-h-32 grid-cols-8 gap-2 overflow-y-auto p-2">
               {WORKSPACE_ICONS.map(iconName => {
                 const Icon = getIcon(iconName);
                 const color = WORKSPACE_COLORS.find(
@@ -155,7 +155,7 @@ export function CreateWorkspaceDialog({
                 return (
                   <button
                     key={iconName}
-                    type='button'
+                    type="button"
                     onClick={() => setSelectedIcon(iconName)}
                     className={`flex items-center justify-center rounded-lg border p-2 transition-all duration-200 ${
                       selectedIcon === iconName
@@ -176,19 +176,19 @@ export function CreateWorkspaceDialog({
             </div>
           </div>
 
-          <div className='flex items-center gap-3 pt-4'>
+          <div className="flex items-center gap-3 pt-4">
             <Button
-              type='button'
-              variant='ghost'
+              type="button"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
-              className='glass-button flex-1 hover:bg-white/10'
+              className="glass-button flex-1 hover:bg-white/10"
             >
               Cancel
             </Button>
             <Button
-              type='submit'
+              type="submit"
               disabled={!name.trim()}
-              className='flex-1 border-green-400/30 bg-green-500/20 text-green-300 hover:border-green-400/50 hover:bg-green-500/30 hover:text-green-200 disabled:cursor-not-allowed disabled:opacity-50'
+              className="flex-1 border-green-400/30 bg-green-500/20 text-green-300 hover:border-green-400/50 hover:bg-green-500/30 hover:text-green-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Create Workspace
             </Button>
