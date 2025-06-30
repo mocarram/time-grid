@@ -25,7 +25,7 @@ const TimeGridSkeleton = () => {
                   TimeGrid
                 </h1>
                 <div className="absolute -right-12 -top-1 rounded-full border border-slate-600/40 bg-slate-700/20 px-2 py-1 text-[10px] font-medium text-slate-400">
-                  BETA
+                  v0.1.0
                 </div>
               </div>
             </div>
@@ -57,25 +57,25 @@ const TimeGridSkeleton = () => {
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-slate-400" />
-                        <Skeleton className="h-6 w-24 bg-white/10" />
+                        <Skeleton className="h-4 w-24 bg-white/10" />
                       </div>
-                      <span className="rounded-full border border-blue-400/30 bg-blue-500/20 px-3 py-1 text-xs font-medium text-blue-300">
-                        Reference
-                      </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-slate-400">
                       <Skeleton className="h-4 w-16 bg-white/10" />
-                      <Skeleton className="h-4 w-12 bg-white/10" />
-                      <span>•</span>
                       <Skeleton className="h-4 w-16 bg-white/10" />
-                      <Skeleton className="h-3 w-12 bg-white/10" />
+                      <Skeleton className="h-4 w-16 bg-white/10" />
+                      <Skeleton className="h-4 w-16 bg-white/10" />
                     </div>
+                  </div>
+
+                  <div>
+                    <Skeleton className="h-6 w-6 bg-white/10" />
                   </div>
                 </div>
 
                 {/* Time Display Skeleton */}
                 <div className="space-y-2">
-                  <Skeleton className="h-16 w-32 bg-white/10" />
+                  <Skeleton className="h-10 w-32 bg-white/10" />
                 </div>
 
                 {/* Time Selector Skeleton */}
@@ -84,15 +84,15 @@ const TimeGridSkeleton = () => {
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-blue-400" />
                       <span className="text-sm font-medium text-slate-300">
-                        Reference Time
+                        Set Time
                       </span>
                     </div>
-                    <Skeleton className="h-6 w-16 rounded-lg bg-white/10" />
+                    <Skeleton className="h-4 w-16 rounded-lg bg-white/10" />
                   </div>
 
                   <div className="space-y-3">
                     <div className="px-1">
-                      <Skeleton className="h-6 w-full rounded-full bg-white/10" />
+                      <Skeleton className="h-4 w-full rounded-full bg-white/10" />
                     </div>
                     <div className="flex justify-between px-1 text-xs text-slate-500">
                       <span>12:00 AM</span>
