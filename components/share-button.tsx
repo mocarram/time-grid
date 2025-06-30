@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Share2, Check, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 interface ShareButtonProps {
   onShare: () => string;
@@ -23,9 +24,19 @@ export function ShareButton({ onShare }: ShareButtonProps) {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
+      toast.success("Share link copied!", {
+        description: "The link has been copied to your clipboard.",
+        action: {
+          label: "Open",
+          onClick: () => window.open(shareUrl, "_blank"),
+        },
+      });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
+      toast.error("Failed to copy link", {
+        description: "Please copy the URL manually from the prompt.",
+      });
       // Fallback: show the URL in a prompt
       prompt("Copy this URL to share:", shareUrl);
     }

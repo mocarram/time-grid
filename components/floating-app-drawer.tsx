@@ -15,6 +15,7 @@ import {
   Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface FloatingAppDrawerProps {
   className?: string;
@@ -54,7 +55,9 @@ export function FloatingAppDrawer({
       label: "Settings",
       icon: <Settings className="h-5 w-5" />,
       onClick: () => {
-        console.log("Settings clicked");
+        toast.info("Settings panel coming soon!", {
+          description: "We're working on advanced configuration options.",
+        });
         setIsOpen(false);
       },
       iconColor: "text-slate-300 group-hover:text-white",
@@ -64,7 +67,9 @@ export function FloatingAppDrawer({
       label: "Theme",
       icon: <Palette className="h-5 w-5" />,
       onClick: () => {
-        console.log("Theme clicked");
+        toast.info("Theme customization coming soon!", {
+          description: "Light and dark modes are in development.",
+        });
         setIsOpen(false);
       },
       iconColor: "text-purple-300 group-hover:text-white",
@@ -74,7 +79,10 @@ export function FloatingAppDrawer({
       label: "Export",
       icon: <Download className="h-5 w-5" />,
       onClick: () => {
-        console.log("Export clicked");
+        toast.info("Export feature coming soon!", {
+          description:
+            "Save your timezone configurations to share with others.",
+        });
         setIsOpen(false);
       },
       iconColor: "text-cyan-300 group-hover:text-white",
@@ -84,7 +92,11 @@ export function FloatingAppDrawer({
       label: "Help",
       icon: <HelpCircle className="h-5 w-5" />,
       onClick: () => {
-        console.log("Help clicked");
+        toast.success("Welcome to TimeGrid!", {
+          description:
+            "Click '+' to add timezones, drag to reorder them, and use the share button to share your view.",
+          duration: 5000,
+        });
         setIsOpen(false);
       },
       iconColor: "text-yellow-300 group-hover:text-white",

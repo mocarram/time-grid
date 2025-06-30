@@ -44,6 +44,7 @@ import { toZonedTime } from "date-fns-tz";
 import TimeGridSkeleton from "@/components/loader/TimeGridSkeleton";
 import Footer from "@/components/footer/Footer";
 import Header from "@/components/header/Header";
+import { toast } from "sonner";
 
 function WorldClockContent() {
   const {
@@ -736,11 +737,22 @@ function WorldClockContent() {
               navigator.clipboard
                 .writeText(shareUrl)
                 .then(() => {
-                  console.log("URL copied to clipboard");
+                  toast.success("Share link copied!", {
+                    description: "The link has been copied to your clipboard.",
+                  });
                 })
                 .catch(() => {
-                  console.log("Failed to copy URL");
+                  toast.error("Failed to copy link", {
+                    description:
+                      "Please copy the URL manually from the prompt.",
+                  });
+                  // Fallback: show the URL in a prompt
+                  prompt("Copy this URL to share:", shareUrl);
                 });
+            } else {
+              toast.error("Cannot generate share link", {
+                description: "Please add at least one timezone first.",
+              });
             }
           }}
         />

@@ -21,6 +21,7 @@ import {
   getTimezoneDisplayName,
 } from "@/lib/timezone-utils";
 import type { TimezoneData } from "@/types/timezone";
+import { toast } from "sonner";
 
 interface CitySearchResult {
   id: string;
@@ -151,6 +152,9 @@ export function AddTimezoneDialog({
       offset: getTimezoneOffset(timezone.timezone),
     };
     onAddTimezone(updatedTimezone);
+    toast.success("Timezone added!", {
+      description: `${timezone.city}, ${timezone.country} has been added to your grid.`,
+    });
     setOpen(false);
     setSearchQuery("");
   };
@@ -168,6 +172,9 @@ export function AddTimezoneDialog({
     };
 
     onAddTimezone(newTimezone);
+    toast.success("Timezone added!", {
+      description: `${abbr.abbreviation} (${abbr.region}) has been added to your grid.`,
+    });
     setOpen(false);
     setSearchQuery("");
   };
@@ -182,7 +189,9 @@ export function AddTimezoneDialog({
     );
 
     if (isDuplicate) {
-      console.log("City already exists, not adding:", city.city, city.country);
+      toast.warning("Timezone already exists", {
+        description: `${city.city}, ${city.country} is already in your grid.`,
+      });
       return;
     }
 
@@ -203,6 +212,9 @@ export function AddTimezoneDialog({
         };
 
         onAddTimezone(newTimezone);
+        toast.success("Timezone added!", {
+          description: `${city.city}, ${city.country} has been added to your grid.`,
+        });
         setOpen(false);
         setSearchQuery("");
         setSearchResults([]);
@@ -210,6 +222,10 @@ export function AddTimezoneDialog({
       }
     } catch (error) {
       console.error("Failed to add city:", error);
+      toast.error("Failed to add timezone", {
+        description:
+          "There was an error adding this location. Please try again.",
+      });
     } finally {
       setIsSearching(false);
     }
