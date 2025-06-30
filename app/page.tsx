@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { TimeSelector } from "@/components/time-selector";
 import { AddTimezoneDialog } from "@/components/add-timezone-dialog";
 import { ShareButton } from "@/components/share-button";
+import { FloatingAppDrawer } from "@/components/floating-app-drawer";
 import { useIpTimezone } from "@/hooks/use-ip-timezone";
 import { useUrlState } from "@/hooks/use-url-state";
 import { useAuthSync } from "@/hooks/use-auth-sync";
@@ -720,55 +721,39 @@ function WorldClockContent() {
       {/* Simple Footer */}
       <Footer />
 
-      {/* Floating Add Timezone Button */}
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4 sm:flex-col md:flex-col lg:flex-col">
-        {/* Mobile: Horizontal layout */}
-        <div className="flex flex-row gap-4 sm:hidden">
-          <ShareButton
-            onShare={() =>
-              workspaceReferenceTimezone
-                ? generateShareUrl(
-                    workspaceReferenceTimezone,
-                    timeState,
-                    activeWorkspace,
-                    displayedTimezones
-                  )
-                : ""
+      {/* Floating Buttons */}
+      <div className="fixed bottom-8 right-8 z-50 flex flex-row gap-4 sm:flex-col sm:gap-4">
+        {/* App Drawer for additional options */}
+        <FloatingAppDrawer
+          onShare={() => {
+            if (workspaceReferenceTimezone) {
+              const shareUrl = generateShareUrl(
+                workspaceReferenceTimezone,
+                timeState,
+                activeWorkspace,
+                displayedTimezones
+              );
+              navigator.clipboard
+                .writeText(shareUrl)
+                .then(() => {
+                  console.log("URL copied to clipboard");
+                })
+                .catch(() => {
+                  console.log("Failed to copy URL");
+                });
             }
-          />
-          <AddTimezoneDialog
-            onAddTimezone={handleAddTimezone}
-            existingTimezones={
-              workspaceReferenceTimezone
-                ? [workspaceReferenceTimezone, ...displayedTimezones]
-                : displayedTimezones
-            }
-          />
-        </div>
+          }}
+        />
 
-        {/* Desktop: Vertical layout */}
-        <div className="hidden sm:flex sm:flex-col sm:gap-4">
-          <ShareButton
-            onShare={() =>
-              workspaceReferenceTimezone
-                ? generateShareUrl(
-                    workspaceReferenceTimezone,
-                    timeState,
-                    activeWorkspace,
-                    displayedTimezones
-                  )
-                : ""
-            }
-          />
-          <AddTimezoneDialog
-            onAddTimezone={handleAddTimezone}
-            existingTimezones={
-              workspaceReferenceTimezone
-                ? [workspaceReferenceTimezone, ...displayedTimezones]
-                : displayedTimezones
-            }
-          />
-        </div>
+        {/* Add Timezone Button - separate for easy access */}
+        <AddTimezoneDialog
+          onAddTimezone={handleAddTimezone}
+          existingTimezones={
+            workspaceReferenceTimezone
+              ? [workspaceReferenceTimezone, ...displayedTimezones]
+              : displayedTimezones
+          }
+        />
       </div>
     </div>
   );
