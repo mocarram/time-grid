@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useWorkspaces } from "@/hooks/use-workspaces";
 import {
   DndContext,
@@ -102,6 +102,7 @@ function WorldClockContent() {
   const [hasLoadedFromUrl, setHasLoadedFromUrl] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get workspace-specific data
   const workspaceTimezones = activeWorkspace?.timezones || [];
@@ -230,6 +231,14 @@ function WorldClockContent() {
   // Set client flag after component mounts
   useEffect(() => {
     setIsMounted(true);
+
+    // Cleanup interval on unmount
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, []);
 
   // Auto-detect reference timezone for new workspaces that don't have one
@@ -262,31 +271,85 @@ function WorldClockContent() {
     setWorkspaceReferenceTimezone,
   ]);
 
+  // Timer effect for updating time every minute
   useEffect(() => {
-    const updateTime = () => {
-      if (!timeState.isTimeModified) {
-        // grab the current instant…
-        const now = new Date();
+    // Only run timer when time is NOT manually modified
+    if (timeState.isTimeModified) {
+      console.log("Time is manually modified, not starting timer");
+      return;
+    }
 
-        // …and re-interpret it in your reference zone
-        const referenceTime = toZonedTime(
-          now,
-          workspaceReferenceTimezone.timezone
-        );
+    console.log("Setting up timer effect for live time updates");
 
-        setTimeState(prev => ({
-          ...prev,
-          referenceTime,
-          selectedTime: referenceTime,
-        }));
+    const tick = () => {
+      console.log("Timer tick at", new Date().toLocaleTimeString());
+
+      const timezone = workspaceReferenceTimezone?.timezone;
+      if (!timezone) {
+        console.log("No timezone available");
+        return;
       }
+
+      // Only update when showing live time
+      const now = new Date();
+      const referenceTime = toZonedTime(now, timezone);
+      console.log(
+        "Updating to current time:",
+        referenceTime.toLocaleTimeString()
+      );
+
+      setTimeState(currentState => ({
+        ...currentState,
+        referenceTime,
+        selectedTime: referenceTime,
+      }));
     };
 
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-    return () => clearInterval(interval);
-    // add `referenceTimezone` so it re-runs when you switch zones
-  }, [timeState.isTimeModified, workspaceReferenceTimezone?.timezone]);
+    // Clear existing interval/timeout
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    // Run immediately to show current time
+    tick();
+
+    // Calculate time until next minute boundary (in device time)
+    const now = new Date();
+    const secondsUntilNextMinute = 60 - now.getSeconds();
+    const millisecondsUntilNextMinute =
+      secondsUntilNextMinute * 1000 - now.getMilliseconds();
+
+    console.log(
+      `Time until next minute: ${secondsUntilNextMinute} seconds, ${now.getMilliseconds()} ms`
+    );
+
+    // Set initial timeout to sync with minute boundary
+    const initialTimeout = setTimeout(() => {
+      console.log("Timeout fired - now at minute boundary");
+      // Tick at the minute boundary
+      tick();
+
+      // Now start regular interval every 60 seconds
+      intervalRef.current = setInterval(() => {
+        console.log("Interval tick - every 60 seconds");
+        tick();
+      }, 60000);
+      console.log("Regular timer started, synced to minute boundary");
+    }, millisecondsUntilNextMinute);
+
+    // Store the timeout ID so we can clear it if needed
+    const timeoutIdForCleanup = initialTimeout;
+
+    return () => {
+      clearTimeout(timeoutIdForCleanup);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+        console.log("Timer cleaned up");
+      }
+    };
+  }, [workspaceReferenceTimezone?.timezone, timeState.isTimeModified]);
 
   const handleTimeChange = useCallback((newTime: Date) => {
     setTimeState(prev => ({
