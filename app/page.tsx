@@ -376,9 +376,9 @@ function WorldClockContent() {
       const isDuplicateOfReference =
         workspaceReferenceTimezone &&
         workspaceReferenceTimezone.city.toLowerCase() ===
-          timezone.city.toLowerCase() &&
+        timezone.city.toLowerCase() &&
         workspaceReferenceTimezone.country.toLowerCase() ===
-          timezone.country.toLowerCase() &&
+        timezone.country.toLowerCase() &&
         workspaceReferenceTimezone.id !== "local"; // Allow adding if reference is just auto-detected local
 
       if (isDuplicate || isDuplicateOfReference) {
@@ -449,10 +449,10 @@ function WorldClockContent() {
       // Convert the current selected time to the new reference timezone
       const convertedTime = currentReference
         ? convertTime(
-            timeState.selectedTime,
-            currentReference.offset,
-            timezone.offset
-          )
+          timeState.selectedTime,
+          currentReference.offset,
+          timezone.offset
+        )
         : timeState.selectedTime;
 
       // Set the new reference timezone in workspace
@@ -656,10 +656,10 @@ function WorldClockContent() {
                   {displayedTimezones.map(timezone => {
                     const convertedTime = workspaceReferenceTimezone
                       ? convertTime(
-                          timeState.selectedTime,
-                          workspaceReferenceTimezone.offset,
-                          timezone.offset
-                        )
+                        timeState.selectedTime,
+                        workspaceReferenceTimezone.offset,
+                        timezone.offset
+                      )
                       : timeState.selectedTime;
 
                     return (
@@ -683,10 +683,10 @@ function WorldClockContent() {
                       displayTime={
                         workspaceReferenceTimezone
                           ? convertTime(
-                              timeState.selectedTime,
-                              workspaceReferenceTimezone.offset,
-                              activeTimezone.offset
-                            )
+                            timeState.selectedTime,
+                            workspaceReferenceTimezone.offset,
+                            activeTimezone.offset
+                          )
                           : timeState.selectedTime
                       }
                       isDragging={true}
@@ -728,11 +728,11 @@ function WorldClockContent() {
             onShare={() =>
               workspaceReferenceTimezone
                 ? generateShareUrl(
-                    workspaceReferenceTimezone,
-                    timeState,
-                    activeWorkspace,
-                    displayedTimezones
-                  )
+                  workspaceReferenceTimezone,
+                  timeState,
+                  activeWorkspace,
+                  displayedTimezones
+                )
                 : ""
             }
           />
@@ -752,11 +752,11 @@ function WorldClockContent() {
             onShare={() =>
               workspaceReferenceTimezone
                 ? generateShareUrl(
-                    workspaceReferenceTimezone,
-                    timeState,
-                    activeWorkspace,
-                    displayedTimezones
-                  )
+                  workspaceReferenceTimezone,
+                  timeState,
+                  activeWorkspace,
+                  displayedTimezones
+                )
                 : ""
             }
           />
