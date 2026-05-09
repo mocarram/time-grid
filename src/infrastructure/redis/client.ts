@@ -2,14 +2,13 @@
 // In production we keep one shared connection; in dev we reuse via globalThis
 // to survive HMR.
 
-import Redis, { type Redis as RedisClient } from "ioredis";
-
 import { logger } from "@infra/logger/index";
+import Redis, { type Redis as RedisClient } from "ioredis";
 
 const log = logger.scoped("redis");
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __tg_redis: RedisClient | undefined;
 }
 

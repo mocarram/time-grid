@@ -1,15 +1,15 @@
-import RedisMock from "ioredis-mock";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
 import { REDIS_KEYS } from "@config/index";
 import { createDefaultWorkspace } from "@domain/workspace/operations";
 import { createUserDataRepo } from "@infra/redis/user-data-repo";
 import type { Workspace } from "@schemas/workspace";
+import RedisMock from "ioredis-mock";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const USER = "user-1";
 
 // ioredis-mock shares an in-memory keyspace across instances; flush per test.
-let _sharedRedis: RedisMock | null = null;
+type RedisMockInstance = InstanceType<typeof RedisMock>;
+let _sharedRedis: RedisMockInstance | null = null;
 
 function build() {
   if (!_sharedRedis) _sharedRedis = new RedisMock();

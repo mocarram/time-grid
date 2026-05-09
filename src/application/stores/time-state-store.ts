@@ -1,10 +1,9 @@
-import { create } from "zustand";
-
 import {
   msUntilNextMinuteBoundary,
   nowInstant,
   setWallClockInZone,
 } from "@domain/time-state/travel";
+import { create } from "zustand";
 
 export interface TimeStateStore {
   instantUtc: string;

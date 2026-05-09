@@ -1,58 +1,98 @@
-import { NextRequest, NextResponse } from "next/server";
+import { LIMITS } from "@config/index";
+import { logger } from "@infra/logger/index";
+import { CitiesResponseSchema } from "@schemas/api";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
+const log = logger.scoped("api.cities");
+
+const NominatimItem = z.object({
+  place_id: z.union([z.string(), z.number()]).optional(),
+  lat: z.string().optional(),
+  lon: z.string().optional(),
+  name: z.string().optional(),
+  display_name: z.string().optional(),
+  type: z.string().optional(),
+  class: z.string().optional(),
+  addresstype: z.string().optional(),
+  importance: z.union([z.number(), z.string()]).optional(),
+  address: z
+    .object({
+      city: z.string().optional(),
+      town: z.string().optional(),
+      village: z.string().optional(),
+      municipality: z.string().optional(),
+      hamlet: z.string().optional(),
+      suburb: z.string().optional(),
+      country: z.string().optional(),
+      country_code: z.string().optional(),
+      state: z.string().optional(),
+      province: z.string().optional(),
+    })
+    .optional(),
+});
+
+const NominatimResponse = z.array(NominatimItem);
+
+const placeTypeOf = (item: z.infer<typeof NominatimItem>): string => {
+  const t = item.type ?? item.class ?? item.addresstype ?? "Place";
+  const map: Record<string, string> = {
+    administrative: "Administrative Region",
+    city: "City",
+    town: "Town",
+    village: "Village",
+    municipality: "Municipality",
+    hamlet: "Hamlet",
+    suburb: "Suburb",
+  };
+  return map[t] ?? t;
+};
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get("q");
-
-  if (!query || query.length < 2) {
+  const query = (searchParams.get("q") ?? "").trim();
+  if (query.length < LIMITS.searchMinChars) {
     return NextResponse.json({ cities: [] });
   }
 
-  try {
-    // Simple search - let the API do the work and show all results
-    const searchUrl =
-      `https://nominatim.openstreetmap.org/search?` +
-      `q=${encodeURIComponent(query)}&` +
-      `format=json&` +
-      `addressdetails=1&` +
-      `limit=15&` +
-      `extratags=1&` +
-      `accept-language=en&` +
-      `dedupe=1`;
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("addressdetails", "1");
+  url.searchParams.set("limit", "15");
+  url.searchParams.set("accept-language", "en");
+  url.searchParams.set("dedupe", "1");
 
-    const response = await fetch(searchUrl, {
+  try {
+    const upstream = await fetch(url, {
       headers: {
-        "User-Agent": "WorldClock/1.0",
+        "User-Agent": "TimeGrid/0.2 (+https://github.com/mocarram/time-grid)",
         "Accept-Language": "en",
       },
+      signal: AbortSignal.timeout(LIMITS.searchUpstreamTimeoutMs),
     });
-
-    if (!response.ok) {
+    if (!upstream.ok) {
+      log.warn("nominatim non-ok", { status: upstream.status });
       return NextResponse.json({ cities: [] });
     }
-
-    const data = await response.json();
-
-    if (!data || data.length === 0) {
+    const json = await upstream.json();
+    const parsed = NominatimResponse.safeParse(json);
+    if (!parsed.success) {
+      log.warn("nominatim shape unexpected", {
+        issue: parsed.error.issues[0]?.message,
+      });
       return NextResponse.json({ cities: [] });
     }
-
-    // Process results with minimal filtering - just ensure we have valid data
-    const cities = data
-      .filter((item: any) => {
-        // Only filter out results that are clearly not places or lack basic data
-        const hasCoordinates = item.lat && item.lon;
-        const hasName = item.name || item.display_name;
-
-        return hasCoordinates && hasName;
-      })
-      .map((item: any) => {
-        const address = item.address || {};
-
-        // Extract city name - prefer the main name, then address components
-        const cityName =
+    const cities = parsed.data
+      .filter((item) => Boolean(item.lat && item.lon && (item.name || item.display_name)))
+      .map((item) => {
+        const lat = parseFloat(item.lat ?? "");
+        const lon = parseFloat(item.lon ?? "");
+        const address = item.address ?? {};
+        const cityName = (
           item.name ||
           address.city ||
           address.town ||
@@ -60,76 +100,48 @@ export async function GET(request: NextRequest) {
           address.municipality ||
           address.hamlet ||
           address.suburb ||
-          item.display_name.split(",")[0].trim();
-
-        const country = address.country || "Unknown";
-        const countryCode = address.country_code?.toUpperCase() || "";
-        const state = address.state || address.province || "";
-
-        const lat = parseFloat(item.lat);
-        const lon = parseFloat(item.lon);
-
-        // Add type information for user to see what kind of place it is
-        const placeType = item.type;
-        const placeClass = item.class;
-        const addressType = item.addresstype;
-
-        // Create a readable place type description
-        let placeDescription = "";
-        if (placeType === "administrative") {
-          placeDescription = "Administrative Region";
-        } else if (placeType === "city" || addressType === "city") {
-          placeDescription = "City";
-        } else if (placeType === "town" || addressType === "town") {
-          placeDescription = "Town";
-        } else if (placeType === "village" || addressType === "village") {
-          placeDescription = "Village";
-        } else if (placeType === "municipality") {
-          placeDescription = "Municipality";
-        } else if (placeType === "hamlet") {
-          placeDescription = "Hamlet";
-        } else if (placeType === "suburb") {
-          placeDescription = "Suburb";
-        } else {
-          placeDescription = placeType || placeClass || "Place";
-        }
-
+          item.display_name?.split(",")[0]?.trim() ||
+          ""
+        ).trim();
         return {
-          id: `${item.place_id}`,
-          city: cityName.trim(),
-          country: country.trim(),
-          countryCode,
-          state: state.trim(),
+          id: String(item.place_id ?? `${lat},${lon}`),
+          city: cityName,
+          country: (address.country ?? "Unknown").trim(),
+          countryCode: (address.country_code ?? "").toUpperCase(),
+          state: (address.state ?? address.province ?? "").trim(),
           latitude: lat,
           longitude: lon,
-          displayName: item.display_name,
-          placeType: placeDescription,
-          importance: parseFloat(item.importance || 0),
+          displayName: item.display_name ?? cityName,
+          placeType: placeTypeOf(item),
+          importance:
+            typeof item.importance === "string"
+              ? parseFloat(item.importance) || 0
+              : item.importance ?? 0,
         };
       })
-      .filter((city: any) => {
-        // Only filter out clearly invalid results
-        return (
+      .filter(
+        (city) =>
           city.city &&
           city.country &&
           city.city !== "Unknown" &&
-          !isNaN(city.latitude) &&
-          !isNaN(city.longitude) &&
+          !Number.isNaN(city.latitude) &&
+          !Number.isNaN(city.longitude) &&
           Math.abs(city.latitude) <= 90 &&
-          Math.abs(city.longitude) <= 180
-        );
-      })
-      // Sort by importance (OSM's own relevance scoring)
-      .sort((a: any, b: any) => b.importance - a.importance)
-      // Take top 12 results to show more options
-      .slice(0, 12);
+          Math.abs(city.longitude) <= 180,
+      )
+      .sort((a, b) => b.importance - a.importance)
+      .slice(0, LIMITS.searchResultsCap);
 
-    return NextResponse.json({ cities });
+    const validated = CitiesResponseSchema.safeParse({ cities });
+    if (!validated.success) {
+      log.warn("validation failed for outgoing payload", {
+        issue: validated.error.issues[0]?.message,
+      });
+      return NextResponse.json({ cities: [] });
+    }
+    return NextResponse.json(validated.data);
   } catch (error) {
-    console.error("Cities API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch cities" },
-      { status: 500 }
-    );
+    log.error("cities upstream failure", { error: String(error) });
+    return NextResponse.json({ cities: [] });
   }
 }

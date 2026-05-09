@@ -1,8 +1,7 @@
-import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
-
 import { createCitiesClient } from "@infra/api/cities";
 import { server } from "@test/setup/msw-server";
+import { http, HttpResponse } from "msw";
+import { describe, expect, it } from "vitest";
 
 describe("citiesClient.search", () => {
   const client = createCitiesClient();

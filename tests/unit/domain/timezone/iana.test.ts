@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { isValidIanaZone, listSupportedZones } from "@domain/timezone/iana";
+import { describe, expect, it } from "vitest";
 
 describe("iana.isValidIanaZone", () => {
   it("accepts well-known zones", () => {

@@ -1,11 +1,10 @@
-import fc from "fast-check";
-import { describe, expect, it } from "vitest";
-
 import {
   formatOffsetGmt,
   offsetMinutesAt,
   wallClockInZone,
 } from "@domain/timezone/offset";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
 
 describe("offsetMinutesAt", () => {
   it("UTC is always 0", () => {

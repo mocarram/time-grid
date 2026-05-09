@@ -1,9 +1,6 @@
 // The single source of truth for workspaces and their timezones, persisted
 // via the storage adapter. UI consumes this through selector hooks.
 
-import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-
 import {
   addTimezoneToWorkspace as addTimezoneOp,
   addWorkspaceToState,
@@ -18,19 +15,20 @@ import {
   setReferenceTimezone as setReferenceOp,
   updateWorkspaceInState,
 } from "@domain/workspace/operations";
+import type { StorageAdapter } from "@infra/storage/local";
 import type { TimezoneData } from "@schemas/timezone";
-import {
-  WorkspaceCreateInputSchema,
-  WorkspaceUpdateInputSchema,
-} from "@schemas/workspace";
 import type {
   Workspace,
   WorkspaceCreateInput,
   WorkspaceState,
   WorkspaceUpdateInput,
 } from "@schemas/workspace";
-
-import type { StorageAdapter } from "@infra/storage/local";
+import {
+  WorkspaceCreateInputSchema,
+  WorkspaceUpdateInputSchema,
+} from "@schemas/workspace";
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 export interface WorkspaceStoreState extends WorkspaceState {
   hydrated: boolean;
@@ -175,7 +173,7 @@ function updateActive(
   persist: (state: WorkspaceState) => void,
   onError: ((error: string, message?: string) => void) | undefined,
   action: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   op: (ws: Workspace) => { ok: true; value: Workspace } | { ok: false; error: string; message?: string },
 ): boolean {
   const state = get();

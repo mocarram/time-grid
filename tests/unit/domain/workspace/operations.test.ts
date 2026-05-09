@@ -1,5 +1,3 @@
-import { describe, expect, it } from "vitest";
-
 import { LIMITS } from "@config/index";
 import {
   addTimezoneToWorkspace,
@@ -16,6 +14,7 @@ import {
   updateWorkspaceInState,
 } from "@domain/workspace/operations";
 import type { Workspace, WorkspaceState } from "@schemas/workspace";
+import { describe, expect, it } from "vitest";
 
 const tz = (overrides: Partial<ReturnType<typeof buildTimezoneData>> = {}) => ({
   ...buildTimezoneData({

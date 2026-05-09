@@ -1,44 +1,31 @@
+import { logger } from "@infra/logger/index";
+import { getRedis } from "@infra/redis/client";
+import { createUserDataRepo } from "@infra/redis/user-data-repo";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { NextResponse } from "next/server";
-import { redis } from "@/lib/redis";
 
-// Force this route to be dynamic
 export const dynamic = "force-dynamic";
 
+const log = logger.scoped("api.user-data.check");
+
 export async function GET() {
+  const { getUser, isAuthenticated } = getKindeServerSession();
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  const user = await getUser();
+  if (!user?.id) return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+
   try {
-    const { getUser, isAuthenticated } = getKindeServerSession();
-
-    if (!isAuthenticated()) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await getUser();
-    if (!user?.id) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Check if user has data in Redis
-    const exists = await redis.exists(`user:${user.id}`);
-
-    let lastSynced = null;
-    if (exists) {
-      const userDataStr = await redis.get(`user:${user.id}`);
-      if (userDataStr) {
-        const userData = JSON.parse(userDataStr);
-        lastSynced = userData.lastSynced;
-      }
-    }
-
+    const repo = createUserDataRepo(getRedis());
+    const data = await repo.get(user.id);
     return NextResponse.json({
-      hasData: exists === 1,
-      lastSynced,
+      hasData: data !== null,
+      lastSynced: data?.updatedAt ?? null,
+      revision: data?.revision ?? null,
     });
-  } catch (error) {
-    console.error("Error checking user data:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (e) {
+    log.error("check failed", { error: String(e) });
+    return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 }

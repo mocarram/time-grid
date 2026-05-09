@@ -2,8 +2,8 @@
 // retries, and a typed event stream the UI can subscribe to.
 
 import { LIMITS } from "@config/index";
-import { logger } from "@infra/logger/index";
 import type { UserDataClient } from "@infra/api/user-data";
+import { logger } from "@infra/logger/index";
 import type { UserDataV2 } from "@schemas/sync";
 import type { Workspace } from "@schemas/workspace";
 

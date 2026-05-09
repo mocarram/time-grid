@@ -1,208 +1,99 @@
-import { NextRequest, NextResponse } from "next/server";
+import { isValidIanaZone } from "@domain/timezone/iana";
+import { logger } from "@infra/logger/index";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
 
-// Force this route to be dynamic
+const log = logger.scoped("api.ip-timezone");
+
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
-  try {
-    console.log("=== IP Timezone Detection Debug ===");
+interface DetectionResult {
+  city: string;
+  country: string;
+  timezone: string;
+  source: "ip" | "browser";
+}
 
-    // Get the client's IP address
-    const forwarded = request.headers.get("x-forwarded-for");
-    const realIp = request.headers.get("x-real-ip");
-    const vercelIp = request.headers.get("x-vercel-forwarded-for");
-    const clientIp =
-      forwarded?.split(",")[0]?.trim() ||
-      vercelIp?.split(",")[0]?.trim() ||
-      realIp ||
-      "127.0.0.1";
-
-    console.log("Raw IP headers:", {
-      forwarded,
-      realIp,
-      vercelIp,
-      finalClientIp: clientIp,
-    });
-
-    // For development/localhost or invalid IPs, use a fallback
-    const isLocalhost =
-      clientIp === "127.0.0.1" ||
-      clientIp === "::1" ||
-      clientIp?.includes("localhost") ||
-      !clientIp ||
-      clientIp === "unknown";
-
-    const ipToCheck = isLocalhost
-      ? null // Don't use IP detection for localhost
-      : clientIp;
-
-    let data = null;
-
-    // Try IP detection only if we have a valid IP
-    if (ipToCheck) {
-      try {
-        console.log("Attempting IP detection for:", ipToCheck);
-
-        // Try multiple IP geolocation services
-        const services = [
-          {
-            name: "ipapi.co",
-            url: `https://ipapi.co/${ipToCheck}/json/`,
-            headers: { "User-Agent": "TimeGrid/1.0" } as HeadersInit,
-          },
-          {
-            name: "ip-api.com",
-            url: `http://ip-api.com/json/${ipToCheck}?fields=status,country,countryCode,region,regionName,city,timezone,query`,
-            headers: {} as HeadersInit,
-          },
-        ];
-
-        for (const service of services) {
-          try {
-            console.log(`Trying ${service.name}...`);
-            const response = await fetch(service.url, {
-              headers: service.headers,
-            });
-
-            if (response.ok) {
-              const serviceData = await response.json();
-              console.log(`${service.name} response:`, serviceData);
-
-              if (
-                service.name === "ipapi.co" &&
-                serviceData.timezone &&
-                serviceData.error !== true
-              ) {
-                data = {
-                  city: serviceData.city || "Unknown City",
-                  country_name: serviceData.country_name || "Unknown Country",
-                  timezone: serviceData.timezone,
-                };
-                break;
-              } else if (
-                service.name === "ip-api.com" &&
-                serviceData.status === "success" &&
-                serviceData.timezone
-              ) {
-                data = {
-                  city: serviceData.city || "Unknown City",
-                  country_name: serviceData.country || "Unknown Country",
-                  timezone: serviceData.timezone,
-                };
-                break;
-              }
-            }
-          } catch (serviceError) {
-            console.log(`${service.name} failed:`, serviceError);
-            continue;
-          }
-        }
-      } catch (error) {
-        console.error("All IP detection services failed:", error);
+function clientIp(request: NextRequest): string | null {
+  const headers = request.headers;
+  const candidates = [
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+    headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim(),
+    headers.get("x-real-ip"),
+  ];
+  for (const c of candidates) {
+    if (c && c.length > 0) {
+      const lower = c.toLowerCase();
+      if (lower === "127.0.0.1" || lower === "::1" || lower.includes("localhost")) {
+        return null;
       }
+      return c;
     }
-
-    // If IP detection failed or we're on localhost, use browser timezone
-    if (!data || !data.timezone) {
-      // Get browser timezone from request headers if available
-      const browserTimezone =
-        request.headers.get("x-timezone") ||
-        Intl.DateTimeFormat().resolvedOptions().timeZone;
-      console.log(
-        "Using browser timezone fallback. Browser timezone:",
-        browserTimezone
-      );
-
-      // Only use offset detection if we truly have no timezone info
-      if (
-        !browserTimezone ||
-        browserTimezone === "UTC" ||
-        browserTimezone === ""
-      ) {
-        console.log(
-          "Browser timezone is UTC or invalid, trying alternative detection..."
-        );
-
-        // Return UTC as last resort
-        return NextResponse.json({
-          city: "UTC",
-          country: "UTC",
-          timezone: "UTC",
-          source: "browser",
-        });
-      }
-
-      // Get proper city and country from timezone
-      const city =
-        browserTimezone.split("/").pop()?.replace(/_/g, " ") || "Local";
-
-      // Map timezone to country
-      const timezoneToCountry: { [key: string]: string } = {
-        "Asia/Dhaka": "Bangladesh",
-        "Asia/Kolkata": "India",
-        "Asia/Shanghai": "China",
-        "Asia/Tokyo": "Japan",
-        "Asia/Seoul": "South Korea",
-        "Asia/Bangkok": "Thailand",
-        "Asia/Singapore": "Singapore",
-        "Asia/Dubai": "UAE",
-        "Europe/London": "United Kingdom",
-        "Europe/Paris": "France",
-        "Europe/Berlin": "Germany",
-        "Europe/Rome": "Italy",
-        "America/New_York": "United States",
-        "America/Los_Angeles": "United States",
-        "America/Chicago": "United States",
-        "America/Denver": "United States",
-        "America/Toronto": "Canada",
-        "America/Vancouver": "Canada",
-        "Australia/Sydney": "Australia",
-        "Australia/Melbourne": "Australia",
-        "Pacific/Auckland": "New Zealand",
-        // Add more as needed
-      };
-
-      const country =
-        timezoneToCountry[browserTimezone] ||
-        browserTimezone.split("/")[0] ||
-        "Local";
-
-      console.log("Final browser fallback result:", {
-        city,
-        country,
-        timezone: browserTimezone,
-      });
-
-      return NextResponse.json({
-        city: city,
-        country: country,
-        timezone: browserTimezone,
-        source: "browser",
-      });
-    }
-
-    console.log("IP detection successful:", data);
-    return NextResponse.json({
-      city: data.city || "Unknown City",
-      country: data.country_name || "Unknown Country",
-      timezone: data.timezone,
-      source: "ip",
-      ip: ipToCheck,
-    });
-  } catch (error) {
-    console.error("IP timezone detection error:", error);
-
-    // Ultimate fallback to browser timezone
-    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const city =
-      browserTimezone.split("/").pop()?.replace(/_/g, " ") || "Local";
-    const country = browserTimezone.split("/")[0] || "Local";
-
-    return NextResponse.json({
-      city: city,
-      country: country,
-      timezone: browserTimezone,
-      source: "browser",
-    });
   }
+  return null;
+}
+
+async function tryIpapi(ip: string): Promise<DetectionResult | null> {
+  try {
+    const r = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`, {
+      headers: { "User-Agent": "TimeGrid/0.2" },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!r.ok) return null;
+    const j = (await r.json()) as Record<string, unknown>;
+    if (j.error) return null;
+    const tz = typeof j.timezone === "string" ? j.timezone : null;
+    if (!tz || !isValidIanaZone(tz)) return null;
+    return {
+      city: typeof j.city === "string" ? j.city : "Unknown",
+      country: typeof j.country_name === "string" ? j.country_name : "Unknown",
+      timezone: tz,
+      source: "ip",
+    };
+  } catch (e) {
+    log.warn("ipapi.co failed", { error: String(e) });
+    return null;
+  }
+}
+
+async function tryIpApi(ip: string): Promise<DetectionResult | null> {
+  try {
+    const r = await fetch(
+      `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,city,timezone`,
+      { signal: AbortSignal.timeout(4000) },
+    );
+    if (!r.ok) return null;
+    const j = (await r.json()) as Record<string, unknown>;
+    if (j.status !== "success") return null;
+    const tz = typeof j.timezone === "string" ? j.timezone : null;
+    if (!tz || !isValidIanaZone(tz)) return null;
+    return {
+      city: typeof j.city === "string" ? j.city : "Unknown",
+      country: typeof j.country === "string" ? j.country : "Unknown",
+      timezone: tz,
+      source: "ip",
+    };
+  } catch (e) {
+    log.warn("ip-api.com failed", { error: String(e) });
+    return null;
+  }
+}
+
+function browserFallback(request: NextRequest): DetectionResult {
+  const browserTz = request.headers.get("x-timezone")?.trim();
+  if (browserTz && isValidIanaZone(browserTz) && browserTz !== "UTC") {
+    const city = browserTz.split("/").pop()?.replace(/_/g, " ") ?? "Local";
+    const country = browserTz.split("/")[0] ?? "Local";
+    return { city, country, timezone: browserTz, source: "browser" };
+  }
+  return { city: "UTC", country: "UTC", timezone: "UTC", source: "browser" };
+}
+
+export async function GET(request: NextRequest) {
+  const ip = clientIp(request);
+  if (ip) {
+    const result = (await tryIpapi(ip)) ?? (await tryIpApi(ip));
+    if (result) return NextResponse.json(result);
+  }
+  return NextResponse.json(browserFallback(request));
 }

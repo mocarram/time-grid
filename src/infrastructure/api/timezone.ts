@@ -1,6 +1,6 @@
 import {
-  TimezoneLookupResponseSchema,
   type TimezoneLookupResponse,
+  TimezoneLookupResponseSchema,
 } from "@schemas/api";
 
 import { apiFetch, type ApiResult } from "./fetch";

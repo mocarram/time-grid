@@ -1,6 +1,3 @@
-import fc from "fast-check";
-import { describe, expect, it } from "vitest";
-
 import {
   changeDateInZone,
   minutesToInstantInZone,
@@ -10,6 +7,8 @@ import {
   timeToMinutesInZone,
 } from "@domain/time-state/travel";
 import { wallClockInZone } from "@domain/timezone/offset";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
 
 describe("setWallClockInZone", () => {
   it("scrubs time within the same day in UTC", () => {

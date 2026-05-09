@@ -4,7 +4,7 @@
 import { LIMITS, STORAGE_KEYS } from "@config/index";
 import { ensureValidActiveWorkspace } from "@domain/workspace/operations";
 import { createLogger } from "@infra/logger/index";
-import { StorageStateV2Schema, type StorageStateV2 } from "@schemas/storage";
+import { type StorageStateV2,StorageStateV2Schema } from "@schemas/storage";
 import type { Workspace, WorkspaceState } from "@schemas/workspace";
 
 const log = createLogger("storage.local");

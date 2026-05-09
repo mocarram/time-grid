@@ -1,11 +1,10 @@
-import { describe, expect, it } from "vitest";
-
 import {
   formatCardLabels,
   formatDateInZone,
   formatDayInZone,
   formatTimeInZone,
 } from "@domain/timezone/format";
+import { describe, expect, it } from "vitest";
 
 describe("formatTimeInZone", () => {
   it("12-hour format by default", () => {

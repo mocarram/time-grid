@@ -2,11 +2,11 @@
 // migration. Failures return null, never throw.
 
 import { LIMITS, SHARE_URL } from "@config/index";
-import {
-  ShareSnapshotV2Schema,
-  type ShareSnapshotV2,
-} from "@schemas/share";
 import { isValidIanaZone } from "@domain/timezone/iana";
+import {
+  type ShareSnapshotV2,
+  ShareSnapshotV2Schema,
+} from "@schemas/share";
 
 const PARAM_VERSION = SHARE_URL.paramVersion;
 const PARAM_PAYLOAD = SHARE_URL.paramPayload;

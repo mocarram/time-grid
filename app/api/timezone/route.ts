@@ -1,145 +1,109 @@
-import { NextRequest, NextResponse } from "next/server";
+import { isValidIanaZone } from "@domain/timezone/iana";
+import { offsetMinutesAt } from "@domain/timezone/offset";
+import { logger } from "@infra/logger/index";
+import type { NextRequest} from "next/server";
+import { NextResponse } from "next/server";
+
+const log = logger.scoped("api.timezone");
+
+export const dynamic = "force-dynamic";
+
+const FALLBACK_BY_LON: Record<string, string> = {
+  "-12": "Pacific/Wake",
+  "-11": "Pacific/Pago_Pago",
+  "-10": "Pacific/Honolulu",
+  "-9": "America/Anchorage",
+  "-8": "America/Los_Angeles",
+  "-7": "America/Denver",
+  "-6": "America/Chicago",
+  "-5": "America/New_York",
+  "-4": "America/Halifax",
+  "-3": "America/Sao_Paulo",
+  "-2": "Atlantic/South_Georgia",
+  "-1": "Atlantic/Azores",
+  "0": "Europe/London",
+  "1": "Europe/Paris",
+  "2": "Europe/Berlin",
+  "3": "Europe/Moscow",
+  "4": "Asia/Dubai",
+  "5": "Asia/Karachi",
+  "6": "Asia/Dhaka",
+  "7": "Asia/Bangkok",
+  "8": "Asia/Shanghai",
+  "9": "Asia/Tokyo",
+  "10": "Australia/Sydney",
+  "11": "Pacific/Norfolk",
+  "12": "Pacific/Auckland",
+};
+
+function estimateZoneFromLon(lon: number): string {
+  const key = String(Math.max(-12, Math.min(12, Math.round(lon / 15))));
+  return FALLBACK_BY_LON[key] ?? "UTC";
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const lat = searchParams.get("lat");
-  const lng = searchParams.get("lng");
-
-  if (!lat || !lng) {
-    return NextResponse.json({ error: "Missing coordinates" }, { status: 400 });
+  const latRaw = searchParams.get("lat");
+  const lngRaw = searchParams.get("lng");
+  const lat = latRaw === null ? NaN : parseFloat(latRaw);
+  const lng = lngRaw === null ? NaN : parseFloat(lngRaw);
+  if (Number.isNaN(lat) || Number.isNaN(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+    return NextResponse.json({ error: "invalid_coordinates" }, { status: 400 });
   }
 
+  let zone: string | null = null;
+  let city: string | null = null;
+  let country: string | null = null;
+
+  // Provider 1: BigDataCloud
   try {
-    // Using TimeZoneDB API (free tier available) or GeoNames
-    // For now, we'll use a simpler approach with multiple fallbacks
+    const r = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`,
+      { signal: AbortSignal.timeout(6000) },
+    );
+    if (r.ok) {
+      const j = (await r.json()) as Record<string, unknown>;
+      const tz = typeof j.timezone === "string" ? j.timezone : null;
+      if (tz && isValidIanaZone(tz)) zone = tz;
+      city = (typeof j.city === "string" && j.city) || (typeof j.locality === "string" && j.locality) || null;
+      country = (typeof j.countryName === "string" && j.countryName) || null;
+    }
+  } catch (e) {
+    log.warn("bigdatacloud failed", { error: String(e) });
+  }
 
-    // First try: BigDataCloud (free, includes timezone)
-    let timezone = null;
-    let city = null;
-    let country = null;
-
+  // Provider 2: Nominatim reverse geocode (only if needed)
+  if (!city || !country) {
     try {
-      const bdcResponse = await fetch(
-        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
+        {
+          headers: {
+            "User-Agent": "TimeGrid/0.2 (+https://github.com/mocarram/time-grid)",
+            "Accept-Language": "en",
+          },
+          signal: AbortSignal.timeout(6000),
+        },
       );
-
-      if (bdcResponse.ok) {
-        const bdcData = await bdcResponse.json();
-        timezone = bdcData.timezone;
-        city = bdcData.city || bdcData.locality;
-        country = bdcData.countryName;
+      if (r.ok) {
+        const j = (await r.json()) as Record<string, unknown>;
+        const address = (j.address as Record<string, string> | undefined) ?? {};
+        if (!city) {
+          city = address.city ?? address.town ?? address.village ?? address.municipality ?? null;
+        }
+        if (!country) country = address.country ?? null;
       }
     } catch (e) {
-      console.log("BigDataCloud failed, trying fallback");
+      log.warn("nominatim reverse failed", { error: String(e) });
     }
-
-    // Fallback: Use coordinate-based timezone estimation
-    if (!timezone) {
-      timezone = estimateTimezoneFromCoordinates(
-        parseFloat(lat),
-        parseFloat(lng)
-      );
-    }
-
-    // Additional location info if not available
-    if (!city || !country) {
-      try {
-        const nominatimResponse = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1`,
-          {
-            headers: {
-              "User-Agent": "WorldClock/1.0",
-              "Accept-Language": "en",
-            },
-          }
-        );
-
-        if (nominatimResponse.ok) {
-          const nominatimData = await nominatimResponse.json();
-          const address = nominatimData.address || {};
-
-          if (!city) {
-            city =
-              address.city ||
-              address.town ||
-              address.village ||
-              address.municipality ||
-              "Unknown City";
-          }
-          if (!country) {
-            country = address.country || "Unknown Country";
-          }
-        }
-      } catch (e) {
-        console.log("Nominatim fallback failed");
-      }
-    }
-
-    // Calculate timezone offset
-    const offset = getTimezoneOffsetFromName(timezone || "UTC");
-
-    return NextResponse.json({
-      city: city || "Unknown City",
-      country: country || "Unknown Country",
-      timezone: timezone || "UTC",
-      offset,
-    });
-  } catch (error) {
-    console.error("Timezone API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch timezone data" },
-      { status: 500 }
-    );
   }
-}
 
-function estimateTimezoneFromCoordinates(lat: number, lng: number): string {
-  // Simple timezone estimation based on longitude
-  // This is a rough approximation - in production you'd want a proper timezone API
-  const timezoneOffset = Math.round(lng / 15);
+  if (!zone) zone = estimateZoneFromLon(lng);
 
-  // Map common timezone offsets to actual timezone names
-  const timezoneMap: { [key: number]: string } = {
-    "-12": "Pacific/Baker_Island",
-    "-11": "Pacific/Samoa",
-    "-10": "Pacific/Honolulu",
-    "-9": "America/Anchorage",
-    "-8": "America/Los_Angeles",
-    "-7": "America/Denver",
-    "-6": "America/Chicago",
-    "-5": "America/New_York",
-    "-4": "America/Halifax",
-    "-3": "America/Sao_Paulo",
-    "-2": "Atlantic/South_Georgia",
-    "-1": "Atlantic/Azores",
-    "0": "Europe/London",
-    "1": "Europe/Paris",
-    "2": "Europe/Berlin",
-    "3": "Europe/Moscow",
-    "4": "Asia/Dubai",
-    "5": "Asia/Karachi",
-    "6": "Asia/Dhaka",
-    "7": "Asia/Bangkok",
-    "8": "Asia/Shanghai",
-    "9": "Asia/Tokyo",
-    "10": "Australia/Sydney",
-    "11": "Pacific/Norfolk",
-    "12": "Pacific/Auckland",
-  };
-
-  return timezoneMap[timezoneOffset] || "UTC";
-}
-
-function getTimezoneOffsetFromName(timezone: string): number {
-  try {
-    const now = new Date();
-    const targetTime = new Date(
-      now.toLocaleString("en-US", { timeZone: timezone })
-    );
-    const utcTime = new Date(now.toLocaleString("en-US", { timeZone: "UTC" }));
-    const offsetMs = targetTime.getTime() - utcTime.getTime();
-    return Math.round(offsetMs / 60000);
-  } catch {
-    return 0;
-  }
+  return NextResponse.json({
+    city: city ?? "Unknown",
+    country: country ?? "Unknown",
+    timezone: zone,
+    offsetMinutes: offsetMinutesAt(zone, new Date()),
+  });
 }

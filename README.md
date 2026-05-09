@@ -1,74 +1,87 @@
-# TimeGrid 🌍⏰
+# TimeGrid
 
-A beautiful world clock application for tracking time across different timezones with an intuitive interface.
-
-## ✨ Features
-
-- **Multiple Workspaces**: Organize timezones into different workspaces (Work, Travel, Family, etc.)
-- **Drag & Drop**: Reorder timezones easily with smooth animations
-- **Time Travel**: Set a specific time to see what time it would be across all zones
-- **Smart Reference**: Set any timezone as your reference point
-- **URL Sharing**: Share your workspace and time state via URL
-- **User Authentication**: Sign in to sync your data across all devices
-- **Cloud Sync**: Automatic synchronization with real-time status indicators
-- **Offline First**: Works great offline, syncs when online
-- **Shareable Links**: Generate URLs to share your setup with others
-- **Responsive Design**: Optimized for both desktop and mobile devices
-- **Dark Mode**: Beautiful dark mode for night owls
-- **Customizable**: Add any city or timezone you need
-
-## 🔐 Authentication & Sync
-
-TimeGrid includes authentication for persistent data storage:
-
-- **Hybrid Storage**: Data stays in localStorage for speed, syncs to cloud for persistence
-- **Cross-Device Sync**: Access your workspaces from any device
-- **Real-time Status**: Visual indicators show sync status
-- **Privacy First**: Your data is securely stored and only accessible to you
-## 🚀 Getting Started
+A world-clock app for tracking time across timezones with workspaces, time
+travel, and shareable URLs.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+The app boots without any environment variables. To enable cloud sync, copy
+`.env.local.example` to `.env.local` and fill in Kinde + Redis credentials.
 
-### Environment Setup
+## Scripts
 
-1. Copy `.env.local.example` to `.env.local`
-2. Add your Kinde auth configuration (optional - app works without auth)
-3. Start the development server
+| Command | What it does |
+|---|---|
+| `npm run dev` | Next.js dev server |
+| `npm run build` | Production build |
+| `npm run start` | Production server |
+| `npm run typecheck` | Strict TypeScript |
+| `npm run lint` | ESLint, zero warnings |
+| `npm run test` | Vitest unit + integration |
+| `npm run test:cov` | Tests with coverage thresholds |
+| `npm run test:e2e` | Playwright end-to-end |
+| `npm run specs:check` | Spec coverage smoke check |
+| `npm run verify` | typecheck + lint + tests + specs |
 
-## 🏗️ Tech Stack
+## Architecture
 
-- **Next.js** - React framework with App Router
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Kinde Auth** - Authentication & user management
-- **Shadcn UI** - Accessible component primitives
-- **dnd-kit** - Drag and drop functionality
-- **date-fns-tz** - Timezone handling
-- **Lucide React** - Beautiful icons
-- **Zod** - Schema validation
-- **IoRedis** - Redis client for caching (optional)
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for a tour of the layers.
 
-## 📱 Usage
+```
+app/                  Next.js routes and API handlers (thin)
+src/
+  domain/             Pure TypeScript: timezone math, workspace ops, sharing
+  schemas/            Zod schemas — single source of truth
+  application/        Zustand stores, app-level hooks, sync engine
+  infrastructure/     localStorage, Redis, API clients, logger
+  ui/features/        App-specific React components
+  config/             Constants, limits, palette
+  data/               Static datasets (cities, abbreviations)
+specs/                Behavioral contract — Gherkin scenarios
+tests/                Unit, integration, and end-to-end tests
+```
 
-1. **Create Workspaces**: Organize your timezones by purpose
-2. **Add Timezones**: Search and add cities from around the world
-3. **Set Reference**: Choose your primary timezone
-4. **Time Travel**: Use the time selector to plan across zones
-5. **Sign In**: Authenticate to sync across devices
-6. **Share**: Generate URLs to share your setup with others
+## Specs
 
-## 🔄 Data Architecture
+Every feature has a markdown spec under `specs/` written in Gherkin form.
+Tests are named after the scenarios; `npm run specs:check` ensures every spec
+has at least a healthy ratio of negative/edge-case scenarios alongside happy
+paths.
 
-- **Primary**: localStorage for instant access
-- **Secondary**: Cloud database for authenticated users
-- **Sync Strategy**: Manual with conflict resolution
-- **Offline Support**: Full functionality without internet
+## Testing
 
----
+- **Unit** (`tests/unit/`): pure domain functions, ≥95% coverage on `src/domain/`,
+  property-based tests for offset and DST math.
+- **Integration** (`tests/integration/`): stores + storage + API clients with
+  MSW + `ioredis-mock`. Exercises adversarial inputs — corrupt JSON,
+  prototype pollution, quota errors, schema mismatches, retry budgets,
+  conflict resolution.
+- **E2E** (`tests/e2e/`): Playwright on Chromium and mobile Chromium, plus
+  `axe-playwright` for accessibility.
 
-Built with ❤️ for global teams and travelers.
+Coverage thresholds (CI-blocking):
+
+| Layer | Lines | Branches |
+|---|---|---|
+| `src/domain/` | 95% | 95% |
+| `src/infrastructure/` | 90% | 85% |
+| `src/application/` | 85% | 80% |
+| Overall | 80% | 75% |
+
+## Sync model
+
+Sync is debounced (2s after the last edit). Each save sends an
+`expectedRevision`; the server returns `409` if the local revision is stale,
+and the client surfaces a typed conflict event the UI can resolve as
+"use server" or "keep local". Network errors retry with exponential backoff
+(1s, 2s, 4s, 8s, 16s, then give up).
+
+## Tech stack
+
+Next.js 15 · React 18 · TypeScript 5.9 (strict + `noUncheckedIndexedAccess`) ·
+Tailwind · shadcn/ui primitives · Zustand · TanStack Query · Zod · date-fns ·
+dnd-kit · Kinde · ioredis · Vitest · React Testing Library · MSW · Playwright ·
+axe-playwright · fast-check · Lucide icons.

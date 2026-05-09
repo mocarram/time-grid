@@ -1,10 +1,9 @@
-import { z } from "zod";
-
 import {
   LIMITS,
   WORKSPACE_COLOR_VALUES,
   WORKSPACE_ICON_VALUES,
 } from "@config/index";
+import { z } from "zod";
 
 import { TimezoneDataSchema } from "./timezone";
 

@@ -1,5 +1,3 @@
-import { beforeEach, describe, expect, it } from "vitest";
-
 import { STORAGE_KEYS } from "@config/index";
 import { createDefaultWorkspace } from "@domain/workspace/operations";
 import { createStorageAdapter } from "@infra/storage/local";
@@ -9,6 +7,7 @@ import {
   QuotaExceededStorage,
 } from "@infra/storage/memory";
 import type { StorageStateV2 } from "@schemas/storage";
+import { beforeEach, describe, expect, it } from "vitest";
 
 const FIXED_DEVICE = "00000000-0000-4000-8000-000000000000";
 

@@ -1,135 +1,89 @@
+import { logger } from "@infra/logger/index";
+import { getRedis } from "@infra/redis/client";
+import { createUserDataRepo } from "@infra/redis/user-data-repo";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
+import { SyncPostBodySchema } from "@schemas/sync";
 import { NextResponse } from "next/server";
-import { redis } from "@/lib/redis";
-import type { Workspace } from "@/types/workspace";
 
-// Force this route to be dynamic
 export const dynamic = "force-dynamic";
 
-interface UserData {
-  workspaces: Workspace[];
-  activeWorkspaceId: string | null;
-  lastSynced: string;
-  userId: string;
+const log = logger.scoped("api.user-data");
+
+const MAX_BODY_BYTES = 1_000_000;
+
+async function authedUserId(): Promise<{ ok: true; userId: string } | { ok: false; status: 401 | 404 }> {
+  const { getUser, isAuthenticated } = getKindeServerSession();
+  if (!(await isAuthenticated())) return { ok: false, status: 401 };
+  const user = await getUser();
+  if (!user?.id) return { ok: false, status: 404 };
+  return { ok: true, userId: user.id };
 }
 
 export async function GET() {
+  const auth = await authedUserId();
+  if (!auth.ok) return NextResponse.json({ error: "unauthorized" }, { status: auth.status });
   try {
-    const { getUser, isAuthenticated } = getKindeServerSession();
-
-    if (!isAuthenticated()) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await getUser();
-    if (!user?.id) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Get user data from Redis
-    const userDataStr = await redis.get(`user:${user.id}`);
-
-    let userData;
-    if (!userDataStr) {
-      userData = {
-        workspaces: [],
-        activeWorkspaceId: null,
-        lastSynced: null,
-      };
-    } else {
-      userData = JSON.parse(userDataStr) as UserData;
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: userData,
-    });
-  } catch (error) {
-    console.error("Error fetching user data:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const repo = createUserDataRepo(getRedis());
+    const data = await repo.get(auth.userId);
+    return NextResponse.json({ success: true, data });
+  } catch (e) {
+    log.error("get failed", { error: String(e) });
+    return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
+  const auth = await authedUserId();
+  if (!auth.ok) return NextResponse.json({ error: "unauthorized" }, { status: auth.status });
   try {
-    const { getUser, isAuthenticated } = getKindeServerSession();
-
-    if (!isAuthenticated()) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const contentLength = Number(request.headers.get("content-length") ?? 0);
+    if (Number.isFinite(contentLength) && contentLength > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: "payload_too_large" }, { status: 413 });
     }
-
-    const user = await getUser();
-    if (!user?.id) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const body = await request.json();
-    const { workspaces, activeWorkspaceId } = body;
-
-    // Validate the data structure
-    if (!Array.isArray(workspaces)) {
+    const json = await request.json();
+    const parsed = SyncPostBodySchema.safeParse(json);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid workspaces data" },
-        { status: 400 }
+        { error: "invalid_body", issues: parsed.error.issues.map((i) => i.message) },
+        { status: 400 },
       );
     }
-
-    const userData: UserData = {
-      workspaces,
-      activeWorkspaceId,
-      lastSynced: new Date().toISOString(),
-      userId: user.id,
-    };
-
-    // Save user data to Redis with expiration (1 year)
-    await redis.setex(
-      `user:${user.id}`,
-      365 * 24 * 60 * 60, // 1 year in seconds
-      JSON.stringify(userData)
-    );
-
+    const repo = createUserDataRepo(getRedis());
+    const result = await repo.save({
+      userId: auth.userId,
+      workspaces: parsed.data.workspaces,
+      activeWorkspaceId: parsed.data.activeWorkspaceId,
+      expectedRevision: parsed.data.expectedRevision,
+    });
+    if (result.kind === "unavailable") {
+      return NextResponse.json({ error: "service_unavailable" }, { status: 503 });
+    }
+    if (result.kind === "conflict") {
+      return NextResponse.json(
+        { success: false, error: "revision_conflict", server: result.server },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({
       success: true,
-      message: "Data synced successfully",
-      lastSynced: userData.lastSynced,
+      revision: result.data.revision,
+      updatedAt: result.data.updatedAt,
     });
-  } catch (error) {
-    console.error("Error syncing user data:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+  } catch (e) {
+    log.error("post failed", { error: String(e) });
+    return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 }
 
 export async function DELETE() {
+  const auth = await authedUserId();
+  if (!auth.ok) return NextResponse.json({ error: "unauthorized" }, { status: auth.status });
   try {
-    const { getUser, isAuthenticated } = getKindeServerSession();
-
-    if (!isAuthenticated()) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await getUser();
-    if (!user?.id) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    // Delete user data from Redis
-    await redis.del(`user:${user.id}`);
-
-    return NextResponse.json({
-      success: true,
-      message: "User data deleted successfully",
-    });
-  } catch (error) {
-    console.error("Error deleting user data:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    const repo = createUserDataRepo(getRedis());
+    await repo.delete(auth.userId);
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    log.error("delete failed", { error: String(e) });
+    return NextResponse.json({ error: "internal" }, { status: 500 });
   }
 }

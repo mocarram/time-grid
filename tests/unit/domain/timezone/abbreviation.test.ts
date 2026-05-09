@@ -1,6 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { zoneDisplay } from "@domain/timezone/abbreviation";
+import { describe, expect, it } from "vitest";
 
 describe("zoneDisplay", () => {
   it("New York winter is EST", () => {

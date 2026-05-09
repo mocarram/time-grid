@@ -1,7 +1,6 @@
-import { describe, expect, it } from "vitest";
-
 import { createTimeStateStore } from "@app/stores/time-state-store";
 import { wallClockInZone } from "@domain/timezone/offset";
+import { describe, expect, it } from "vitest";
 
 describe("timeStateStore", () => {
   it("setWallClock marks isModified true", () => {

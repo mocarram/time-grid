@@ -2,10 +2,10 @@
 // concurrency. Supports v1 → v2 migration on first read.
 
 import { REDIS_KEYS } from "@config/index";
-import { logger } from "@infra/logger/index";
-import { UserDataV2Schema, type UserDataV2 } from "@schemas/sync";
-import type { Workspace } from "@schemas/workspace";
 import { ensureValidActiveWorkspace } from "@domain/workspace/operations";
+import { logger } from "@infra/logger/index";
+import { type UserDataV2,UserDataV2Schema } from "@schemas/sync";
+import type { Workspace } from "@schemas/workspace";
 
 const log = logger.scoped("redis.user-data");
 

@@ -1,8 +1,7 @@
-import { http, HttpResponse } from "msw";
-import { describe, expect, it } from "vitest";
-
 import { createTimezoneClient } from "@infra/api/timezone";
 import { server } from "@test/setup/msw-server";
+import { http, HttpResponse } from "msw";
+import { describe, expect, it } from "vitest";
 
 describe("timezoneClient.resolve", () => {
   const client = createTimezoneClient();

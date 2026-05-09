@@ -1,7 +1,6 @@
-import { z } from "zod";
-
 import { LIMITS } from "@config/index";
 import { isValidIanaZone } from "@domain/timezone/iana";
+import { z } from "zod";
 
 const TrimmedString = (max: number, label: string) =>
   z

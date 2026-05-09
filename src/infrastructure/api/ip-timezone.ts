@@ -1,5 +1,5 @@
 import { LIMITS } from "@config/index";
-import { IpTimezoneResponseSchema, type IpTimezoneResponse } from "@schemas/api";
+import { type IpTimezoneResponse,IpTimezoneResponseSchema } from "@schemas/api";
 
 import { apiFetch, type ApiResult } from "./fetch";
 

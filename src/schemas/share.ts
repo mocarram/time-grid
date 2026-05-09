@@ -1,8 +1,7 @@
+import { LIMITS } from "@config/index";
 import { z } from "zod";
 
-import { LIMITS } from "@config/index";
-
-import { ImportableTimezoneSchema, IanaZoneSchema } from "./timezone";
+import { IanaZoneSchema,ImportableTimezoneSchema } from "./timezone";
 import { WorkspaceColorSchema, WorkspaceIconSchema } from "./workspace";
 
 export const ShareSnapshotV2Schema = z

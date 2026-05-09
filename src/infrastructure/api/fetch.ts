@@ -1,8 +1,7 @@
 // Typed fetch helper with timeout/abort and Zod validation.
 
-import type { ZodTypeAny } from "zod";
-
 import { logger } from "@infra/logger/index";
+import type { output as zOutput,ZodTypeAny } from "zod";
 
 const log = logger.scoped("api");
 
@@ -23,11 +22,11 @@ export interface FetchOptions {
   body?: unknown;
 }
 
-export async function apiFetch<T>(
+export async function apiFetch<S extends ZodTypeAny>(
   url: string,
-  schema: { safeParse: (data: unknown) => { success: true; data: T } | { success: false; error: { issues: { message: string }[] } } } & Pick<ZodTypeAny, never>,
+  schema: S,
   opts: FetchOptions = {},
-): Promise<ApiResult<T>> {
+): Promise<ApiResult<zOutput<S>>> {
   const { timeoutMs = 8000, signal, headers, method = "GET", body } = opts;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new DOMException("timeout", "TimeoutError")), timeoutMs);

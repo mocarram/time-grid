@@ -7,8 +7,11 @@ import {
   type UserDataV2,
 } from "@schemas/sync";
 import type { Workspace } from "@schemas/workspace";
+import { z } from "zod";
 
-import { apiFetch, type ApiResult, type ApiError } from "./fetch";
+import { type ApiError,apiFetch, type ApiResult } from "./fetch";
+
+const DeleteResponseSchema = z.object({ success: z.literal(true) }).strict();
 
 export interface UserDataClient {
   check(signal?: AbortSignal): Promise<ApiResult<{ hasData: boolean; lastSynced: string | null; revision: number | null }>>;
@@ -22,13 +25,6 @@ export interface UserDataClient {
   >;
   delete(signal?: AbortSignal): Promise<ApiResult<{ success: true }>>;
 }
-
-const DeleteResponseSchema = {
-  safeParse: (data: unknown) =>
-    data && typeof data === "object" && "success" in data && (data as { success: unknown }).success === true
-      ? { success: true as const, data: { success: true as const } }
-      : ({ success: false as const, error: { issues: [{ message: "expected { success: true }" }] } } as const),
-};
 
 export function createUserDataClient(): UserDataClient {
   return {

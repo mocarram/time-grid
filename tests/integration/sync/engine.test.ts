@@ -1,9 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
-
 import { createSyncEngine, type SyncEvent } from "@app/sync/engine";
 import { createDefaultWorkspace } from "@domain/workspace/operations";
 import type { UserDataClient } from "@infra/api/user-data";
 import type { UserDataV2 } from "@schemas/sync";
+import { describe, expect, it, vi } from "vitest";
 
 class FakeTimers {
   pending = new Map<unknown, { fn: () => void; due: number }>();

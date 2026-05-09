@@ -1,9 +1,8 @@
-import fc from "fast-check";
-import { describe, expect, it } from "vitest";
-
 import { LIMITS } from "@config/index";
 import { decodeShareParams, encodeShareSnapshot } from "@domain/sharing/codec";
 import type { ShareSnapshotV2 } from "@schemas/share";
+import fc from "fast-check";
+import { describe, expect, it } from "vitest";
 
 const baseSnapshot = (): ShareSnapshotV2 => ({
   v: 2,
@@ -85,10 +84,10 @@ describe("decode v2 — failure modes", () => {
     const url = `https://example.com/share?v=2&payload=${payload}`;
     const decoded = decodeShareParams(paramsFromUrl(url));
     // It might decode (proto stripped) or be null — what matters is no global pollution.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     expect((Object.prototype as any).polluted).toBeUndefined();
     if (decoded) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       expect((decoded as any).__proto__?.polluted).toBeUndefined();
     }
   });

@@ -1,8 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-import { createWorkspaceStore, buildTimezone } from "@app/stores/workspace-store";
+import { buildTimezone,createWorkspaceStore } from "@app/stores/workspace-store";
 import { createStorageAdapter } from "@infra/storage/local";
 import { InMemoryStorage } from "@infra/storage/memory";
+import { describe, expect, it, vi } from "vitest";
 
 function setup() {
   const storage = new InMemoryStorage();

@@ -2,7 +2,7 @@
 // We rely on Intl.DateTimeFormat with timeZoneName: "short". Some zones return
 // GMT-offset strings ("GMT+5") which we keep as-is.
 
-import { offsetMinutesAt, formatOffsetGmt } from "./offset";
+import { formatOffsetGmt,offsetMinutesAt } from "./offset";
 
 export interface ZoneDisplay {
   abbreviation: string;
