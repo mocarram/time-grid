@@ -1,16 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  webpack: (config, { isServer }) => {
-    config.cache = false;
-    return config;
-  },
   eslint: {
-    ignoreDuringBuilds: true,
+    // Lint runs in CI as a separate step; build is for shipping.
+    ignoreDuringBuilds: false,
+    dirs: ["app", "src", "components", "tests"],
   },
   images: { unoptimized: true },
-  // Ensure we're not using static export which is incompatible with API routes
-  // output: 'export', // This line should be removed/commented out
+  experimental: {
+    typedRoutes: false,
+  },
 };
 
 module.exports = nextConfig;
