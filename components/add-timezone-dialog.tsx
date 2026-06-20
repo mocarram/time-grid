@@ -218,8 +218,8 @@ export function AddTimezoneDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="glass-button hover:glow group h-14 w-14 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-blue-500/25">
-          <Plus className="h-6 w-6 text-blue-300 transition-colors duration-300 group-hover:rotate-90 group-hover:text-white" />
+        <Button className="add-button hover:glow group h-14 w-14 rounded-full shadow-2xl transition-all duration-500 hover:scale-110 hover:shadow-blue-500/25">
+          <Plus className="h-6 w-6 text-gray-800 transition-colors duration-300 group-hover:rotate-90 group-hover:text-white" />
         </Button>
       </DialogTrigger>
       <DialogContent className="glass-card border-white/10 text-white sm:max-w-lg">
@@ -241,7 +241,7 @@ export function AddTimezoneDialog({
             </TabsTrigger>
             <TabsTrigger
               value="abbreviations"
-              className="text-slate-400 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300"
+              className="text-slate-400 data-[state=active]:bg-lime-500/20 data-[state=active]:text-lime-300"
             >
               <Clock className="mr-2 h-4 w-4" />
               Time Zones
@@ -284,68 +284,64 @@ export function AddTimezoneDialog({
                   {searchResults.map(city => (
                     <div
                       key={city.id}
-                      className={`glass group rounded-xl p-4 transition-all duration-300 ${
-                        existingTimezones.some(
-                          existing =>
-                            existing.city.toLowerCase() ===
-                              city.city.toLowerCase() &&
-                            existing.country.toLowerCase() ===
-                              city.country.toLowerCase() &&
-                            existing.id !== "local"
-                        )
-                          ? "cursor-not-allowed opacity-50"
-                          : "cursor-pointer hover:bg-white/10"
-                      }`}
+                      className={`glass group rounded-xl p-4 transition-all duration-300 ${existingTimezones.some(
+                        existing =>
+                          existing.city.toLowerCase() ===
+                          city.city.toLowerCase() &&
+                          existing.country.toLowerCase() ===
+                          city.country.toLowerCase() &&
+                          existing.id !== "local"
+                      )
+                        ? "cursor-not-allowed opacity-50"
+                        : "cursor-pointer hover:bg-white/10"
+                        }`}
                       onClick={() => handleAddSearchResult(city)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="space-y-1">
                           <div
-                            className={`font-medium transition-colors ${
-                              existingTimezones.some(
-                                existing =>
-                                  existing.city.toLowerCase() ===
-                                    city.city.toLowerCase() &&
-                                  existing.country.toLowerCase() ===
-                                    city.country.toLowerCase() &&
-                                  existing.id !== "local"
-                              )
-                                ? "text-slate-600"
-                                : "text-white group-hover:text-blue-300"
-                            }`}
+                            className={`font-medium transition-colors ${existingTimezones.some(
+                              existing =>
+                                existing.city.toLowerCase() ===
+                                city.city.toLowerCase() &&
+                                existing.country.toLowerCase() ===
+                                city.country.toLowerCase() &&
+                                existing.id !== "local"
+                            )
+                              ? "text-slate-600"
+                              : "text-white group-hover:text-blue-300"
+                              }`}
                           >
                             {city.city}
                           </div>
                           <div
-                            className={`text-sm ${
-                              existingTimezones.some(
-                                existing =>
-                                  existing.city.toLowerCase() ===
-                                    city.city.toLowerCase() &&
-                                  existing.country.toLowerCase() ===
-                                    city.country.toLowerCase() &&
-                                  existing.id !== "local"
-                              )
-                                ? "text-slate-600"
-                                : "text-slate-400"
-                            }`}
+                            className={`text-sm ${existingTimezones.some(
+                              existing =>
+                                existing.city.toLowerCase() ===
+                                city.city.toLowerCase() &&
+                                existing.country.toLowerCase() ===
+                                city.country.toLowerCase() &&
+                                existing.id !== "local"
+                            )
+                              ? "text-slate-600"
+                              : "text-slate-400"
+                              }`}
                           >
                             {city.country}
                           </div>
                         </div>
                         <div
-                          className={`rounded-lg bg-white/5 px-2 py-1 text-xs capitalize ${
-                            existingTimezones.some(
-                              existing =>
-                                existing.city.toLowerCase() ===
-                                  city.city.toLowerCase() &&
-                                existing.country.toLowerCase() ===
-                                  city.country.toLowerCase() &&
-                                existing.id !== "local"
-                            )
-                              ? "text-slate-600"
-                              : "text-slate-500"
-                          }`}
+                          className={`rounded-lg bg-white/5 px-2 py-1 text-xs capitalize ${existingTimezones.some(
+                            existing =>
+                              existing.city.toLowerCase() ===
+                              city.city.toLowerCase() &&
+                              existing.country.toLowerCase() ===
+                              city.country.toLowerCase() &&
+                              existing.id !== "local"
+                          )
+                            ? "text-slate-600"
+                            : "text-slate-500"
+                            }`}
                         >
                           {city.placeType}
                         </div>
@@ -365,7 +361,7 @@ export function AddTimezoneDialog({
 
               {/* Popular Timezones */}
               {(!showResults || searchResults.length === 0) &&
-              filteredTimezones.length === 0 ? (
+                filteredTimezones.length === 0 ? (
                 searchQuery && isSearching ? (
                   <div className="space-y-3">
                     {[...Array(3)].map((_, i) => (
@@ -412,7 +408,7 @@ export function AddTimezoneDialog({
                         {Math.floor(timezone.offset / 60)}
                         {timezone.offset % 60 !== 0
                           ? ":" +
-                            (timezone.offset % 60).toString().padStart(2, "0")
+                          (timezone.offset % 60).toString().padStart(2, "0")
                           : ""}
                       </div>
                     </div>
@@ -459,21 +455,21 @@ export function AddTimezoneDialog({
                             </span>
                           )}
                         </div>
-                        <div className="text-sm font-medium text-white transition-colors group-hover:text-blue-300">
+                        <div className="text-sm font-medium text-white transition-colors group-hover:text-lime-300">
                           {abbr.name}
                         </div>
                         <div className="text-sm text-slate-400">
                           {abbr.region}
                         </div>
                       </div>
-                      <div className="rounded-lg bg-white/5 px-2 py-1 font-mono text-xs text-slate-500">
+                      <div className="rounded-lg bg-lime-400/2 px-2 py-1 font-mono text-xs text-red-300">
                         GMT{getTimezoneOffset(abbr.timezone) >= 0 ? "+" : ""}
                         {Math.floor(getTimezoneOffset(abbr.timezone) / 60)}
                         {getTimezoneOffset(abbr.timezone) % 60 !== 0
                           ? ":" +
-                            (getTimezoneOffset(abbr.timezone) % 60)
-                              .toString()
-                              .padStart(2, "0")
+                          (getTimezoneOffset(abbr.timezone) % 60)
+                            .toString()
+                            .padStart(2, "0")
                           : ""}
                       </div>
                     </div>

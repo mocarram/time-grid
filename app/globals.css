@@ -57,6 +57,10 @@
     @apply rounded-lg border border-white/20 bg-white/10 backdrop-blur-md transition-all duration-300 hover:bg-white/20;
   }
 
+  .add-button {
+    @apply rounded-lg border border-white/20 bg-lime-300 duration-300;
+  }
+
   .glass-input {
     @apply border border-white/10 bg-white/5 backdrop-blur-md transition-all duration-300 focus:border-white/30;
   }
